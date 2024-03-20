@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(custom_msgs)
+project(homodeus_msgs)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -8,13 +8,8 @@ project(custom_msgs)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  # actionlib
-  # actionlib_msgs
   geometry_msgs
-  # roscpp
-  rospy
   std_msgs
-  # move_base_msgs
   message_generation
 )
 
@@ -45,10 +40,12 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate messages in the 'msg' folder
 add_message_files(
   FILES
-  # GoToResult.msg
-  FacePosition.msg
-  FacePositions.msg
-  # TestDesire.msg
+  BoundingBox.msg
+  Float32Stamped.msg
+  # FacePositions.msg
+  Int8Stamped.msg
+  ObjectDetection.msg
+  ObjectsDetection.msg
 )
 
 ## Generate actions in the 'action' folder
@@ -62,7 +59,6 @@ add_message_files(
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
   DEPENDENCIES
-  # actionlib_msgs
   geometry_msgs
   std_msgs
 )
@@ -80,7 +76,7 @@ catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES base_navigation
   # CATKIN_DEPENDS geometry_msgs roscpp rospy actionlib std_msgs move_base_msgs actionlib_msgs message_runtime
-  CATKIN_DEPENDS geometry_msgs rospy std_msgs
+  CATKIN_DEPENDS message_runtime geometry_msgs std_msgs
 #  DEPENDS system_lib
 )
 
