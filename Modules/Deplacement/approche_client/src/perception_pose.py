@@ -70,7 +70,7 @@ class RobotPose():
 
     # Publisher
     self.__rate: Rate = Rate(10) # 10hz
-    self.__robot_pose_pub: Publisher = Publisher("/homodeus/perceptions/robot_pose", Vector3, queue_size=1)
+    self.__robot_pose_pub: Publisher = Publisher("/homodeus/perception/robot_pose", Vector3, queue_size=1)
 
     rospy.loginfo("Robot Pose initialized")
     self.__robot_pose_publisher()
@@ -107,6 +107,8 @@ class RobotPose():
     # mat_sum:      float     = sum([i for i in covar_mat])
     
     yaw   = quarternion2euler(pose.orientation).z
+    if yaw < 0.0 :
+      yaw = 2*pi+yaw
     self.__odom_pose = Vector3(position.x, position.y, yaw)
     # self.__robot_pose_pub.publish(self.__odom_pose)
 
