@@ -67,6 +67,9 @@ class ApproachClient():
 
     # Initialize homodeus_msgs::ObjectDetection to send on topic
     # TODO Revoir le calcul et d'où vient self.__camera_Pinv
+    # https://docs.ros.org/en/api/image_geometry/html/python/
+    # Commentaire 
+    # On initialise l’objet avec le message provenant du « camera_info » de la caméra, puis on peut utiliser des fonctions très pratiques comme « projectPixelTo3dRay », qui donne un vecteur unitaire qui lui ensuite peut être multiplié par le « d » que vous trouvez dans la matrice de profondeur. C’est qu’en fait la carte de profondeur est déjà en « z », donc on peut sauter une étape. Le détail est que ce n’est pas toujours clair dans quelles unités les données sont, mais l’avantage de passer par PinholeCameraModel est qu’il se base entièrement sur le format utilisé par camera_info et ne devrait pas vous donnez de soucis.
     objectDetected: ObjectDetection = ObjectDetection()
     (offset_x, offset_y,_,_) = self.__camera_Pinv @ (point_2d * object_dist).T
     approach_point : Vector3 = Vector3(object_dist, -offset_x[0], -offset_y[0])

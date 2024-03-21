@@ -174,6 +174,7 @@ void sendObjectDetection(ros::Time timestamp, std::string what_is,
   float disparity = cv::mean( depthImage( traget_box ), mask_not_nan )[0];
 
   // // TODO Stereo Camera initialized false, this fct below don't work
+  // https://docs.ros.org/en/api/image_geometry/html/c++/
   // cv::Point center_pnt = cv::Point( objectDetected.box.x + objectDetected.box.width / 2, objectDetected.box.y + objectDetected.box.height / 2 );
   // cv::Point3d positionPerson;
   // stereoCamera.projectDisparityTo3d( center_pnt, disparity, positionPerson );
