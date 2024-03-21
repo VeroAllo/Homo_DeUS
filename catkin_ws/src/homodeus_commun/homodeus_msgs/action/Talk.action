@@ -1,17 +1,17 @@
 # Define the goal (Request)
-unit16 desire_id
+uint16 desire_id
 string msg
----
+# # ---
 # # Define the cancel, not available in actionlib
 # # no cancel for Talk action
 ---
 # Define the result (Response)
-unit16 desire_id
+uint16 desire_id
 # uint8 DONE=0
 # uint8 FAILED=1
 uint16 response
 ---
 # Define a feedback message (status)
-unit16 desire_id
+uint16 desire_id
 # TODO A valider avec equipe HBBA
 string status

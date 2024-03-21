@@ -5,6 +5,6 @@
 ##########################################
 
 # 
-std_msgs/unit16 desire_id
+std_msgs/uint16 desire_id
 
 # Use for cancel msg

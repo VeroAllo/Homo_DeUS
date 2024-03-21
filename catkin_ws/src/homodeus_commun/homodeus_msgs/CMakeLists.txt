@@ -45,23 +45,22 @@ add_message_files(
   BoundingBox.msg
   DesireID.msg
   Float32Stamped.msg
-  # FacePositions.msg
   Int8Stamped.msg
   ObjectDetection.msg
   ObjectsDetection.msg
 )
 
 ## Generate actions in the 'action' folder
-# add_action_files(
-#   DIRECTORY action
-#   FILES
-#   GoTo.action
-#   Talk.action
-#   Discuss.action
-#   Take.action
-#   Drop.action
-#   Explore.action
-# )
+add_action_files(
+  DIRECTORY action
+  FILES
+  GoTo.action
+  Talk.action
+  Discuss.action
+  Take.action
+  Drop.action
+  Explore.action
+)
 
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
@@ -83,8 +82,7 @@ generate_messages(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES base_navigation
-  # CATKIN_DEPENDS geometry_msgs roscpp rospy actionlib std_msgs move_base_msgs actionlib_msgs message_runtime
-  CATKIN_DEPENDS message_runtime geometry_msgs std_msgs
+  CATKIN_DEPENDS message_runtime actionlib_msgs geometry_msgs std_msgs
 #  DEPENDS system_lib
 )
 
