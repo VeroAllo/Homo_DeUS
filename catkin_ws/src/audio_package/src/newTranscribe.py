@@ -1,88 +1,40 @@
+import pyaudio
+import vosk
+import json
 import threading
 import queue
-from gtts import gTTS
-from playsound import playsound
-import requests
-import json
-import numpy as np
-import torch
-from datetime import datetime, timedelta
-import os
-import speech_recognition as sr
-import whisper
-from time import sleep
-import base64
 
+# Créez une file d'attente pour stocker les données audio
+audio_queue = queue.Queue()
 
-# Initialisation
-q = queue.Queue()
-source = sr.Microphone()
-recorder = sr.Recognizer()
-audio_model = whisper.load_model("tiny.en")
+# Créez une fonction pour le thread du producteur qui capture le flux audio
+def audio_producer(audio_queue):
+    # Configurez pyaudio pour capturer le flux audio
+    p = pyaudio.PyAudio()
+    stream = p.open(format=pyaudio.paInt16, channels=1, rate=16000, input=True, frames_per_buffer=8000)
+    stream.start_stream()
 
-record_timeout = 10
-phrase_timeout = 10
-transcription = [] 
-
-
-def record_callback(recognizer, audio_data):
-    audio_bytes = audio_data.get_wav_data()
-    audio_str = base64.b64encode(audio_bytes).decode()  # Convertir bytes en str
-    q.put(audio_str)
-
-# Thread 1 : Enregistrement et transcription de l'audio
-def transcribe():
-    phrase_time = None
-    with source:
-        recorder.adjust_for_ambient_noise(source)
-    recorder.listen_in_background(source, record_callback, phrase_time_limit=record_timeout)
-    print("Model loaded.\n")
     while True:
-        try:
-            now = datetime.utcnow()
-            if not q.empty():
-                phrase_complete = False
-                if phrase_time and now - phrase_time > timedelta(seconds=phrase_timeout):
-                    phrase_complete = True
-                phrase_time = now
-                # Convertir toutes les chaînes en bytes avant de les joindre
-                audio_data = b''.join(item.encode('utf-8') if isinstance(item, str) else item for item in q.queue)
-                q.queue.clear()
-                audio_np = np.frombuffer(audio_data, dtype=np.int16).astype(np.float32) / 32768.0
-                result = audio_model.transcribe(audio_np, fp16=torch.cuda.is_available())
-                text = result['text'].strip()
-                if phrase_complete:
-                    transcription.append(text)
-                else:
-                    transcription[-1] = text
-                os.system('cls' if os.name=='nt' else 'clear')
-                for line in transcription:
-                    if isinstance(line, bytes):
-                        continue
-                    q.put(line)
-                    
-                print('', end='', flush=True)
-                sleep(0.25)
-        except KeyboardInterrupt:
-            break
+        # Capturez les données audio et ajoutez-les à la file d'attente
+        data = stream.read(4000)
+        if len(data) > 0:
+            audio_queue.put(data)
 
-# Thread 2 : Interaction avec le chatbot RASA et conversion de la réponse en parole
-def interact_with_rasa(q):
+# Créez une fonction pour le thread du consommateur qui effectue la transcription
+def audio_consumer(audio_queue):
+    # Configurez vosk pour la transcription
+    vosk_model = vosk.Model("/home/tiblond/Documents/Homo_DeUS/catkin_ws/src/audio_package/src/vosk-model-small-en-us-0.15")
+    vosk_recognizer = vosk.KaldiRecognizer(vosk_model, 16000)
+
     while True:
-        text = q.get()
-        headers = {"Content-Type": "application/json"}
-        response = requests.post("http://localhost:5005/webhooks/rest/webhook", headers=headers, data=json.dumps(text))
-        response_data = json.loads(response.text)
-        if "text" in response_data:  # Vérifier que la clé 'text' existe
-            response_text = response_data["text"]
-        else:
-            response_text = ""
-        tts = gTTS(text=response_text, lang='en')
-        tts.save("response.mp3")
-        playsound("response.mp3")
+        # Obtenez les données audio de la file d'attente et effectuez la transcription
+        data = audio_queue.get()
+        if vosk_recognizer.AcceptWaveform(data):
+            result = json.loads(vosk_recognizer.Result())
+            print(result)
 
-# Démarrage des threads
-t1 = threading.Thread(target=transcribe)
-t2 = threading.Thread(target=interact_with_rasa, args=(q,))
-t1.start()
-t2.start()
+# Créez et démarrez les threads du producteur et du consommateur
+producer_thread = threading.Thread(target=audio_producer, args=(audio_queue,))
+consumer_thread = threading.Thread(target=audio_consumer, args=(audio_queue,))
+producer_thread.start()
+consumer_thread.start()
