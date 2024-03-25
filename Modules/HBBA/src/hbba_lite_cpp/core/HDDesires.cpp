@@ -1,4 +1,4 @@
-#include <HDDesires.h>
+#include <hbba_lite/core/HDDesires.h>
 
 
 GotoDesire::GotoDesire(uint16_t intensity) : Desire(intensity) {}
