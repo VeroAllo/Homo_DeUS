@@ -2,40 +2,24 @@ version: "3.1"
 
 stories:
 
-- story: Order food story
+- story: Order only drink
   steps:
   - intent: greet
   - action: utter_greet
-  - intent: ask_for_menu
-  - action: utter_show_menu
-  - intent: order_food
-  - action: utter_confirm_order
+  - intent: order_drink
+  - action: action_order_drink
   - intent: goodbye
   - action: utter_goodbye
 
-- story: happy path
+- story: Order drink and confirm
   steps:
-  - intent: greet
-  - action: utter_greet
-  - intent: mood_great
-  - action: utter_happy
+  - intent: order_drink
+  - action: action_order_drink
 
-- story: sad path 1
+- story: Order Drink Flow
   steps:
-  - intent: greet
-  - action: utter_greet
-  - intent: mood_unhappy
-  - action: utter_cheer_up
-  - action: utter_did_that_help
-  - intent: affirm
-  - action: utter_happy
-
-- story: sad path 2
-  steps:
-  - intent: greet
-  - action: utter_greet
-  - intent: mood_unhappy
-  - action: utter_cheer_up
-  - action: utter_did_that_help
-  - intent: deny
-  - action: utter_goodbye
+  - intent: order_drink
+  - action: action_order_drink
+  - intent: confirm_order
+  - action: action_confirm_order
+  - action: utter_order_completed 

@@ -10,6 +10,10 @@ from rasa.core.agent import Agent
 from gtts import gTTS
 import os
 
+from rasa.core.channels.channel import UserMessage
+from rasa.shared.core.events import Event
+from rasa.core.processor import MessageProcessor
+
 class AudioProducer(threading.Thread):
     def __init__(self, audio_queue):
         threading.Thread.__init__(self)
@@ -32,30 +36,31 @@ class AudioConsumer(threading.Thread):
         self.vosk_recognizer = vosk.KaldiRecognizer(self.vosk_model, 16000)
 
         # Chargez votre modèle RASA
-        self.agent = Agent.load('/home/tiblond/Documents/Homo_DeUS/catkin_ws/src/audio_package/src/rasa_serveur/models/20240323-223149-marked-vibrato.tar.gz')
+        self.agent = Agent.load('/home/tiblond/Documents/Homo_DeUS/catkin_ws/src/audio_package/src/rasa_serveur/models/20240325-151709-fancy-cooler.tar.gz')
 
     async def process_text(self, text):
-        responses = await self.agent.handle_text(text)
-        for response in responses:
-            print(response['text'])
+        if text.strip():  # Vérifie si le texte n'est pas vide
+            responses = await self.agent.handle_text(text)
+            for response in responses:
+                print(response)  # Ajoutez cette ligne pour déboguer les réponses
+                if 'text' in response:  # Vérifie si le message est de type 'text'
+                    print(response['text'])
 
-            # Convertir le texte en parole
-            tts = gTTS(text=response['text'], lang='en')
-            tts.save("response.mp3")
-            os.system("mpg321 response.mp3")
+                    # Convertir le texte en parole
+                    tts = gTTS(text=response['text'], lang='en')
+                    tts.save("response.mp3")
+                    os.system("mpg321 response.mp3")
 
     def run(self):
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
+        print(f"Rasa agent: {self.agent}")  # Debug print statement
         while True:
             data = self.audio_queue.get()
             if self.vosk_recognizer.AcceptWaveform(data):
                 result = json.loads(self.vosk_recognizer.Result())
-                print(result)
-
-                # Utilisez votre modèle RASA pour générer une réponse
-                loop.run_until_complete(self.process_text(result['text']))
-
+                loop.run_until_complete(self.process_text(result['text'])) 
+    
 
 audio_queue = queue.Queue()
 producer = AudioProducer(audio_queue)

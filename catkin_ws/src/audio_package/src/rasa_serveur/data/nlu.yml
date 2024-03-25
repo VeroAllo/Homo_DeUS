@@ -1,19 +1,27 @@
 version: "3.1"
 
 nlu:
-
-- intent: order_food
+- intent: order_drink
   examples: |
-    - I would like to order a pizza
-    - Can I have a burger, please?
-    - I'll have a salad
+    - I would like a [coke](ordered_drink)
+    - Can I get a [sprite](ordered_drink)
+    - I want a [coke](ordered_drink)
+    - Can you get me a [Dr.Pepper](ordered_drink)
+    - I would like to order a [sprite](ordered_drink)
+    - I want a [Dr.Pepper](ordered_drink)
 
-- intent: ask_for_menu
+- intent: ask_for_drink
   examples: |
-    - Can I see the menu?
-    - What do you have?
-    - What's on the menu?
+    - Can I have a drink?
+    - What drinks do you have?
+    - Show me the menu
+    - What can I order?
 
+- intent: confirm_order
+  examples: |
+    - Yes, that's correct
+    - That's my order
+    - Confirm my order
 
 - intent: greet
   examples: |
@@ -43,63 +51,3 @@ nlu:
     - see you around
     - bye bye
     - see you later
-
-- intent: affirm
-  examples: |
-    - yes
-    - y
-    - indeed
-    - of course
-    - that sounds good
-    - correct
-
-- intent: deny
-  examples: |
-    - no
-    - n
-    - never
-    - I don't think so
-    - don't like that
-    - no way
-    - not really
-
-- intent: mood_great
-  examples: |
-    - perfect
-    - great
-    - amazing
-    - feeling like a king
-    - wonderful
-    - I am feeling very good
-    - I am great
-    - I am amazing
-    - I am going to save the world
-    - super stoked
-    - extremely good
-    - so so perfect
-    - so good
-    - so perfect
-
-- intent: mood_unhappy
-  examples: |
-    - my day was horrible
-    - I am sad
-    - I don't feel very well
-    - I am disappointed
-    - super sad
-    - I'm so sad
-    - sad
-    - very sad
-    - unhappy
-    - not good
-    - not very good
-    - extremly sad
-    - so saad
-    - so sad
-
-- intent: bot_challenge
-  examples: |
-    - are you a bot?
-    - are you a human?
-    - am I talking to a bot?
-    - am I talking to a human?
