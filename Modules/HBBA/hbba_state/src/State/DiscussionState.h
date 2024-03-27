@@ -24,8 +24,16 @@ class DiscussionState : public State, public DesireSetObserver
 protected:
     void enable(const std::string& parameter, const std::type_index& previousStageType) override;
     void disable() override;
+    std::type_index type() const override;
 
 private:
     virtual std::string generateDiscussion();
 };
+
+
+inline std::type_index DiscussionState::type() const
+{
+    return std::type_index(typeid(DiscussionState));
+}
+
 #endif

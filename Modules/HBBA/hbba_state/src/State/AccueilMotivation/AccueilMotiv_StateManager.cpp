@@ -17,14 +17,15 @@ AccueilStateManager::AccueilStateManager(
     m_desireSet(move(desireSet)),
     m_nodeHandle(nodeHandle)
 {
-    setup(strategies, filterPool);
+    setup(move(strategies), move(filterPool));
     type_index greetingStateType = std::type_index(typeid(GreetingState));
-
-    addState(make_unique<GoToAccueilState>(this, desireSet, nodeHandle));
-    addState(make_unique<GreetingState>(this, desireSet, nodeHandle));
-    addState(
-        make_unique<GoToTableState>(this, desireSet, nodeHandle, greetingStateType)
+    ROS_INFO("dans Accueil state manager");
+    // addState(make_unique<GoToAccueilState>(this, desireSet, nodeHandle));
+    // addState(make_unique<GreetingState>(this, desireSet, nodeHandle));
+    stateManager.addState(
+        make_unique<GoToTableState>(stateManager, desireSet, nodeHandle, greetingStateType)
     );
+    ROS_INFO("state gotoTableState fait");
 
 }
 AccueilStateManager::~AccueilStateManager(){

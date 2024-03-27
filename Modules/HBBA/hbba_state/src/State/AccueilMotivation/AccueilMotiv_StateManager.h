@@ -6,11 +6,12 @@
 #include <memory>
 #include <hbba_lite/core/Strategy.h>
 
-class AccueilStateManager: StateManager
+class AccueilStateManager//: StateManager
 {
     protected:
     std::shared_ptr<DesireSet> m_desireSet;
     ros::NodeHandle& m_nodeHandle;
+    StateManager stateManager;
     
     public:
     AccueilStateManager(

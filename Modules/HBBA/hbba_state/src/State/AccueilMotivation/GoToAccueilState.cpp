@@ -10,8 +10,9 @@ GoToAccueilState::GoToAccueilState(
     ros::NodeHandle& nodeHandle)
     : GoToState(stateManager, desireSet, nodeHandle,  type_index(typeid(GreetingState)))
 {
-
+    ROS_INFO("state GoToAccueilState creer");
 }
+
 GoToAccueilState::~GoToAccueilState(){}
 
 string GoToAccueilState::generateGoal()

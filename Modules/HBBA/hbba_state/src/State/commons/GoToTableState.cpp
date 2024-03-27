@@ -1,7 +1,6 @@
 #include "GoToTableState.h"
 #include "../StateManager.h"
 
-
 using namespace std;
 
 GoToTableState::GoToTableState(
@@ -11,8 +10,9 @@ GoToTableState::GoToTableState(
     std::type_index nextStateType)
     : GoToState(stateManager, desireSet, nodeHandle, nextStateType)
 {
-
+    ROS_INFO("state GoToTableState creer");
 }
+
 GoToTableState::~GoToTableState() {}
 
 string GoToTableState::generateGoal()

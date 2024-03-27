@@ -2,7 +2,6 @@
 #include "StateManager.h"
 #include "../hbba_core/HDDesires.h"
 
-
 using namespace std;
 
 DiscussionState::DiscussionState(
@@ -16,7 +15,8 @@ DiscussionState::DiscussionState(
     m_desireSet->addObserver(this);
 }
 
-DiscussionState::~DiscussionState(){
+DiscussionState::~DiscussionState()
+{
     m_desireSet->removeObserver(this);
 }
 
@@ -28,7 +28,6 @@ void DiscussionState::onDesireSetChanged(const vector<unique_ptr<Desire>>& _)
     }
 
     m_stateManager.switchTo(m_nextStateType);
-
 }
 
 void DiscussionState::enable(const string& parameter, const type_index& previousStageType)

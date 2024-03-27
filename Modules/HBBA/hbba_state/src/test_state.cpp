@@ -2,6 +2,10 @@
 #include "State/commons/GoToTableState.h"
 #include "State/AccueilMotivation/GreetingState.h"
 #include "State/AccueilMotivation/GoToAccueilState.h"
+// #include "State/DiscussionState.cpp"
+// #include "State/TakeState.cpp"
+// #include "State/DropState.cpp"
+// #include "State/GoToKitchenState.h"
 
 #include <ros/ros.h>
 
@@ -40,7 +44,11 @@ void startNode(ros::NodeHandle& nodeHandle)
 
 
     // type_index gotoTableStateType(typeid(GoToTableState));
-    type_index greetingStateType = std::type_index(typeid(GreetingState));
+    type_index greetingStateType = type_index(typeid(GreetingState));
+    // type_index discussStateType = type_index(typeid(DiscussionState));
+    // type_index takeStateType = type_index(typeid(TakeState));
+    // type_index kitchenStateType = type_index(typeid(GoToKitchenState));
+    // type_index dropStatetype = type_index(typeid(DropState));
 
     stateManager.addState(
         make_unique<GoToAccueilState>(stateManager, desireSet, nodeHandle)
@@ -52,6 +60,19 @@ void startNode(ros::NodeHandle& nodeHandle)
         make_unique<GoToTableState>(stateManager, desireSet, nodeHandle, greetingStateType)
     );
     ROS_INFO("state gotoTableState fait");
+    // stateManager.addState(
+    //     make_unique<DiscussionState>(stateManager, desireSet, nodeHandle, kitchenStateType)
+    // );
+    // stateManager.addState(
+    //     make_unique<TakeState>(stateManager, desireSet, nodeHandle, kitchenStateType)
+    // );
+    // stateManager.addState(
+    //     make_unique<GoToKitchenState>(stateManager, desireSet, nodeHandle, greetingStateType)
+    // );
+    // stateManager.addState(
+    //     make_unique<DropState>(stateManager, desireSet, nodeHandle, greetingStateType)
+    // );
+    ROS_INFO("state DropState fait");
 
     stateManager.switchTo<GoToAccueilState>();
 

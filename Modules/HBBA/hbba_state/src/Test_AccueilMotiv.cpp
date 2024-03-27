@@ -1,7 +1,4 @@
-#include "State/StateManager.h"
-#include "State/commons/GoToTableState.h"
-#include "State/AccueilMotivation/GreetingState.h"
-#include "State/AccueilMotivation/GoToAccueilState.h"
+#include "State/AccueilMotivation/AccueilMotiv_StateManager.h"
 
 #include <ros/ros.h>
 
@@ -20,40 +17,18 @@
 using namespace std;
 constexpr bool WAIT_FOR_SERVICE = true;
 
+
 void startNode(ros::NodeHandle& nodeHandle)
 {
     auto desireSet = make_shared<DesireSet>();
     auto filterPool = make_shared<RosFilterPool>(nodeHandle, WAIT_FOR_SERVICE);
 
     vector<unique_ptr<BaseStrategy>> strategies;
-    //setup strategy needed for state
-    // strategies.emplace_back(createSpeechToTextStrategy(filterPool));
-    // strategies.emplace_back(createExploreStrategy(filterPool));
-    // strategies.emplace_back(createTalkStrategy(filterPool, desireSet, nodeHandle));
-    // strategies.emplace_back(createGoToStrategy(filterPool));
-
     auto solver = make_unique<GecodeSolver>();
     auto strategyStateLogger = make_unique<RosTopicStrategyStateLogger>(nodeHandle);
     HbbaLite hbba(desireSet, move(strategies), {/*ressource*/}, move(solver), move(strategyStateLogger));
     ROS_INFO("Allo HBBA lite");
-    StateManager stateManager;
-
-
-    // type_index gotoTableStateType(typeid(GoToTableState));
-    type_index greetingStateType = std::type_index(typeid(GreetingState));
-
-    stateManager.addState(
-        make_unique<GoToAccueilState>(stateManager, desireSet, nodeHandle)
-    );
-    stateManager.addState(
-        make_unique<GreetingState>(stateManager, desireSet, nodeHandle)
-    );
-    stateManager.addState(
-        make_unique<GoToTableState>(stateManager, desireSet, nodeHandle, greetingStateType)
-    );
-    ROS_INFO("state gotoTableState fait");
-
-    stateManager.switchTo<GoToAccueilState>();
+    AccueilStateManager stateManager(desireSet, nodeHandle, move(strategies), move(filterPool));
 
     ros::spin();
 }
@@ -64,6 +39,7 @@ int main(int argc, char** argv)
     ros::NodeHandle nodeHandle;
     ros::NodeHandle privateNodeHandle("~");
     ROS_INFO("Allo node");
+
 
     startNode(nodeHandle);
     return 0;

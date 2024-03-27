@@ -139,13 +139,19 @@ add_library(${PROJECT_NAME}
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(${PROJECT_NAME}_node 
-  src/Demo1_main.cpp
+  # src/Demo1_main.cpp
+  src/test_state.cpp
+  #src/Test_AccueilMotiv.cpp
   # src/hbba_core/HDStrategies.cpp
   # src/hbba_core/HDStrategy.cpp
   src/hbba_core/HDDesires.cpp
   src/State/GoToState.cpp
-  src/State/DiscussionState.cpp
+  # src/State/GoToKitchenState.cpp
+  # src/State/DiscussionState.cpp
+  # src/State/TakeState.cpp
+  # src/State/DropState.cpp
   src/State/commons/GoToTableState.cpp
+  src/State/AccueilMotivation/AccueilMotiv_StateManager.cpp
   src/State/AccueilMotivation/GreetingState.cpp
   src/State/AccueilMotivation/GoToAccueilState.cpp
   src/State/State.cpp
