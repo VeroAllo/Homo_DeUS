@@ -1,6 +1,6 @@
 #include "GoToState.h"
 #include "StateManager.h"
-
+#include "../hbba_core/HDDesires.h"
 //#include <t_top_hbba_lite/Desires.h>
 
 using namespace std;
@@ -35,7 +35,7 @@ void GoToState::onDesireSetChanged(const vector<unique_ptr<Desire>>& _)
 void GoToState::enable(const string& parameter, const type_index& previousStageType)
 {
     State::enable(parameter, previousStageType);
-    auto gotoDesire = make_unique<GoToDesire>(generateGoal(parameter));
+    auto gotoDesire = make_unique<GotoDesire>(generateGoal());
     m_gotoDesireId = gotoDesire->id();
 
     m_desireIds.emplace_back(gotoDesire->id());

@@ -1,4 +1,4 @@
-#include <hbba_lite/core/HDDesires.h>
+#include "HDDesires.h"
 
 
 GotoDesire::GotoDesire(uint16_t intensity) : Desire(intensity) {}
@@ -14,3 +14,5 @@ FindDesire::FindDesire(uint16_t intensity) : Desire(intensity) {}
 ListenDesire::ListenDesire(uint16_t intensity) : Desire(intensity) {}
 
 SpeakDesire::SpeakDesire(uint16_t intensity) : Desire(intensity) {}
+
+DiscussDesire::DiscussDesire(uint16_t intensity) : Desire(intensity) {}

@@ -1,35 +1,38 @@
-#ifndef HD_TALK_STATE_H
-#define HD_TALK_STATE_H
+#ifndef HD_TAKE_STATE_H
+#define HD_TAKE_STATE_H
 
 #include "State.h"
 
-class TalkState : public State, public DesireSetObserver
+class TakeState : public State, public DesireSetObserver
 {
     std::type_index m_nextStateType;
-
-    uint64_t m_talkDesireId;
+    uint64_t m_takeDesireId;
 
 public:
-    TalkState(
+    TakeState(
         StateManager& stateManager,
         std::shared_ptr<DesireSet> desireSet,
         ros::NodeHandle& nodeHandle,
         std::type_index nextStateType);
-    ~TalkState() override;
+    ~TakeState() override;
 
-    DECLARE_NOT_COPYABLE(TalkState);
-    DECLARE_NOT_MOVABLE(TalkState);
+    DECLARE_NOT_COPYABLE(TakeState);
+    DECLARE_NOT_MOVABLE(TakeState);
 
     void onDesireSetChanged(const std::vector<std::unique_ptr<Desire>>& _) override;
 
 protected:
     void enable(const std::string& parameter, const std::type_index& previousStageType) override;
     void disable() override;
-    
+    std::type_index type() const override;
 
 private:
-    virtual std::string generateText(const std::string& parameter) { return "";};
+    std::string generateObjectToTake(const std::string& parameter);
 };
 
-#endif
+inline std::type_index TakeState::type() const
+{
+    return std::type_index(typeid(TakeState));
+}
 
+#endif

@@ -7,6 +7,7 @@
 #include <iostream>
 #include <vector>
 #include <map>
+#include <std_msgs/String.h>
 
 template<class T>
 class HDStrategy : public Strategy<T>

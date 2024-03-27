@@ -1,7 +1,7 @@
-#include <HDStrategies.h>
+#include "HDStrategies.h"
 
 GotoStrategy::GotoStrategy(std::shared_ptr<FilterPool> filterPool) 
-: HDStrategy<nullptr>
+: HDStrategy<GotoDesire>
 (std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, const std::map<std::string,
  bool>& publisherTopicList, const std::map<std::string, bool>& subscriberTopicList, DesireSet& desireSet,
  std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName)
@@ -13,7 +13,7 @@ void GotoStrategy::SubscriberCallBack(const std_msgs::String::ConstPtr& msg)
 {
     if(msg->data == GotoStrategy::m_desireID)
     {
-        Stragy<GotoDesire>::onDisabling();
+        Strategy<GotoDesire>::onDisabling();
         /*GotoStrategy::onDisabling();*/
     }
 }
@@ -23,7 +23,7 @@ void GotoStrategy::Publish(GotoDesire desire)
     GotoStrategy::m_desireID = desire.id();
     std_msgs::String msg;
     msg.data = desire.id();
-    Stragy<GotoDesire>::onEnabling(msg);
+    Strategy<GotoDesire>::onEnabling(msg);
     /*GotoStrategy::onEnabling(msg);*/
     for(ros::Publisher pub : GotoStrategy::m_PublisherList){
         pub.publish(msg);
@@ -32,7 +32,7 @@ void GotoStrategy::Publish(GotoDesire desire)
 
 
 TalkStrategy::TalkStrategy(std::shared_ptr<FilterPool> filterPool) 
-: HDStrategy<nullptr>
+: HDStrategy<TalkDesire>
 (std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, const std::map<std::string,
  bool>& publisherTopicList, const std::map<std::string, bool>& subscriberTopicList, DesireSet& desireSet,
  std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName)
@@ -44,7 +44,7 @@ void TalkStrategy::SubscriberCallBack(const std_msgs::String::ConstPtr& msg)
 {
     if(msg->data == TalkStrategy::m_desireID)
     {
-        Stragy<TalkDesire>::onDisabling();
+        Strategy<TalkDesire>::onDisabling();
         /*TalkStrategy::onDisabling();*/
     }
 }
@@ -55,7 +55,7 @@ void TalkStrategy::Publish(TalkDesire desire)
     TalkStrategy::m_desireID = desire.id();
     std_msgs::String msg;
     msg.data = desire.name();
-    Stragy<TalkDesire>::onEnabling(msg);
+    Strategy<TalkDesire>::onEnabling(msg);
     /*TalkStrategy::onEnabling(msg);*/
     for(ros::Publisher pub : TalkStrategy::m_PublisherList){
         pub.publish(msg);
@@ -75,7 +75,7 @@ void DiscussStrategy::SubscriberCallBack(const std_msgs::String::ConstPtr& msg)
 {
     if(msg->data == DiscussStrategy::m_desireID)
     {
-        Stragy<DiscussDesire>::onDisabling();
+        Strategy<DiscussDesire>::onDisabling();
         /*DiscussStrategy::onDisabling();*/
     }
 }
@@ -85,7 +85,7 @@ void DiscussStrategy::Publish(DiscussDesire desire)
     DiscussStrategy::m_desireID = desire.id();
     std_msgs::String msg;
     msg.data = desire.name();
-    Stragy<DiscussDesire>::onEnabling(msg);
+    Strategy<DiscussDesire>::onEnabling(msg);
     /*DiscussStrategy::onEnabling(msg);*/
     for(ros::Publisher pub : DiscussStrategy::m_PublisherList){
         pub.publish(msg);
@@ -106,7 +106,7 @@ void TakeStrategy::SubscriberCallBack(const std_msgs::String::ConstPtr& msg)
 {
     if(msg->data == TakeStrategy::m_desireID)
     {
-        Stragy<TakeDesire>::onDisabling();
+        Strategy<TakeDesire>::onDisabling();
         /*TakeStrategy::onDisabling();*/
     }
 }
@@ -117,7 +117,7 @@ void TakeStrategy::Publish(TakeDesire desire)
     TakeStrategy::m_desireID = desire.id();
     std_msgs::String msg;
     msg.data = desire.name();
-    Stragy<TakeDesire>::onEnabling(msg);
+    Strategy<TakeDesire>::onEnabling(msg);
     /*TakeStrategy::onEnabling(msg);*/
     for(ros::Publisher pub : TakeStrategy::m_PublisherList){
         pub.publish(msg);
@@ -137,7 +137,7 @@ void DropStrategy::SubscriberCallBack(const std_msgs::String::ConstPtr& msg)
 {
     if(msg->data == DropStrategy::m_desireID)
     {
-        Stragy<DropDesire>::onDisabling();
+        Strategy<DropDesire>::onDisabling();
         /*DropStrategy::onDisabling();*/
     }
 }
@@ -147,7 +147,7 @@ void DropStrategy::Publish(DropDesire desire)
     DropStrategy::m_desireID = desire.id();
     std_msgs::String msg;
     msg.data = desire.name();
-    Stragy<DropDesire>::onEnabling(msg);
+    Strategy<DropDesire>::onEnabling(msg);
     /*DropStrategy::onEnabling(msg);*/
     for(ros::Publisher pub : DropStrategy::m_PublisherList){
         pub.publish(msg);
@@ -168,7 +168,7 @@ void ExploreStrategy::SubscriberCallBack(const std_msgs::String::ConstPtr& msg)
 {
     if(msg->data == ExploreStrategy::m_desireID)
     {
-        Stragy<ExploreDesire>::onDisabling();
+        Strategy<ExploreDesire>::onDisabling();
         /*ExploreStrategy::onDisabling();*/
     }
 }
@@ -179,7 +179,7 @@ void ExploreStrategy::Publish(ExploreDesire desire)
     ExploreStrategy::m_desireID = desire.id();
     std_msgs::String msg;
     msg.data = desire.name();
-    Stragy<ExploreDesire>::onEnabling(msg);
+    Strategy<ExploreDesire>::onEnabling(msg);
     /*ExploreStrategy::onEnabling(msg);*/
     for(ros::Publisher pub : ExploreStrategy::m_PublisherList){
         pub.publish(msg);

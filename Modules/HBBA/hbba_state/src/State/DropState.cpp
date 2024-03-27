@@ -1,31 +1,31 @@
-#include "TalkState.h"
-
+#include "DropState.h"
 #include "StateManager.h"
+
 
 #include "../hbba_core/HDDesires.h"
 
 using namespace std;
 
-TalkState::TalkState(
+DropState::DropState(
     StateManager& stateManager,
     shared_ptr<DesireSet> desireSet,
     ros::NodeHandle& nodeHandle,
     type_index nextStateType)
     : State(stateManager, desireSet, nodeHandle),
       m_nextStateType(nextStateType),
-      m_talkDesireId(MAX_DESIRE_ID)
+      m_dropDesireId(MAX_DESIRE_ID)
 {
     m_desireSet->addObserver(this);
 }
 
-TalkState::~TalkState()
+DropState::~DropState()
 {
     m_desireSet->removeObserver(this);
 }
 
-void TalkState::onDesireSetChanged(const std::vector<std::unique_ptr<Desire>>& _)
+void DropState::onDesireSetChanged(const std::vector<std::unique_ptr<Desire>>& _)
 {
-    if (!enabled() || m_desireSet->contains(m_talkDesireId))
+    if (!enabled() || m_desireSet->contains(m_dropDesireId))
     {
         return;
     }
@@ -33,12 +33,12 @@ void TalkState::onDesireSetChanged(const std::vector<std::unique_ptr<Desire>>& _
     m_stateManager.switchTo(m_nextStateType);
 }
 
-void TalkState::enable(const string& parameter, const type_index& previousStageType)
+void DropState::enable(const string& parameter, const type_index& previousStageType)
 {
     State::enable(parameter, previousStageType);
 
-    auto talkDesire = make_unique<TalkDesire>(generateText(parameter));
-    m_talkDesireId = talkDesire->id();
+    auto talkDesire = make_unique<TalkDesire>(generateDrop());
+    m_dropDesireId = talkDesire->id();
 
     m_desireIds.emplace_back(talkDesire->id());
 
@@ -46,8 +46,13 @@ void TalkState::enable(const string& parameter, const type_index& previousStageT
     m_desireSet->addDesire(move(talkDesire));
 }
 
-void TalkState::disable()
+void DropState::disable()
 {
     State::disable();
-    m_talkDesireId = MAX_DESIRE_ID;
+    m_dropDesireId = MAX_DESIRE_ID;
+}
+
+string DropState::generateDrop()
+{
+    return "drop";
 }
