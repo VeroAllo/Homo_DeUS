@@ -1,187 +1,186 @@
-#include<HDStrategies.h>
+#include <ros/ros.h>
+#include <ros/publisher.h>
+#include "HDStrategies.h"
+#include <hbba_lite/filters/FilterState.h>
+#include <hbba_lite/core/Strategy.h>
+#include <std_msgs/String.h>
+#include <memory>
+#include <vector>
 
-GotoStrategy::GotoStrategy(std::shared_ptr<FilterPool> filterPool) 
-: HDStrategy<nullptr>
-(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, const std::map<std::string,
- bool>& publisherTopicList, const std::map<std::string, bool>& subscriberTopicList, DesireSet& desireSet,
- std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName)
+class BaseStrategy;
+
+GotoStrategy::GotoStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, const std::map<std::string,
+ bool>& publisherTopicList, const std::map<std::string, bool>& subscriberTopicList, std::shared_ptr<DesireSet> desireSet,
+ std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName) 
+: HDStrategy(filterPool, nodeHandle, publisherTopicList, subscriberTopicList, desireSet, filterConfigurationByName){}
+
+
+void GotoStrategy::SubscriberCallBack(const std_msgs::String& msg)
 {
-
-}
-
-void GotoStrategy::SubscriberCallBack(const std_msgs::String::ConstPtr& msg)
-{
-    if(msg->data == GotoStrategy::m_desireID)
+    if(msg.data == m_desireID)
     {
-        Strategy<GotoDesire>::onDisabling();
-        /*GotoStrategy::onDisabling();*/
+        onDisabling();
     }
 }
 
-void GotoStrategy::Publish(GotoDesire desire)
+void GotoStrategy::Publish(const GotoDesire& desire)
 {
-    GotoStrategy::m_desireID = desire.id();
+    m_desireID = desire.id();
     std_msgs::String msg;
     msg.data = desire.id();
-    Strategy<GotoDesire>::onEnabling(msg);
-    /*GotoStrategy::onEnabling(msg);*/
-    for(ros::Publisher pub : GotoStrategy::m_PublisherList){
+    onEnabling(desire);
+    for(ros::Publisher pub : m_PublisherList){
         pub.publish(msg);
     }
 }
 
+TalkStrategy::TalkStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, const std::map<std::string,
+ bool>& publisherTopicList, const std::map<std::string, bool>& subscriberTopicList, std::shared_ptr<DesireSet> desireSet,
+ std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName) 
+: HDStrategy(filterPool, nodeHandle, publisherTopicList, subscriberTopicList, desireSet, filterConfigurationByName){}
 
-TalkStrategy::TalkStrategy(std::shared_ptr<FilterPool> filterPool) 
-: HDStrategy<nullptr>
-(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, const std::map<std::string,
- bool>& publisherTopicList, const std::map<std::string, bool>& subscriberTopicList, DesireSet& desireSet,
- std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName)
+void TalkStrategy::SubscriberCallBack(const std_msgs::String& msg)
 {
-
-}
-
-void TalkStrategy::SubscriberCallBack(const std_msgs::String::ConstPtr& msg)
-{
-    if(msg->data == TalkStrategy::m_desireID)
+    if(msg.data == m_desireID)
     {
-        Strategy<TalkDesire>::onDisabling();
-        /*TalkStrategy::onDisabling();*/
+        onDisabling();
     }
 }
 
-void TalkStrategy::Publish(TalkDesire desire)
+void TalkStrategy::Publish(const SpeakDesire& desire)
+{    
+    std_msgs::String msg;
+    msg.data = desire.id();
+    onEnabling(desire);
+    for(ros::Publisher pub : m_PublisherList){
+        pub.publish(msg);
+    }
+}
+
+DiscussStrategy::DiscussStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, const std::map<std::string,
+ bool>& publisherTopicList, const std::map<std::string, bool>& subscriberTopicList, std::shared_ptr<DesireSet> desireSet,
+ std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName) 
+: HDStrategy(filterPool, nodeHandle, publisherTopicList, subscriberTopicList, desireSet, filterConfigurationByName){}
+
+
+void DiscussStrategy::SubscriberCallBack(const std_msgs::String& msg)
+{
+    if(msg.data == m_desireID)
+    {
+        onDisabling();
+    }
+}
+
+void DiscussStrategy::Publish(const DiscussDesire& desire)
+{
+    m_desireID = desire.id();
+    std_msgs::String msg;
+    msg.data = desire.id();
+    onEnabling(desire);
+    for(ros::Publisher pub : m_PublisherList){
+        pub.publish(msg);
+    }
+}
+
+TakeStrategy::TakeStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, const std::map<std::string,
+ bool>& publisherTopicList, const std::map<std::string, bool>& subscriberTopicList, std::shared_ptr<DesireSet> desireSet,
+ std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName) 
+: HDStrategy(filterPool, nodeHandle, publisherTopicList, subscriberTopicList, desireSet, filterConfigurationByName){}
+
+void TakeStrategy::SubscriberCallBack(const std_msgs::String& msg)
+{
+    if(msg.data == m_desireID)
+    {
+        onDisabling();
+    }
+}
+
+void TakeStrategy::Publish(const TakeDesire& desire)
+{
+    m_desireID = desire.id();
+    std_msgs::String msg;
+    msg.data = desire.id();
+    onEnabling(desire);
+    for(ros::Publisher pub : m_PublisherList){
+        pub.publish(msg);
+    }
+}
+
+DropStrategy::DropStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, const std::map<std::string,
+ bool>& publisherTopicList, const std::map<std::string, bool>& subscriberTopicList, std::shared_ptr<DesireSet> desireSet,
+ std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName) 
+: HDStrategy(filterPool, nodeHandle, publisherTopicList, subscriberTopicList, desireSet, filterConfigurationByName){}
+
+void DropStrategy::SubscriberCallBack(const std_msgs::String& msg)
+{
+    if(msg.data == m_desireID)
+    {
+        onDisabling();
+    }
+}
+
+void DropStrategy::Publish(const DropDesire& desire)
+{
+    m_desireID = desire.id();
+    std_msgs::String msg;
+    msg.data = desire.id();
+    onEnabling(desire);
+    for(ros::Publisher pub : m_PublisherList){
+        pub.publish(msg);
+    }
+}
+
+ExploreStrategy::ExploreStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, const std::map<std::string,
+ bool>& publisherTopicList, const std::map<std::string, bool>& subscriberTopicList, std::shared_ptr<DesireSet> desireSet,
+ std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName) 
+: HDStrategy(filterPool, nodeHandle, publisherTopicList, subscriberTopicList, desireSet, filterConfigurationByName){}
+
+void ExploreStrategy::SubscriberCallBack(const std_msgs::String& msg)
+{
+    if(msg.data == m_desireID)
+    {
+        onDisabling();
+    }
+}
+
+void ExploreStrategy::Publish(const ExploreDesire& desire)
 {
     
-    TalkStrategy::m_desireID = desire.id();
+    m_desireID = desire.id();
     std_msgs::String msg;
-    msg.data = desire.name();
-    Strategy<TalkDesire>::onEnabling(msg);
-    /*TalkStrategy::onEnabling(msg);*/
-    for(ros::Publisher pub : TalkStrategy::m_PublisherList){
+    msg.data = desire.id();
+    onEnabling(desire);
+    for(ros::Publisher pub : m_PublisherList){
         pub.publish(msg);
     }
 }
 
-DiscussStrategy::DiscussStrategy(std::shared_ptr<FilterPool> filterPool) 
-: HDStrategy<nullptr>
-(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, const std::map<std::string,
- bool>& publisherTopicList, const std::map<std::string, bool>& subscriberTopicList, DesireSet& desireSet,
- std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName)
+std::unique_ptr<BaseStrategy> createGotoStrategy(std::shared_ptr<FilterPool> filterPool, std::shared_ptr<DesireSet> desireSet, ros::NodeHandle& nodeHandle, uint16_t utility = 1)
 {
-
+    return std::make_unique<GotoStrategy>(filterPool, nodeHandle, std::map<std::string, bool>{}, std::map<std::string, bool>{}, desireSet, std::unordered_map<std::string, FilterConfiguration>{{"goto/FilterState", FilterConfiguration::onOff()}});
 }
 
-void DiscussStrategy::SubscriberCallBack(const std_msgs::String::ConstPtr& msg)
+std::unique_ptr<BaseStrategy> createTalkStrategy(std::shared_ptr<FilterPool> filterPool, std::shared_ptr<DesireSet> desireSet, ros::NodeHandle& nodeHandle, uint16_t utility = 1)
 {
-    if(msg->data == DiscussStrategy::m_desireID)
-    {
-        Strategy<DiscussDesire>::onDisabling();
-        /*DiscussStrategy::onDisabling();*/
-    }
+    return std::make_unique<TalkStrategy>(filterPool, nodeHandle, std::map<std::string, bool>{},  std::map<std::string, bool>{}, desireSet, std::unordered_map<std::string, FilterConfiguration>{{"talk/FilterState", FilterConfiguration::onOff()}});
 }
 
-void DiscussStrategy::Publish(DiscussDesire desire)
+std::unique_ptr<BaseStrategy> createDiscussStrategy(std::shared_ptr<FilterPool> filterPool, std::shared_ptr<DesireSet> desireSet, ros::NodeHandle& nodeHandle, uint16_t utility = 1)
 {
-    DiscussStrategy::m_desireID = desire.id();
-    std_msgs::String msg;
-    msg.data = desire.name();
-    Strategy<DiscussDesire>::onEnabling(msg);
-    /*DiscussStrategy::onEnabling(msg);*/
-    for(ros::Publisher pub : DiscussStrategy::m_PublisherList){
-        pub.publish(msg);
-    }
+    return std::make_unique<DiscussStrategy>(filterPool, nodeHandle, std::map<std::string, bool>{},std::map<std::string, bool>{}, desireSet, std::unordered_map<std::string, FilterConfiguration>{{"discuss/FilterState", FilterConfiguration::onOff()}});
 }
 
-
-TakeStrategy::TakeStrategy(std::shared_ptr<FilterPool> filterPool) 
-: HDStrategy<nullptr>
-(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, const std::map<std::string,
- bool>& publisherTopicList, const std::map<std::string, bool>& subscriberTopicList, DesireSet& desireSet,
- std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName)
+std::unique_ptr<BaseStrategy> createTakeStrategy(std::shared_ptr<FilterPool> filterPool, std::shared_ptr<DesireSet> desireSet, ros::NodeHandle& nodeHandle, uint16_t utility = 1)
 {
-
+    return std::make_unique<TakeStrategy>(filterPool, nodeHandle, std::map<std::string, bool>{},std::map<std::string, bool>{}, desireSet, std::unordered_map<std::string, FilterConfiguration>{{"take/FilterState", FilterConfiguration::onOff()}});
 }
 
-void TakeStrategy::SubscriberCallBack(const std_msgs::String::ConstPtr& msg)
+std::unique_ptr<BaseStrategy> createDropStrategy(std::shared_ptr<FilterPool> filterPool, std::shared_ptr<DesireSet> desireSet, ros::NodeHandle& nodeHandle, uint16_t utility = 1)
 {
-    if(msg->data == TakeStrategy::m_desireID)
-    {
-        Strategy<TakeDesire>::onDisabling();
-        /*TakeStrategy::onDisabling();*/
-    }
+    return std::make_unique<DropStrategy>(filterPool, nodeHandle, std::map<std::string, bool>{},std::map<std::string, bool>{}, desireSet, std::unordered_map<std::string, FilterConfiguration>{{"drop/FilterState", FilterConfiguration::onOff()}});
 }
 
-void TakeStrategy::Publish(TakeDesire desire)
+std::unique_ptr<BaseStrategy> createExploreStrategy(std::shared_ptr<FilterPool> filterPool, std::shared_ptr<DesireSet> desireSet, ros::NodeHandle& nodeHandle, uint16_t utility = 1)
 {
-    
-    TakeStrategy::m_desireID = desire.id();
-    std_msgs::String msg;
-    msg.data = desire.name();
-    Strategy<TakeDesire>::onEnabling(msg);
-    /*TakeStrategy::onEnabling(msg);*/
-    for(ros::Publisher pub : TakeStrategy::m_PublisherList){
-        pub.publish(msg);
-    }
-}
-
-DropStrategy::DropStrategy(std::shared_ptr<FilterPool> filterPool) 
-: HDStrategy<nullptr>
-(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, const std::map<std::string,
- bool>& publisherTopicList, const std::map<std::string, bool>& subscriberTopicList, DesireSet& desireSet,
- std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName)
-{
-
-}
-
-void DropStrategy::SubscriberCallBack(const std_msgs::String::ConstPtr& msg)
-{
-    if(msg->data == DropStrategy::m_desireID)
-    {
-        Strategy<DropDesire>::onDisabling();
-        /*DropStrategy::onDisabling();*/
-    }
-}
-
-void DropStrategy::Publish(DropDesire desire)
-{
-    DropStrategy::m_desireID = desire.id();
-    std_msgs::String msg;
-    msg.data = desire.name();
-    Strategy<DropDesire>::onEnabling(msg);
-    /*DropStrategy::onEnabling(msg);*/
-    for(ros::Publisher pub : DropStrategy::m_PublisherList){
-        pub.publish(msg);
-    }
-}
-
-
-ExploreStrategy::ExploreStrategy(std::shared_ptr<FilterPool> filterPool) 
-: HDStrategy<nullptr>
-(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, const std::map<std::string,
- bool>& publisherTopicList, const std::map<std::string, bool>& subscriberTopicList, DesireSet& desireSet,
- std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName)
-{
-
-}
-
-void ExploreStrategy::SubscriberCallBack(const std_msgs::String::ConstPtr& msg)
-{
-    if(msg->data == ExploreStrategy::m_desireID)
-    {
-        Strategy<ExploreDesire>::onDisabling();
-        /*ExploreStrategy::onDisabling();*/
-    }
-}
-
-void ExploreStrategy::Publish(ExploreDesire desire)
-{
-    
-    ExploreStrategy::m_desireID = desire.id();
-    std_msgs::String msg;
-    msg.data = desire.name();
-    Strategy<ExploreDesire>::onEnabling(msg);
-    /*ExploreStrategy::onEnabling(msg);*/
-    for(ros::Publisher pub : ExploreStrategy::m_PublisherList){
-        pub.publish(msg);
-    }
+    return std::make_unique<ExploreStrategy>(filterPool, nodeHandle, std::map<std::string, bool>{}, std::map<std::string, bool>{}, desireSet, std::unordered_map<std::string, FilterConfiguration>{{"explore/FilterState", FilterConfiguration::onOff()}});
 }

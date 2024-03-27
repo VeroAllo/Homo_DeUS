@@ -1,55 +1,53 @@
-#include<HDStrategy.h>
+#include "HDDesires.h"
+#include "HDStrategy.h"
+#include <ros/ros.h>
+#include <vector>
+#include <memory>
 
-class GotoStrategy : public HDStrategy<nullptr>
+class GotoStrategy : public HDStrategy<GotoDesire>
 {
-    std::string m_desireID
     public:
-        GotoStrategy();
-        void Publish(GotoDesire desire);
-        void SubscriberCallBack(const std_msgs::String::ConstPtr& msg);
+        GotoStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, const std::map<std::string,bool>& publisherTopicList, const std::map<std::string, bool>& subscriberTopicList, std::shared_ptr<DesireSet> desireSet,std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName);
+        void Publish(const GotoDesire& desire);
+        void SubscriberCallBack(const std_msgs::String& msg) override;
 };
 
-class TalkStrategy : public HDStrategy<nullptr>
+class TalkStrategy : public HDStrategy<SpeakDesire>
 {
-    std::string m_desireID
     public:
-        TalkStrategy();
-        void Publish(TalkDesire desire);
-        void SubscriberCallBack(const std_msgs::String::ConstPtr& msg);
+        TalkStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, const std::map<std::string,bool>& publisherTopicList, const std::map<std::string, bool>& subscriberTopicList, std::shared_ptr<DesireSet> desireSet,std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName);
+        void Publish(const SpeakDesire& desire);
+        void SubscriberCallBack(const std_msgs::String& msg) override;
 };
 
-class DiscussStrategy : public HDStrategy<nullptr>
+class DiscussStrategy : public HDStrategy<DiscussDesire>
 {
-    std::string m_desireID
     public:
-        DiscussStrategy();
-        void Publish(DiscussDesire desire);
-        void SubscriberCallBack(const std_msgs::String::ConstPtr& msg);
+        DiscussStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, const std::map<std::string,bool>& publisherTopicList, const std::map<std::string, bool>& subscriberTopicList, std::shared_ptr<DesireSet> desireSet,std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName);
+        void Publish(const DiscussDesire& desire);
+        void SubscriberCallBack(const std_msgs::String& msg) override;
 };
 
-class TakeStrategy : public HDStrategy<nullptr>
+class TakeStrategy : public HDStrategy<TakeDesire>
 {
-    std::string m_desireID
     public:
-        TakeStrategy();
-        void Publish(TakeDesire desire);
-        void SubscriberCallBack(const std_msgs::String::ConstPtr& msg);
+        TakeStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, const std::map<std::string,bool>& publisherTopicList, const std::map<std::string, bool>& subscriberTopicList, std::shared_ptr<DesireSet> desireSet,std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName);
+        void Publish(const TakeDesire& desire);
+        void SubscriberCallBack(const std_msgs::String& msg) override;
 };
 
-class DropStrategy : public HDStrategy<nullptr>
+class DropStrategy : public HDStrategy<DropDesire>
 {
-    std::string m_desireID
     public:
-        DropStrategy();
-        void Publish(DropDesire desire);
-        void SubscriberCallBack(const std_msgs::String::ConstPtr& msg);
+        DropStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, const std::map<std::string,bool>& publisherTopicList, const std::map<std::string, bool>& subscriberTopicList, std::shared_ptr<DesireSet> desireSet,std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName);
+        void Publish(const DropDesire& desire);
+        void SubscriberCallBack(const std_msgs::String& msg) override;
 };
 
-class ExploreStrategy : public HDStrategy<nullptr>
+class ExploreStrategy : public HDStrategy<ExploreDesire>
 {
-    std::string m_desireID
     public:
-        ExploreStrategy();
-        void Publish(ExploreDesire desire);
-        void SubscriberCallBack(const std_msgs::String::ConstPtr& msg);
+        ExploreStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, const std::map<std::string,bool>& publisherTopicList, const std::map<std::string, bool>& subscriberTopicList, std::shared_ptr<DesireSet> desireSet,std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName);
+        void Publish(const ExploreDesire& desire);
+        void SubscriberCallBack(const std_msgs::String& msg) override;
 };
