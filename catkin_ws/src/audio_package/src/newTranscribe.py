@@ -36,7 +36,7 @@ class AudioConsumer(threading.Thread):
         self.vosk_recognizer = vosk.KaldiRecognizer(self.vosk_model, 16000)
 
         # Chargez votre modèle RASA
-        self.agent = Agent.load('/home/tiblond/Documents/Homo_DeUS/catkin_ws/src/audio_package/src/rasa_serveur/models/20240325-151709-fancy-cooler.tar.gz')
+        self.agent = Agent.load('/home/tiblond/Documents/Homo_DeUS/catkin_ws/src/audio_package/src/rasa_serveur/models/20240327-181016-senior-area.tar.gz')
 
     async def process_text(self, text):
         if text.strip():  # Vérifie si le texte n'est pas vide

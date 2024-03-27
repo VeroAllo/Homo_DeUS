@@ -1,25 +1,29 @@
 version: "3.1"
 
 stories:
-
-- story: Order only drink
+- story: Complete order process
   steps:
   - intent: greet
   - action: utter_greet
+  - intent: ask_for_menu
+  - action: utter_show_menu
   - intent: order_drink
-  - action: action_order_drink
-  - intent: goodbye
-  - action: utter_goodbye
-
-- story: Order drink and confirm
-  steps:
-  - intent: order_drink
-  - action: action_order_drink
-
-- story: Order Drink Flow
-  steps:
-  - intent: order_drink
-  - action: action_order_drink
+    entities:
+    - drink: coke
+  - action: utter_confirm_order
   - intent: confirm_order
-  - action: action_confirm_order
-  - action: utter_order_completed 
+  - action: utter_order_completed
+
+- story: Deny order
+  steps:
+  - intent: greet
+  - action: utter_greet
+  - intent: ask_for_menu
+  - action: utter_show_menu
+  - intent: order_drink
+    entities:
+    - drink: coke
+  - action: utter_confirm_order
+  - intent: deny_order
+  - action: utter_apologize
+  - action: utter_show_menu  

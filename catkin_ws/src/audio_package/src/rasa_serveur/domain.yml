@@ -2,41 +2,32 @@ version: "3.1"
 
 intents:
   - greet
-  - goodbye
+  - ask_for_menu
   - order_drink
   - confirm_order
-  - ask_for_drink
+  - deny_order
 
 entities:
-  - ordered_drink
+  - drink
 
 slots:
-  ordered_drink:
+  drink:
     type: text
-    influence_conversation: false
     mappings:
       - type: from_entity
-        entity: ordered_drink
+        entity: drink
 
 responses:
-  utter_ask_for_drink:
-  - text: "Would you like something to drink? We have coke, sprite, and dr.pepper."
-
   utter_greet:
-  - text: "Hey! I'm Homo Deus. What can i do for you"
-
-  utter_goodbye:
-  - text: "Goodbye! Have a great day."
+  - text: "Hey! I'm Homo Deus. What can I do for you?"
 
   utter_show_menu:
   - text: "Here is our menu: Coke, Sprite, Dr.Pepper. Would you like to order a drink?"
-  
+
   utter_confirm_order:
-  - text: "Your {ordered_drink} has been ordered. Thank you!"
+  - text: "You've ordered a {drink}, is that correct?"
 
   utter_order_completed:
-  - text: "I have finished taking your order. Thank you!"
-
-actions:
-  - action_order_drink
-  - action_confirm_order
+  - text: "Your {drink} has been ordered. Thank you!"
+  utter_apologize:
+  - text: "I'm sorry for the mistake. Let's try again."

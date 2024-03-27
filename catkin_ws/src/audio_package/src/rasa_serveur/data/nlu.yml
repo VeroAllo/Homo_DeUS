@@ -1,53 +1,32 @@
 version: "3.1"
 
 nlu:
+- intent: greet
+  examples: |
+    - Hello
+    - Hi
+    - Hey
+
+- intent: ask_for_menu
+  examples: |
+    - Can I see the menu?
+    - Show me the menu
+    - What drinks do you have?
+
 - intent: order_drink
   examples: |
-    - I would like a [coke](ordered_drink)
-    - Can I get a [sprite](ordered_drink)
-    - I want a [coke](ordered_drink)
-    - Can you get me a [Dr.Pepper](ordered_drink)
-    - I would like to order a [sprite](ordered_drink)
-    - I want a [Dr.Pepper](ordered_drink)
-
-- intent: ask_for_drink
-  examples: |
-    - Can I have a drink?
-    - What drinks do you have?
-    - Show me the menu
-    - What can I order?
+    - I want a [coke](drink)
+    - Can I have a [sprite](drink)?
+    - I would like a [doctor pepper](drink), please.
 
 - intent: confirm_order
   examples: |
     - Yes, that's correct
+    - Yes, I confirm
     - That's my order
-    - Confirm my order
 
-- intent: greet
+- intent: deny_order
   examples: |
-    - hey
-    - hello
-    - hi
-    - hello there
-    - good morning
-    - good evening
-    - moin
-    - hey there
-    - let's go
-    - hey dude
-    - goodmorning
-    - goodevening
-    - good afternoon
-
-- intent: goodbye
-  examples: |
-    - cu
-    - good by
-    - cee you later
-    - good night
-    - bye
-    - goodbye
-    - have a nice day
-    - see you around
-    - bye bye
-    - see you later
+    - No, that's not correct
+    - No, I didn't order that
+    - That's not my order    

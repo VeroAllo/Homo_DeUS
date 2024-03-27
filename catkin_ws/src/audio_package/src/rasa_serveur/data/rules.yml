@@ -1,18 +1,28 @@
 version: "3.1"
 
 rules:
-
-- rule: Say goodbye anytime the user says goodbye
+- rule: Say hello
   steps:
-  - intent: goodbye
-  - action: utter_goodbye
+  - intent: greet
+  - action: utter_greet
 
-- rule: Show menu when asked for a drink
+- rule: Show menu
   steps:
-  - intent: ask_for_drink
+  - intent: ask_for_menu
   - action: utter_show_menu
 
 - rule: Order drink
   steps:
   - intent: order_drink
-  - action: action_order_drink
+  - action: utter_confirm_order
+
+- rule: Confirm order
+  steps:
+  - intent: confirm_order
+  - action: utter_order_completed
+
+- rule: Deny order
+  steps:
+  - intent: deny_order
+  - action: utter_apologize
+  - action: utter_show_menu 
