@@ -1,10 +1,7 @@
 //#include <hbba_lite/core/HDStrategy.h>
 
-#include <std_msgs/String.h>
 #include <memory.h>
-#include <HDStrategy.h>
-
-
+#include "HDStrategy.h"
 
 template<class T>
 HDStrategy<T>::HDStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, const std::map<std::string, bool>& publisherTopicList, const std::map<std::string, bool>& subscriberTopicList, DesireSet& desireSet , std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName) :

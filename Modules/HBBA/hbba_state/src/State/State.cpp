@@ -13,6 +13,7 @@ State::State(
       m_previousStageType(typeid(State))
 {
 }
+State::~State(){}
 
 void State::enable(const string& parameter, const type_index& previousStageType)
 {

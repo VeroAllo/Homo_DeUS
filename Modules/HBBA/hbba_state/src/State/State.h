@@ -34,7 +34,7 @@ public:
         StateManager& stateManager,
         std::shared_ptr<DesireSet> desireSet,
         ros::NodeHandle& nodeHandle);
-    virtual ~State() = default;
+    virtual ~State();
 
     DECLARE_NOT_COPYABLE(State);
     DECLARE_NOT_MOVABLE(State);

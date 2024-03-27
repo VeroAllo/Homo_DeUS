@@ -6,14 +6,70 @@
 #include <string>
 #include <limits>
 
-class GotoDesire : public Desire
+
+class SpeechToTextDesire : public Desire
 {
 public:
-    explicit GotoDesire(uint16_t intensity = 1);
+    explicit SpeechToTextDesire(uint16_t intensity = 1);
+    ~SpeechToTextDesire() override = default;
+
+    DECLARE_DESIRE_METHODS(SpeechToTextDesire)
+};
+
+
+class TalkDesire : public Desire
+{
+    std::string m_text;
+
+public:
+    explicit TalkDesire(std::string text, uint16_t intensity = 1);
+    ~TalkDesire() override = default;
+
+    DECLARE_DESIRE_METHODS(TalkDesire)
+
+    const std::string& text() const;
+};
+
+inline const std::string& TalkDesire::text() const
+{
+    return m_text;
+}
+
+class GotoDesire : public Desire
+{
+    std::string m_goal;
+
+public:
+    explicit GotoDesire(std::string goal, uint16_t intensity = 1);
     ~GotoDesire() override = default;
 
-    DECLARE_DESIRE_METHODS(GotoDesire); 
+    DECLARE_DESIRE_METHODS(GotoDesire)
+
+    const std::string& goal() const;
 };
+
+inline const std::string& GotoDesire::goal() const
+{
+    return m_goal;
+}
+
+class DiscussDesire : public Desire
+{
+    std::string m_text;
+
+public:
+    explicit DiscussDesire(std::string goal, uint16_t intensity = 1);
+    ~DiscussDesire() override = default;
+
+    DECLARE_DESIRE_METHODS(DiscussDesire)
+
+    const std::string& text() const;
+};
+
+inline const std::string& DiscussDesire::text() const
+{
+    return m_text;
+}
 
 class ExploreDesire : public Desire
 {
@@ -58,13 +114,4 @@ public:
     ~ListenDesire() override = default;
 
     DECLARE_DESIRE_METHODS(ListenDesire); 
-};
-
-class SpeakDesire : public Desire
-{
-public:
-    explicit SpeakDesire(uint16_t intensity = 1);
-    ~SpeakDesire() override = default;
-
-    DECLARE_DESIRE_METHODS(SpeakDesire); 
 };

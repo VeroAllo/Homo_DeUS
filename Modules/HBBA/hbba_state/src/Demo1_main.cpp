@@ -1,6 +1,7 @@
 #include "State/StateManager.h"
-#include "State/GoToTableState.h"
-#include "State/GreetingState.h"
+#include "State/commons/GoToTableState.h"
+#include "State/AccueilMotivation/GreetingState.h"
+#include "State/AccueilMotivation/GoToAccueilState.h"
 
 #include <ros/ros.h>
 
@@ -9,9 +10,11 @@
 #include <hbba_lite/core/GecodeSolver.h>
 #include <hbba_lite/core/HbbaLite.h>
 #include <hbba_lite/core/RosStrategyStateLogger.h>
+#include <hbba_lite/core/Strategy.h>
 
 //#include "hbba_core/HDStrategies.h"
 
+#include <typeindex>
 #include <memory>
 
 using namespace std;
@@ -35,14 +38,19 @@ void startNode(ros::NodeHandle& nodeHandle)
 
     StateManager stateManager;
 
+
+    // type_index gotoTableStateType(typeid(GoToTableState));
+    type_index greetingStateType = std::type_index(typeid(GreetingState));
+
+    stateManager.addState(
+        make_unique<GoToAccueilState>(stateManager, desireSet, nodeHandle)
+    );
     stateManager.addState(
         make_unique<GreetingState>(stateManager, desireSet, nodeHandle)
     );
     stateManager.addState(
-        make_unique<GoToTableState>(stateManager, desireSet, nodeHandle)
+        make_unique<GoToTableState>(stateManager, desireSet, nodeHandle, greetingStateType)
     );
-
-
 
 
     ros::spin();

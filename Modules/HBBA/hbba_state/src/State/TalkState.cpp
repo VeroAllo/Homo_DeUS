@@ -2,7 +2,7 @@
 
 #include "StateManager.h"
 
-//#include <t_top_hbba_lite/Desires.h>
+#include "../hbba_core/HDDesires.h"
 
 using namespace std;
 
@@ -51,8 +51,3 @@ void TalkState::disable()
     State::disable();
     m_talkDesireId = MAX_DESIRE_ID;
 }
-
-// string TalkState::generateText(const string& parameter)
-// {
-//     return parameter
-// }

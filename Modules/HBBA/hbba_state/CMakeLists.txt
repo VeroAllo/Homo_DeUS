@@ -10,7 +10,8 @@ project(hbba_lite_main)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
-  hbba_lite
+  hbba_lite REQUIRED
+  std_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -105,7 +106,10 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES hbba_lite_main
-  CATKIN_DEPENDS roscpp 
+  CATKIN_DEPENDS 
+    roscpp 
+    hbba_lite
+    std_msgs
 #  DEPENDS system_lib
 )
 
@@ -118,6 +122,7 @@ catkin_package(
 include_directories(
 # include
   ${catkin_INCLUDE_DIRS}
+  #${"src/hbba_core"}
 )
 
 ## Declare a C++ library
@@ -135,17 +140,19 @@ add_library(${PROJECT_NAME}
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(${PROJECT_NAME}_node 
   src/Demo1_main.cpp
-  #src/hbba_core/HDStragies.cpp
-  #src/hbba_core/HDStragegy.cpp
+  # src/hbba_core/HDStrategies.cpp
+  # src/hbba_core/HDStrategy.cpp
+  src/hbba_core/HDDesires.cpp
   src/State/GoToState.cpp
-  src/State/GoToTableState.cpp
-  src/State/GreetingState.cpp
+  src/State/DiscussionState.cpp
+  src/State/commons/GoToTableState.cpp
+  src/State/AccueilMotivation/GreetingState.cpp
+  src/State/AccueilMotivation/GoToAccueilState.cpp
   src/State/State.cpp
   src/State/StateManager.cpp
   src/State/TalkState.cpp
   src/StringUtils.cpp
   
-
 )
 
 ## Rename C++ executable without prefix
@@ -159,9 +166,9 @@ add_executable(${PROJECT_NAME}_node
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(${PROJECT_NAME}_node
-#   ${catkin_LIBRARIES}
-# )
+target_link_libraries(${PROJECT_NAME}_node
+  ${catkin_LIBRARIES}
+)
 
 #############
 ## Install ##

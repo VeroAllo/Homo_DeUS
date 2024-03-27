@@ -27,7 +27,7 @@ protected:
     void disable() override;
 
 private:
-    virtual std::string generateText(const std::string& parameter) = 0;
+    virtual std::string generateText(const std::string& parameter) { return "";};
 };
 
 #endif
