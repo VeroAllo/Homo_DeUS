@@ -1,6 +1,6 @@
 #include <ros/ros.h>
 #include <ros/publisher.h>
-#include "homodeus_hbba_lite/HDStrategies.h"
+#include <homodeus_hbba_lite/HDStrategies.h>
 #include <hbba_lite/filters/FilterState.h>
 #include <hbba_lite/core/Strategy.h>
 #include <std_msgs/String.h>

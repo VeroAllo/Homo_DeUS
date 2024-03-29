@@ -1,4 +1,4 @@
-#include "homodeus_hbba_lite/HDDesires.h> //some problems with packaging only a lib
+#include <homodeus_hbba_lite/HDDesires.h>
 
 GotoDesire::GotoDesire(std::string destinationInText, uint16_t intensity) : Desire(intensity), m_DestinationInText(destinationInText) {}
 

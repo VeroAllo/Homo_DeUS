@@ -1,5 +1,4 @@
-#include "homodeus_hbba_lite/HDStrategy.h"
-
+#include <homodeus_hbba_lite/HDStrategy.h>
 #include <std_msgs/String.h>
 #include <memory.h>
 
