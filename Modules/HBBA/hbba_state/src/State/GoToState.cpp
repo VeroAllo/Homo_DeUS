@@ -42,7 +42,6 @@ void GoToState::enable(const string& parameter, const type_index& previousStageT
 
     auto transaction = m_desireSet->beginTransaction();
     m_desireSet->addDesire(move(gotoDesire));
-
 }
 
 void GoToState::disable()

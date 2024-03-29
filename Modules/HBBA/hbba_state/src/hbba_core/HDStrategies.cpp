@@ -11,7 +11,13 @@
 #define BEHAVIOUR PROJECT "/Behaviour"
 #define PERCEPTION PROJECT "/Perception"
 
-GotoStrategy::GotoStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, std::map<std::string, bool> publisherTopicList, std::map<std::string, bool> subscriberTopicList, std::shared_ptr<DesireSet> desireSet, std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName) : HDStrategy(filterPool, nodeHandle, publisherTopicList, subscriberTopicList, desireSet, filterConfigurationByName){}
+GotoStrategy::GotoStrategy(std::shared_ptr<FilterPool> filterPool, 
+    ros::NodeHandle& nodeHandle, 
+    std::map<std::string, bool> publisherTopicList, 
+    std::map<std::string, bool> subscriberTopicList, 
+    std::shared_ptr<DesireSet> desireSet, 
+    std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName) 
+    : HDStrategy(filterPool, nodeHandle, publisherTopicList, subscriberTopicList, desireSet, filterConfigurationByName){}
 
 void GotoStrategy::SubscriberCallBack(const std_msgs::String& msg)
 {

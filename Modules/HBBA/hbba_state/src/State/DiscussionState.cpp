@@ -34,7 +34,7 @@ void DiscussionState::enable(const string& parameter, const type_index& previous
 {
     State::enable(parameter, previousStageType);
 
-    auto discussDesire = make_unique<DiscussDesire>(generateDiscussion());
+    auto discussDesire = make_unique<DiscussDesire>(/* generateDiscussion() */);
     m_discussDesireId = discussDesire->id();
 
     m_desireIds.emplace_back(discussDesire->id());

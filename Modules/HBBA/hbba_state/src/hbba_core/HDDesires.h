@@ -20,7 +20,7 @@ public:
     DECLARE_DESIRE_METHODS(GotoDesire); 
 
 private:
-    std::string m_DestinationInText{};
+    std::string m_DestinationInText;
 };
 
 class ExploreDesire : public Desire
@@ -37,12 +37,14 @@ public:
 class TakeDesire : public Desire
 {
 public:
-    explicit TakeDesire(uint16_t intensity = 1);
+    explicit TakeDesire(std::string objectToTake, uint16_t intensity = 1);
     ~TakeDesire() = default;
 
     uint64_t id() const { return Desire::id(); }
 
     DECLARE_DESIRE_METHODS(TakeDesire); 
+private:
+    std::string m_objectToTake;
 };
 
 class DropDesire : public Desire

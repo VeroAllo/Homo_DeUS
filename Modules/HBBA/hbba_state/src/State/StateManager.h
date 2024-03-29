@@ -1,3 +1,6 @@
+#ifndef HD_STATES_STATE_MANAGER_H
+#define HD_STATES_STATE_MANAGER_H
+
 #include "State.h"
 
 #include <ros/ros.h>
@@ -46,3 +49,4 @@ inline void StateManager::switchTo(std::type_index stateType, const std::string&
     m_currentState = m_states.at(stateType).get();
     m_currentState->enable(parameter, previousStageType);
 }
+#endif
