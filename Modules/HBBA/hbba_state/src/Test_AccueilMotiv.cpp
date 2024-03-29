@@ -9,7 +9,7 @@
 #include <hbba_lite/core/RosStrategyStateLogger.h>
 #include <hbba_lite/core/Strategy.h>
 
-//#include "hbba_core/HDStrategies.h"
+#include <homodeus_hbba_lite/HDStrategies.h>
 
 #include <typeindex>
 #include <memory>
@@ -20,12 +20,12 @@ constexpr bool WAIT_FOR_SERVICE = true;
 
 void startNode(ros::NodeHandle& nodeHandle)
 {
-    auto desireSet = make_shared<DesireSet>();
-    auto filterPool = make_shared<RosFilterPool>(nodeHandle, WAIT_FOR_SERVICE);
+    shared_ptr<DesireSet> desireSet = make_shared<DesireSet>();
+    shared_ptr<RosFilterPool> filterPool = make_shared<RosFilterPool>(nodeHandle, WAIT_FOR_SERVICE);
 
     vector<unique_ptr<BaseStrategy>> strategies;
-    auto solver = make_unique<GecodeSolver>();
-    auto strategyStateLogger = make_unique<RosTopicStrategyStateLogger>(nodeHandle);
+    unique_ptr<GecodeSolver> solver = make_unique<GecodeSolver>();
+    unique_ptr<RosTopicStrategyStateLogger> strategyStateLogger = make_unique<RosTopicStrategyStateLogger>(nodeHandle);
     HbbaLite hbba(desireSet, move(strategies), {/*ressource*/}, move(solver), move(strategyStateLogger));
     ROS_INFO("Allo HBBA lite");
     AccueilStateManager stateManager(desireSet, nodeHandle, move(strategies), move(filterPool));

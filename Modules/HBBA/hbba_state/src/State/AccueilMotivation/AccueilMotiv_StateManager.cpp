@@ -1,10 +1,11 @@
 #include "AccueilMotiv_StateManager.h"
+#include <homodeus_hbba_lite/HDDesires.h>
+#include <homodeus_hbba_lite/HDStrategies.h>
 #include "../commons/GoToTableState.h"
 #include "GreetingState.h"
 #include "GoToAccueilState.h"
 
 
-#include "../../hbba_core/HDStrategies.h"
 
 using namespace std;
 
@@ -35,9 +36,9 @@ AccueilStateManager::~AccueilStateManager(){
 void AccueilStateManager::setup(vector<unique_ptr<BaseStrategy>> strategies, shared_ptr<FilterPool> filterPool){
 
     //setup strategy needed for state
-    // strategies.emplace_back(createSpeechToTextStrategy(filterPool));
-    // strategies.emplace_back(createExploreStrategy(filterPool));
-    // strategies.emplace_back(createTalkStrategy(filterPool, m_desireSet, m_nodeHandle));
-    // strategies.emplace_back(createGoToStrategy(filterPool));
+    //strategies.emplace_back(createSpeechToTextStrategy(filterPool)); does not exist lol
+    strategies.emplace_back(createExploreStrategy(filterPool, m_desireSet, m_nodeHandle));
+    strategies.emplace_back(createDiscussStrategy(filterPool, m_desireSet, m_nodeHandle,1));
+    strategies.emplace_back(createGoToStrategy(filterPool, m_desireSet, m_nodeHandle,1));
 
 }
