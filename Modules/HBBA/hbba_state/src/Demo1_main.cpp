@@ -12,7 +12,7 @@
 #include <hbba_lite/core/RosStrategyStateLogger.h>
 #include <hbba_lite/core/Strategy.h>
 
-//#include "hbba_core/HDStrategies.h"
+#include <homodeus_hbba_lite/HDStrategies.h>
 
 #include <typeindex>
 #include <memory>
@@ -27,17 +27,16 @@ void startNode(ros::NodeHandle& nodeHandle)
 
     vector<unique_ptr<BaseStrategy>> strategies;
     //setup strategy needed for state
-    // strategies.emplace_back(createSpeechToTextStrategy(filterPool));
-    // strategies.emplace_back(createExploreStrategy(filterPool));
-    // strategies.emplace_back(createTalkStrategy(filterPool, desireSet, nodeHandle));
-    // strategies.emplace_back(createGoToStrategy(filterPool));
+    //strategies.emplace_back(createSpeechToTextStrategy(filterPool)); // does not exist
+    strategies.emplace_back(createExploreStrategy(filterPool, desireSet, nodeHandle));
+    strategies.emplace_back(createTalkStrategy(filterPool, desireSet, nodeHandle));
+    strategies.emplace_back(createGoToStrategy(filterPool, desireSet, nodeHandle));
 
     auto solver = make_unique<GecodeSolver>();
     auto strategyStateLogger = make_unique<RosTopicStrategyStateLogger>(nodeHandle);
     HbbaLite hbba(desireSet, move(strategies), {/*ressource*/}, move(solver), move(strategyStateLogger));
     ROS_INFO("Allo HBBA lite");
     StateManager stateManager;
-
 
     // type_index gotoTableStateType(typeid(GoToTableState));
     type_index greetingStateType = std::type_index(typeid(GreetingState));
