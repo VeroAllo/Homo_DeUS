@@ -1,7 +1,7 @@
 #include "DropState.h"
 #include "StateManager.h"
 
-#include "../hbba_core/HDDesires.h"
+#include <homodeus_hbba_lite/HDDesires.h>
 
 using namespace std;
 

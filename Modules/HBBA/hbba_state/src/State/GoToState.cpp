@@ -1,7 +1,6 @@
 #include "GoToState.h"
 #include "StateManager.h"
-#include "../hbba_core/HDDesires.h"
-//#include <t_top_hbba_lite/Desires.h>
+#include <homodeus_hbba_lite/HDDesires.h>
 
 using namespace std;
 

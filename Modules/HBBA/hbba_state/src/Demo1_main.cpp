@@ -22,8 +22,8 @@ constexpr bool WAIT_FOR_SERVICE = true;
 
 void startNode(ros::NodeHandle& nodeHandle)
 {
-    auto desireSet = make_shared<DesireSet>();
-    auto filterPool = make_shared<RosFilterPool>(nodeHandle, WAIT_FOR_SERVICE);
+    shared_ptr<DesireSet> desireSet = make_shared<DesireSet>();
+    shared_ptr<RosFilterPool> filterPool = make_shared<RosFilterPool>(nodeHandle, WAIT_FOR_SERVICE);
 
     vector<unique_ptr<BaseStrategy>> strategies;
     //setup strategy needed for state
@@ -32,8 +32,8 @@ void startNode(ros::NodeHandle& nodeHandle)
     strategies.emplace_back(createTalkStrategy(filterPool, desireSet, nodeHandle));
     strategies.emplace_back(createGoToStrategy(filterPool, desireSet, nodeHandle));
 
-    auto solver = make_unique<GecodeSolver>();
-    auto strategyStateLogger = make_unique<RosTopicStrategyStateLogger>(nodeHandle);
+    unique_ptr<GecodeSolver> solver = make_unique<GecodeSolver>();
+    unique_ptr<RosTopicStrategyStateLogger> strategyStateLogger = make_unique<RosTopicStrategyStateLogger>(nodeHandle);
     HbbaLite hbba(desireSet, move(strategies), {/*ressource*/}, move(solver), move(strategyStateLogger));
     ROS_INFO("Allo HBBA lite");
     StateManager stateManager;
