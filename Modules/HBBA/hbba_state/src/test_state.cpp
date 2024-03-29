@@ -33,6 +33,12 @@ void startNode(ros::NodeHandle& nodeHandle)
     //setup strategy needed for state
     strategies.emplace_back(createTalkStrategy(filterPool, desireSet, nodeHandle));
     strategies.emplace_back(createGoToStrategy(filterPool, desireSet, nodeHandle));
+    strategies.emplace_back(createDiscussStrategy(filterPool, desireSet, nodeHandle));
+    strategies.emplace_back(createTakeStrategy(filterPool, desireSet, nodeHandle));
+    strategies.emplace_back(createDropStrategy(filterPool, desireSet, nodeHandle));
+    strategies.emplace_back(createExploreStrategy(filterPool, desireSet, nodeHandle));
+
+
 
     unique_ptr<GecodeSolver> solver = make_unique<GecodeSolver>();
     unique_ptr<RosTopicStrategyStateLogger> strategyStateLogger = make_unique<RosTopicStrategyStateLogger>(nodeHandle);
@@ -73,6 +79,8 @@ void startNode(ros::NodeHandle& nodeHandle)
     ROS_INFO("state DropState fait");
 
     stateManager.switchTo<GoToAccueilState>();
+    stateManager.switchTo<GreetingState>();
+    stateManager.switchTo<GoToTableState>();
 
     ros::spin();
 }
