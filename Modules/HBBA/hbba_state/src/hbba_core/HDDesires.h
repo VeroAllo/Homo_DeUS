@@ -11,21 +11,17 @@ class Desire;
 
 class GotoDesire : public Desire
 {
-    std::string m_goal;
 public:
-    explicit GotoDesire(std::string goal, uint16_t intensity = 1);
+    explicit GotoDesire(std::string destinationInText, uint16_t intensity = 1);
     ~GotoDesire() = default;
 
     uint64_t id() const { return Desire::id(); }
 
-    DECLARE_DESIRE_METHODS(GotoDesire);
-    const std::string& goal() const;
-};
+    DECLARE_DESIRE_METHODS(GotoDesire); 
 
-inline const std::string& GotoDesire::goal() const
-{
-    return m_goal;
-}
+private:
+    std::string m_DestinationInText{};
+};
 
 class ExploreDesire : public Desire
 {
@@ -82,24 +78,19 @@ public:
     DECLARE_DESIRE_METHODS(ListenDesire); 
 };
 
-class SpeakDesire : public Desire
+class TalkDesire : public Desire
 {
-    std::string m_text;
 public:
-    explicit SpeakDesire(std::string text, uint16_t intensity = 1);
-    ~SpeakDesire() = default;
+    explicit TalkDesire(std::string textToTalk, uint16_t intensity = 1);
+    ~TalkDesire() = default;
 
     uint64_t id() const { return Desire::id(); }
 
-    DECLARE_DESIRE_METHODS(SpeakDesire); 
-    const std::string& text() const;
+    DECLARE_DESIRE_METHODS(TalkDesire); 
+
+private:
+    std::string m_TextToTalk{};
 };
-
-inline const std::string& SpeakDesire::text() const
-{
-    return m_text;
-}
-
 
 class DiscussDesire : public Desire
 {

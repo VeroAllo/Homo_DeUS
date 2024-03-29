@@ -12,12 +12,15 @@ class Desire;
 class GotoDesire : public Desire
 {
 public:
-    explicit GotoDesire(uint16_t intensity = 1);
+    explicit GotoDesire(std::string destinationInText, uint16_t intensity = 1);
     ~GotoDesire() = default;
 
     uint64_t id() const { return Desire::id(); }
 
     DECLARE_DESIRE_METHODS(GotoDesire); 
+
+private:
+    std::string m_DestinationInText{};
 };
 
 class ExploreDesire : public Desire
@@ -75,15 +78,18 @@ public:
     DECLARE_DESIRE_METHODS(ListenDesire); 
 };
 
-class SpeakDesire : public Desire
+class TalkDesire : public Desire
 {
 public:
-    explicit SpeakDesire(uint16_t intensity = 1);
-    ~SpeakDesire() = default;
+    explicit TalkDesire(std::string textToTalk, uint16_t intensity = 1);
+    ~TalkDesire() = default;
 
     uint64_t id() const { return Desire::id(); }
 
-    DECLARE_DESIRE_METHODS(SpeakDesire); 
+    DECLARE_DESIRE_METHODS(TalkDesire); 
+
+private:
+    std::string m_TextToTalk{};
 };
 
 class DiscussDesire : public Desire

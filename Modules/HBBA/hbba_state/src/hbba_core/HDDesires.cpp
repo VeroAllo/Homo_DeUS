@@ -1,7 +1,6 @@
 #include "HDDesires.h"
 
-
-GotoDesire::GotoDesire(std::string goal,uint16_t intensity) : Desire(intensity), m_goal(goal) {}
+GotoDesire::GotoDesire(std::string destinationInText, uint16_t intensity) : Desire(intensity), m_DestinationInText(destinationInText) {}
 
 ExploreDesire::ExploreDesire(uint16_t intensity) : Desire(intensity) {}
 
@@ -13,6 +12,6 @@ FindDesire::FindDesire(uint16_t intensity) : Desire(intensity) {}
 
 ListenDesire::ListenDesire(uint16_t intensity) : Desire(intensity) {}
 
-SpeakDesire::SpeakDesire(std::string text, uint16_t intensity) : Desire(intensity), m_text(text) {}
+TalkDesire::TalkDesire(std::string textToTalk, uint16_t intensity) : Desire(intensity), m_TextToTalk(textToTalk) {}
 
 DiscussDesire::DiscussDesire(uint16_t intensity) : Desire(intensity) {}
