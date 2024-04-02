@@ -26,7 +26,7 @@ void DiscussionState::onDesireSetChanged(const vector<unique_ptr<Desire>>& _)
         return;
     }
 
-    m_stateManager.switchTo(this, m_nextStateType);
+    m_stateManager.switchTo(m_nextStateType);
 }
 
 void DiscussionState::enable(const string& parameter, const type_index& previousStageType)

@@ -84,7 +84,7 @@ void PrendreCommande::StateMachine()
 }
 
 
-std::unique_ptr<HDMotivation> createAcceuillirMotivation(ros::NodeHandle& nodeHandlestd::shared_ptr<DesireSet> desireSet)
+std::unique_ptr<Motivation> createAcceuillirMotivation(ros::NodeHandle& nodeHandle,std::shared_ptr<DesireSet> desireSet)
 {
     return std::make_unique<AcceuillirClient>(std::map<std::string, bool>{{PERCEPTION "/Detect", false}}, nodeHandle, std::vector<bool>{false}, desireSet);
 }

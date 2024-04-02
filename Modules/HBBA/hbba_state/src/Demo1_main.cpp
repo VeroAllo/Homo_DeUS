@@ -42,17 +42,17 @@ void startNode(ros::NodeHandle& nodeHandle)
     type_index greetingStateType = std::type_index(typeid(GreetingState));
 
     stateManager.addState(
-        make_unique<GoToAccueilState>(stateManager, desireSet, nodeHandle), 0
+        make_unique<GoToAccueilState>(stateManager, desireSet, nodeHandle)
     );
     stateManager.addState(
-        make_unique<GreetingState>(stateManager, desireSet, nodeHandle), 0
+        make_unique<GreetingState>(stateManager, desireSet, nodeHandle)
     );
     stateManager.addState(
-        make_unique<GoToTableState>(stateManager, desireSet, nodeHandle, greetingStateType), 0
+        make_unique<GoToTableState>(stateManager, desireSet, nodeHandle, greetingStateType)
     );
     ROS_INFO("state gotoTableState fait");
 
-    vector<unique_ptr<HDMotivation>> motivations;
+    vector<unique_ptr<Motivation>> motivations;
     //setup motivations
     motivations.emplace_back(createAcceuillirMotivation(nodeHandle, desireSet));
 

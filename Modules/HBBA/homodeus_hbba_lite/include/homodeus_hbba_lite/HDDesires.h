@@ -7,8 +7,6 @@
 #include <string>
 #include <limits>
 
-class Desire;
-
 class GotoDesire : public Desire
 {
 public:

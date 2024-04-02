@@ -128,7 +128,7 @@ include_directories(
 
 ## Declare a C++ library
 add_library(${PROJECT_NAME}
-src/Demo1_main.cpp
+src/test_state.cpp
 )
 
 ## Add cmake target dependencies of the library

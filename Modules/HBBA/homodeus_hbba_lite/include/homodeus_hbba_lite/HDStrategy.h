@@ -1,10 +1,10 @@
 #pragma once
 
 #include <ros/ros.h>
-#include <hbba_lite/core/Strategy.h>
 #include <hbba_lite/core/DesireSet.h>
-#include "HDDesires.h"
+#include <hbba_lite/core/Strategy.h>
 #include <ros/node_handle.h>
+#include "HDDesires.h"
 
 //Les messages homodeus
 #include <homodeus_msgs/DesireID.h>
@@ -53,49 +53,52 @@ protected:
 private:
     ros::Publisher generatePub(ros::NodeHandle& nh, std::string str, bool latch)
     {
-        if (str.find("Request"))
+        std::size_t failed = std::string::npos;
+        if (str.find("Request") != failed)
         {
-            if (str.find("Goto"))
+            if (str.find("Goto") != failed)
             {
                 return nh.advertise<homodeus_msgs::HDPose>(str, 10, latch);
             }
-            else if (str.find("Talk"))
+            else if (str.find("Talk") != failed)
             {
                 return nh.advertise<homodeus_msgs::HDTextToTalk>(str, 10, latch);
             }
-            else if (str.find("Discuss"))
+            else if (str.find("Discuss") != failed)
             {
                 return nh.advertise<homodeus_msgs::HDDiscussionStarted>(str, 10, latch);
             }
-            else if (str.find("Take"))
+            else if (str.find("Take") != failed)
             {
                 return nh.advertise<homodeus_msgs::HDBoundingBox>(str, 10, latch);
             }
-            else if (str.find("Drop"))
+            else if (str.find("Drop") != failed)
             {
                 return nh.advertise<homodeus_msgs::HDBoundingBox>(str, 10, latch);
             }
-            else if (str.find("Explore"))
+            else if (str.find("Explore") != failed)
             {
                 return nh.advertise<homodeus_msgs::DesireID>(str, 10, latch);
             }
+        }
+        else if (str.find("Cancel") != failed)
+        {
+            return nh.advertise<homodeus_msgs::DesireID>(str, 10, latch);
         }
         return nh.advertise<std_msgs::String>("Failed", 10, true);
     }
 
 ros::Subscriber generateSub(ros::NodeHandle& nh, std::string str)
     {
-        if (str.find("Response"))
+        std::size_t failed = std::string::npos;
+
+        if (str.find("Response") != failed)
         {
             return nh.subscribe(str, 10, &HDStrategy<T>::SubscriberResponseCallBack, this);
         }
-        else if (str.find("Status"))
+        else if (str.find("Status") != failed)
         {
             return nh.subscribe(str, 10, &HDStrategy<T>::SubscriberStatusCallBack, this);
-        }
-        else if (str.find("Cancel"))
-        {
-            return nh.subscribe(str, 10, &HDStrategy<T>::SubscriberCancelCallBack, this);
         }
         return nh.subscribe("Failed", 1, &HDStrategy<T>::SubscriberCancelCallBack, this);
     }
