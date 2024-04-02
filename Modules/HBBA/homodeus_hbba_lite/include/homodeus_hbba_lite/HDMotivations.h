@@ -24,7 +24,7 @@ protected:
     std::vector<bool> m_PerceptionList{};
     std::vector<ros::Subscriber> m_SubscriberList{};
 public:
-    PrendreCommande(const std::map<std::string, bool>& subscriberTopicList, ros::NodeHandle& nodeHandle, std::vector<bool> PerceptionList, std::shared_ptr<DesireSet> desireSet);
+    PrendreCommande(const std::map<std::string, bool>& subscriberTopicList, ros::NodeHandle& nodeHandle, std::vector<bool> PerceptionList, std::shared_ptr<DesireSet> desireSet, StateManager* SM);
     void TimerSubscriberCallBack(const std_msgs::Time time);
     void VerifyCondition();
     void StateMachine();

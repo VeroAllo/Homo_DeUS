@@ -58,8 +58,11 @@ TalkStrategy::TalkStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHand
 
 void TalkStrategy::SubscriberResponseCallBack(const homodeus_msgs::HDResponse& response) 
 {
+    ROS_INFO("DO WE GO HERE ");
+    m_DesireSet->removeDesire(m_desireID);
     if(response.id.desire_id == m_desireID)
     {
+        ROS_INFO("DO WE GO HERE");
         onDisabling();
     }
 }
@@ -92,8 +95,11 @@ DiscussStrategy::DiscussStrategy(std::shared_ptr<FilterPool> filterPool, ros::No
 
 void DiscussStrategy::SubscriberResponseCallBack(const homodeus_msgs::HDResponse& response) 
 {
+    ROS_INFO("DO WE GO HERE ");
+    m_DesireSet->removeDesire(m_desireID);
     if(response.id.desire_id == m_desireID)
     {
+        ROS_INFO("DO WE GO HERE");
         onDisabling();
     }
 }
@@ -127,8 +133,11 @@ TakeStrategy::TakeStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHand
 
 void TakeStrategy::SubscriberResponseCallBack(const homodeus_msgs::HDResponse& response) 
 {
+    ROS_INFO("DO WE GO HERE ");
+    m_DesireSet->removeDesire(m_desireID);
     if(response.id.desire_id == m_desireID)
     {
+        ROS_INFO("DO WE GO HERE");
         onDisabling();
     }
 }
@@ -162,8 +171,11 @@ DropStrategy::DropStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHand
 
 void DropStrategy::SubscriberResponseCallBack(const homodeus_msgs::HDResponse& response) 
 {
+    ROS_INFO("DO WE GO HERE ");
+    m_DesireSet->removeDesire(m_desireID);
     if(response.id.desire_id == m_desireID)
     {
+        ROS_INFO("DO WE GO HERE");
         onDisabling();
     }
 }
@@ -198,8 +210,11 @@ ExploreStrategy::ExploreStrategy(std::shared_ptr<FilterPool> filterPool, ros::No
 
 void ExploreStrategy::SubscriberResponseCallBack(const homodeus_msgs::HDResponse& response) 
 {
+    ROS_INFO("DO WE GO HERE ");
+    m_DesireSet->removeDesire(m_desireID);
     if(response.id.desire_id == m_desireID)
     {
+        ROS_INFO("DO WE GO HERE");
         onDisabling();
     }
 }
@@ -235,25 +250,25 @@ std::unique_ptr<BaseStrategy> createGoToStrategy(std::shared_ptr<FilterPool> fil
 
 std::unique_ptr<BaseStrategy> createTalkStrategy(std::shared_ptr<FilterPool> filterPool, std::shared_ptr<DesireSet> desireSet, ros::NodeHandle& nodeHandle, uint16_t utility)
 {
-    return std::make_unique<TalkStrategy>(filterPool, nodeHandle, std::map<std::string, bool>{{BEHAVIOUR "/Talk/Request", false}, {BEHAVIOUR "/Talk/Response", false}, {BEHAVIOUR "/Talk/Status", false}},  std::map<std::string, bool>{}, desireSet, std::unordered_map<std::string, FilterConfiguration>{{"talk/FilterState", FilterConfiguration::onOff()}});
+    return std::make_unique<TalkStrategy>(filterPool, nodeHandle, std::map<std::string, bool>{{BEHAVIOUR "/Talk/Request", false} },  std::map<std::string, bool>{{BEHAVIOUR "/Talk/Response", false}, {BEHAVIOUR "/Talk/Status", false}}, desireSet, std::unordered_map<std::string, FilterConfiguration>{{"talk/FilterState", FilterConfiguration::onOff()}});
 }
 
 std::unique_ptr<BaseStrategy> createDiscussStrategy(std::shared_ptr<FilterPool> filterPool, std::shared_ptr<DesireSet> desireSet, ros::NodeHandle& nodeHandle, uint16_t utility)
 {
-    return std::make_unique<DiscussStrategy>(filterPool, nodeHandle, std::map<std::string, bool>{{BEHAVIOUR "/Discuss/Request", false}, {BEHAVIOUR "/Discuss/Cancel", false}, {BEHAVIOUR "/Discuss/Response", false}, {BEHAVIOUR "/Discuss/Status", false}},std::map<std::string, bool>{}, desireSet, std::unordered_map<std::string, FilterConfiguration>{{"discuss/FilterState", FilterConfiguration::onOff()}});
+    return std::make_unique<DiscussStrategy>(filterPool, nodeHandle, std::map<std::string, bool>{{BEHAVIOUR "/Discuss/Request", false}, {BEHAVIOUR "/Discuss/Cancel", false} },std::map<std::string, bool>{{BEHAVIOUR "/Discuss/Response", false}, {BEHAVIOUR "/Discuss/Status", false}}, desireSet, std::unordered_map<std::string, FilterConfiguration>{{"discuss/FilterState", FilterConfiguration::onOff()}});
 }
 
 std::unique_ptr<BaseStrategy> createTakeStrategy(std::shared_ptr<FilterPool> filterPool, std::shared_ptr<DesireSet> desireSet, ros::NodeHandle& nodeHandle, uint16_t utility)
 {
-    return std::make_unique<TakeStrategy>(filterPool, nodeHandle, std::map<std::string, bool>{{BEHAVIOUR "/Take/Request", false}, {BEHAVIOUR "/Take/Cancel", false}, {BEHAVIOUR "/Take/Response", false}, {BEHAVIOUR "/Take/Status", false}},std::map<std::string, bool>{}, desireSet, std::unordered_map<std::string, FilterConfiguration>{{"take/FilterState", FilterConfiguration::onOff()}});
+    return std::make_unique<TakeStrategy>(filterPool, nodeHandle, std::map<std::string, bool>{{BEHAVIOUR "/Take/Request", false}, {BEHAVIOUR "/Take/Cancel", false}},std::map<std::string, bool>{{BEHAVIOUR "/Take/Response", false}, {BEHAVIOUR "/Take/Status", false}}, desireSet, std::unordered_map<std::string, FilterConfiguration>{{"take/FilterState", FilterConfiguration::onOff()}});
 }
 
 std::unique_ptr<BaseStrategy> createDropStrategy(std::shared_ptr<FilterPool> filterPool, std::shared_ptr<DesireSet> desireSet, ros::NodeHandle& nodeHandle, uint16_t utility)
 {
-    return std::make_unique<DropStrategy>(filterPool, nodeHandle, std::map<std::string, bool>{{BEHAVIOUR "/Drop/Request", false}, {BEHAVIOUR "/Drop/Cancel", false}, {BEHAVIOUR "/Drop/Response", false}, {BEHAVIOUR "/Drop/Status", false}},std::map<std::string, bool>{}, desireSet, std::unordered_map<std::string, FilterConfiguration>{{"drop/FilterState", FilterConfiguration::onOff()}});
+    return std::make_unique<DropStrategy>(filterPool, nodeHandle, std::map<std::string, bool>{{BEHAVIOUR "/Drop/Request", false}, {BEHAVIOUR "/Drop/Cancel", false}},std::map<std::string, bool>{{BEHAVIOUR "/Drop/Response", false}, {BEHAVIOUR "/Drop/Status", false}}, desireSet, std::unordered_map<std::string, FilterConfiguration>{{"drop/FilterState", FilterConfiguration::onOff()}});
 }
 
 std::unique_ptr<BaseStrategy> createExploreStrategy(std::shared_ptr<FilterPool> filterPool, std::shared_ptr<DesireSet> desireSet, ros::NodeHandle& nodeHandle, uint16_t utility)
 {
-    return std::make_unique<ExploreStrategy>(filterPool, nodeHandle, std::map<std::string, bool>{{BEHAVIOUR "/Explore/Request", false}, {BEHAVIOUR "/Explore/Cancel", false}, {BEHAVIOUR "/Explore/Response", false}, {BEHAVIOUR "/Explore/Status", false}}, std::map<std::string, bool>{}, desireSet, std::unordered_map<std::string, FilterConfiguration>{{"explore/FilterState", FilterConfiguration::onOff()}});
+    return std::make_unique<ExploreStrategy>(filterPool, nodeHandle, std::map<std::string, bool>{{BEHAVIOUR "/Explore/Request", false}, {BEHAVIOUR "/Explore/Cancel", false} }, std::map<std::string, bool>{{BEHAVIOUR "/Explore/Response", false}, {BEHAVIOUR "/Explore/Status", false}}, desireSet, std::unordered_map<std::string, FilterConfiguration>{{"explore/FilterState", FilterConfiguration::onOff()}});
 }
