@@ -2,7 +2,6 @@
 #include "State/commons/GoToTableState.h"
 #include "State/AccueilMotivation/GreetingState.h"
 #include "State/AccueilMotivation/GoToAccueilState.h"
-
 #include <ros/ros.h>
 
 #include <hbba_lite/core/DesireSet.h>
@@ -11,6 +10,7 @@
 #include <hbba_lite/core/HbbaLite.h>
 #include <hbba_lite/core/RosStrategyStateLogger.h>
 #include <hbba_lite/core/Strategy.h>
+#include <homodeus_hbba_lite/HDMotivations.h>
 
 #include <homodeus_hbba_lite/HDStrategies.h>
 
@@ -51,6 +51,10 @@ void startNode(ros::NodeHandle& nodeHandle)
         make_unique<GoToTableState>(stateManager, desireSet, nodeHandle, greetingStateType)
     );
     ROS_INFO("state gotoTableState fait");
+
+    vector<unique_ptr<HDMotivation>> motivations;
+    //setup motivations
+    motivations.emplace_back(createAcceuillirMotivation(nodeHandle, desireSet));
 
     stateManager.switchTo<GoToAccueilState>();
 

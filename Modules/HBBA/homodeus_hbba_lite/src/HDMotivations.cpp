@@ -3,8 +3,11 @@
 #include <std_msgs/Time.h>
 
 #define TIMEAUQUELTABLEAETEPRISE 1
+#define PROJECT "/Homodeus"
+#define BEHAVIOUR PROJECT "/Behaviour"
+#define PERCEPTION PROJECT "/Perception"
 
-AcceuillirClient::AcceuillirClient(const std::map<std::string, bool>& subscriberTopicList, ros::NodeHandle& nodeHandle, std::vector<bool> PerceptionList, std::shared_ptr<DesireSet> desireSet, std::vector<Desire> desireList) : HDMotivation(desireSet, move(desireList)) 
+AcceuillirClient::AcceuillirClient(const std::map<std::string, bool>& subscriberTopicList, ros::NodeHandle& nodeHandle, std::vector<bool> PerceptionList, std::shared_ptr<DesireSet> desireSet) : Motivation(desireSet) 
 {
     m_SubscriberList.push_back(nodeHandle.subscribe(subscriberTopicList.begin()->first, 10, &AcceuillirClient::VisionSubscriberCallBack, this));
     m_PerceptionList = PerceptionList;
@@ -43,7 +46,7 @@ void AcceuillirClient::StateMachine()
     //To Do
 }
 
-PrendreCommande::PrendreCommande(const std::map<std::string, bool>& subscriberTopicList, ros::NodeHandle& nodeHandle, std::vector<bool> PerceptionList, std::shared_ptr<DesireSet> desireSet, std::vector<Desire> desireList) : HDMotivation(desireSet, move(desireList)) 
+PrendreCommande::PrendreCommande(const std::map<std::string, bool>& subscriberTopicList, ros::NodeHandle& nodeHandle, std::vector<bool> PerceptionList, std::shared_ptr<DesireSet> desireSet) : Motivation(desireSet) 
 {
     m_SubscriberList.push_back(nodeHandle.subscribe(subscriberTopicList.begin()->first, 10, &PrendreCommande::TimerSubscriberCallBack, this));
     m_PerceptionList = PerceptionList;
@@ -80,7 +83,8 @@ void PrendreCommande::StateMachine()
     //To Do
 }
 
-ChercherCommande::ChercherCommande (const std::map<std::string, bool>& subscriberTopicList, ros::NodeHandle& nodeHandle, std::vector<bool> PerceptionList, std::shared_ptr<DesireSet> desireSet, std::vector<Desire> desireList) : HDMotivation(desireSet, move(desireList)) 
+
+std::unique_ptr<HDMotivation> createAcceuillirMotivation(ros::NodeHandle& nodeHandlestd::shared_ptr<DesireSet> desireSet)
 {
-    m_PerceptionList = PerceptionList;
+    return std::make_unique<AcceuillirClient>(std::map<std::string, bool>{{PERCEPTION "/Detect", false}}, nodeHandle, std::vector<bool>{false}, desireSet);
 }
