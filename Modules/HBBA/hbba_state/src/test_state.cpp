@@ -55,29 +55,29 @@ void startNode(ros::NodeHandle& nodeHandle)
     
     unique_ptr<GoToAccueilState> tmp_state = make_unique<GoToAccueilState>(stateManager, desireSet, nodeHandle);
 
-    stateManager.addState(move(tmp_state), 0);
+    stateManager.addState(move(tmp_state));
     stateManager.addState(
-        make_unique<GreetingState>(stateManager, desireSet, nodeHandle), 0
+        make_unique<GreetingState>(stateManager, desireSet, nodeHandle)
     );
     stateManager.addState(
-        make_unique<GoToTableState>(stateManager, desireSet, nodeHandle, discussStateType), 0
+        make_unique<GoToTableState>(stateManager, desireSet, nodeHandle, discussStateType)
     );
     ROS_INFO("state gotoTableState fait");
     stateManager.addState(
-        make_unique<DiscussionState>(stateManager, desireSet, nodeHandle, takeStateType), 0
+        make_unique<DiscussionState>(stateManager, desireSet, nodeHandle, takeStateType)
     );
     stateManager.addState(
-        make_unique<TakeState>(stateManager, desireSet, nodeHandle, kitchenStateType), 0
+        make_unique<TakeState>(stateManager, desireSet, nodeHandle, kitchenStateType)
     );
     stateManager.addState(
-        make_unique<GoToKitchenState>(stateManager, desireSet, nodeHandle, dropStatetype), 0
+        make_unique<GoToKitchenState>(stateManager, desireSet, nodeHandle, dropStatetype)
     );
     stateManager.addState(
-        make_unique<DropState>(stateManager, desireSet, nodeHandle, greetingStateType), 0
+        make_unique<DropState>(stateManager, desireSet, nodeHandle, greetingStateType)
     );
     ROS_INFO("state DropState fait");
 
-    stateManager.switchTo<GoToAccueilState>(tmp_state.get());
+    stateManager.switchTo<GoToAccueilState>();
 
     ros::spin();
 }

@@ -1,5 +1,5 @@
 #include <ros/ros.h>
-#include<hbba_lite/include/hbba_lite/core/Motivation.h>
+#include <hbba_lite/core/Motivation.h>
 #include <std_msgs/String.h>
 #include <std_msgs/Time.h>
 
@@ -38,4 +38,4 @@ public:
     void StateMachine();
 };
 
-std::unique_ptr<HDMotivation> createAcceuillirMotivation(ros::NodeHandle& nodeHandle, std::shared_ptr<DesireSet> desireSet);
+std::unique_ptr<Motivation> createAcceuillirMotivation(ros::NodeHandle& nodeHandle, std::shared_ptr<DesireSet> desireSet);

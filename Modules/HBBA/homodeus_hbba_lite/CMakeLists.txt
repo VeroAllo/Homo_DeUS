@@ -29,7 +29,6 @@ add_library(${PROJECT_NAME}
 src/HDDesires.cpp
 src/HDStrategy.cpp
 src/HDStrategies.cpp
-src/HDMotivation.cpp
 src/HDMotivations.cpp
 )
 

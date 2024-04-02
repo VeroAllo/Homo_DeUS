@@ -29,7 +29,7 @@ void TalkState::onDesireSetChanged(const std::vector<std::unique_ptr<Desire>>& _
         return;
     }
 
-    m_stateManager.switchTo(this, m_nextStateType);
+    m_stateManager.switchTo(m_nextStateType);
 }
 
 void TalkState::enable(const string& parameter, const type_index& previousStageType)
