@@ -36,7 +36,7 @@ class AudioConsumer(threading.Thread):
         self.vosk_recognizer = vosk.KaldiRecognizer(self.vosk_model, 16000)
 
         # Chargez votre modèle RASA
-        self.agent = Agent.load('/home/tiblond/Documents/Homo_DeUS/catkin_ws/src/audio_package/src/rasa_serveur/models/20240327-181016-senior-area.tar.gz')
+        self.agent = Agent.load('/home/tiblond/Documents/Homo_DeUS/catkin_ws/src/audio_package/src/rasa_serveur/models/20240402-144236-all-caption.tar.gz')
     
     def clear_queue(self, q):
         try:

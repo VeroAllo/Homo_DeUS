@@ -31,3 +31,5 @@ responses:
   - text: "Your {drink} has been ordered. Thank you!"
   utter_apologize:
   - text: "I'm sorry for the mistake. Let's try again."
+  utter_unknown:
+  - text: "I'm sorry, I didn't understand your request. Could you please rephrase it?"

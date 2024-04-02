@@ -26,3 +26,8 @@ rules:
   - intent: deny_order
   - action: utter_apologize
   - action: utter_show_menu 
+
+- rule: Fallback rule
+  steps:
+  - intent: nlu_fallback
+  - action: utter_unknown
