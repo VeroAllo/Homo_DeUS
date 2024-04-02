@@ -2,10 +2,12 @@
 
 # https://wiki.ros.org/ROS/Tutorials/CreatingPackage
 # https://docs.ros.org/en/melodic/api/catkin/html/howto/format2/installing_python.html
+# https://docs.ros.org/en/diamondback/api/rospy/html/rospy.client-module.html
 
 import rospy
 from rospy import Publisher, Rate, Subscriber
 from geometry_msgs.msg import Point, Pose , PoseWithCovarianceStamped, Quaternion, Vector3
+from homodeus_msgs.msg import RobotPoseStamped
 from nav_msgs.msg import Odometry
 
 from math import atan2, pi, sqrt
@@ -29,6 +31,11 @@ from numpy import around, mean, square
 #     - estimation de la pose () [/amcl_pose/pose/pose]
 #     ou calcul de la pose () [/mobile_base_controller/odom/pose]
 #     - sa confiance () [/amcl_pose/pose/covariance]
+
+
+# TODO
+#   Si perdu, atteindre que la covariance redevient sous le seuil d'acceptation
+#   avant de retransmettre la pose du robot avec le decalage AMCL.
 
 
 def quarternion2euler(q: Quaternion) -> Vector3:
@@ -61,20 +68,24 @@ class RobotPose():
     # run simultaneously.
     rospy.init_node('robot_pose', anonymous=True)
 
-    self.__amcl_pose: Vector3
-    self.__odom_pose: Vector3
+    self.__amcl_pose: Vector3     = None
+    self.__odom_pose: Vector3     = None
+    self.__initial_pose_call: bool= True
+    self.__offset_pose: Vector3   = Vector3()
+
 
     # Subscriber
     self.__amcl_pose_sub: Subscriber = Subscriber("/amcl_pose", PoseWithCovarianceStamped, self.__amcl_pose_subscriber)
     self.__odom_pose_sub: Subscriber = Subscriber("/mobile_base_controller/odom", Odometry, self.__odom_pose_subscriber)
+    self.__pose_initial_sub: Subscriber = Subscriber("/initialpose", PoseWithCovarianceStamped, self.__initial_pose_subscriber)
 
     # Publisher
     self.__rate: Rate = Rate(10) # 10hz
-    self.__robot_pose_pub: Publisher = Publisher("/homodeus/perception/robot_pose", Vector3, queue_size=1)
+    self.__robot_pose_pub: Publisher = Publisher("/homodeus/perception/robot_pose", RobotPoseStamped, queue_size=1)
 
+    rospy.on_shutdown(self.__node_shutdown)
     rospy.loginfo("Robot Pose initialized")
     self.__robot_pose_publisher()
-    rospy.on_shutdown(self.__node_shutdown)
 
 
   def __amcl_pose_subscriber(self, pose_wcs: PoseWithCovarianceStamped) -> None:
@@ -84,15 +95,16 @@ class RobotPose():
     # mat:        float[36] =  around(covar_mat, 4)
 
     # mean_mat:   float[36] = mean(covar_mat)                 # > 0.0025 -> lost, < 0.0005 -> A+
-    msqrt:      float[36] = mean(square(covar_mat))   # > 0.00005 -> lost, < 0.000001 -> A+
+    self.__msqrt: float   = mean(square(covar_mat))   # > 0.00005 -> lost, < 0.000001 -> A+
     # max_value:    float     = abs(max(covar_mat, key=abs))
     # mat_sum:      float     = sum([i for i in covar_mat])
     
     yaw   = quarternion2euler(pose.orientation).z
+    if yaw < 0.0 :
+      yaw = 2*pi+yaw
     self.__amcl_pose = Vector3(position.x, position.y, yaw)
 
-
-    # rospy.loginfo(rospy.get_caller_id() + " AMCL - x: %.4f, y: %.4f, yaw: %.4f; mean: %.4f", position.x, position.y, yaw, msqrt)
+    rospy.loginfo(rospy.get_caller_id() + " AMCL - x: %.4f, y: %.4f, yaw: %.4f; mean: %.4f", position.x, position.y, yaw, self.__msqrt)
 
 
   def __odom_pose_subscriber(self, odom: Odometry) -> None:
@@ -115,17 +127,42 @@ class RobotPose():
     rospy.loginfo(rospy.get_caller_id() + " ODOM - x: %.4f, y: %.4f, yaw: %.4f; mean: %.4f", position.x, position.y, yaw, msqrt)
 
 
+  def __initial_pose_subscriber(self, PoseWithCovarianceStamped) -> None:
+    self.__initial_pose_call = True
+
+
   def __robot_pose_publisher(self) -> None:
-    self.__odom_pose = Vector3(0,0,0)
+    pose: RobotPoseStamped= RobotPoseStamped()
+    ramp_amcl: int        = 1
 
     while not rospy.is_shutdown():
-      self.__robot_pose_pub.publish(self.__odom_pose)
+      if self.__amcl_pose != None:
+        if self.__initial_pose_call:
+          self.__initial_pose_call = False
+          self.__offset_pose = self.__amcl_pose
+
+        if self.__msqrt > 0.0005:
+          ramp_amcl = 0
+        elif self.__msqrt < 0.000001 and ramp_amcl == 0:
+          ramp_amcl = 1
+          self.__initial_pose_call = True
+
+        angle = self.__offset_pose.z + self.__odom_pose.z
+        if angle > 2*pi: angle -= 2*pi
+
+        pose.header.stamp = rospy.Time.now()
+        pose.lost = self.__msqrt > 0.0005
+        pose.pose = Vector3(self.__offset_pose.x - self.__odom_pose.x, 
+                            self.__offset_pose.y - self.__odom_pose.y, 
+                            angle)
+        self.__robot_pose_pub.publish(pose)
       self.__rate.sleep()
 
 
   def __node_shutdown(self) -> None:
     self.__amcl_pose_sub.unregister()
     self.__odom_pose_sub.unregister()
+    self.__robot_pose_pub.unregister()
 
     rospy.loginfo("Perception Robot Pose - Shutdown")
 

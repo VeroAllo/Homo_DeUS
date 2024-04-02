@@ -48,6 +48,7 @@ add_message_files(
   Int8Stamped.msg
   ObjectDetection.msg
   ObjectsDetection.msg
+  RobotPoseStamped.msg
 )
 
 ## Generate actions in the 'action' folder

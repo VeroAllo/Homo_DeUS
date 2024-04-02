@@ -51,6 +51,10 @@ class NavSelector :
             self.SetCurrentGoal(self.GetGoalList()[index_goal])
 
     def AddGoalNav(self, goal : NavGoal) -> None :
+        # A titre informatif, pourrait-etre utilise comme info a retransmettre a HBBA
+        if self.ImpossibleGoal(goal):
+            print(f"Impossible go to goal ({goal.GetPoint()}) from robot's pose")
+
         if self.__currentGoal is None :
             self.__currentGoal = goal
         else :
@@ -69,7 +73,8 @@ class NavSelector :
         #     self.Behave()
 
     def AddGoal(self, goalX : float, goalY : float, goalZ : float, goalOri : float, name : str) -> None :
-        self.AddGoalNav(goalX, goalY, goalZ, goalOri, name)
+        nav_goal = NavGoal(goalX, goalY, goalZ, goalOri, name)
+        self.AddGoalNav(nav_goal)
 
     def ExtendGoals(self, goals : List[NavGoal]) -> None :
         self.__goalList.extend(goals)
@@ -198,12 +203,40 @@ class NavSelector :
             if (self.GetCurrentGoal() is not None):
                 print(f'Current goal id : {self.GetCurrentGoal().GetNavGoalID()}')
 
+    def __robot_pose_subscriber(self, poseWCS: PoseWithCovarianceStamped) -> None:
+        self.__robot_pose = poseWCS.pose.pose
+
+    def initSrvGetPlan(self) -> None:
+        """
+        Service make_plan (/move_base/make_plan) donne le chemin du point A au point B
+        (vide si impossible de faire un chemin)
+
+        https://docs.ros.org/en/api/nav_msgs/html/srv/GetPlan.html
+        https://docs.ros.org/en/noetic/api/nav_msgs/html/srv/GetPlan.html
+        req = nav_msgs.GetPlan()
+        https://docs.ros.org/en/noetic/api/nav_msgs/html/msg/Path.html
+        resp = __srv_get_plan(req.start, req.goal, req.tolerance)
+        resp.poses -> Si chemin vide, alors impossible d'atteindre le point B p/r au A
+        """
+        try:
+            srv_name_get_plan = '/move_base/make_plan'
+            rospy.wait_for_service(srv_name_get_plan, timeout=rospy.Duration(5))
+            if not hasattr(self, '__srv_get_plan'):
+                self.__srv_get_plan = rospy.ServiceProxy(srv_name_get_plan, GetPlan)
+        except rospy.ServiceException as src_exc:
+            print(f"Service {srv_name_get_plan} ne repond pas pcq {src_exc}")
+
     def initConnectionToNode(self) -> None :
-        self.client = actionlib.SimpleActionClient("move_base", MoveBaseAction)
         self.__publisher = rospy.Publisher(self.__topic+"/Response", std_msgs.msg.Int8, queue_size = 10,  latch = False)
         self.__subscriber = rospy.Subscriber(self.__topic+"/Request", Pose, callback = self.AddGoalPose, queue_size = 10)
+        self.__robot_pose_sub = rospy.Subscriber("/robot_pose", PoseWithCovarianceStamped, self.__robot_pose_subscriber)
+
+        self.client = actionlib.SimpleActionClient("move_base", MoveBaseAction)
         if not self.client.wait_for_server(timeout=rospy.Duration(5)):
             print("SimpleActionClient isn't available !")
+
+        self.initSrvGetPlan()
+
         self.__rate = rospy.Rate(self.__hz)
 
     def closeConnectionToNode(self) -> None :
@@ -213,6 +246,7 @@ class NavSelector :
         self.__currentGoal = None
         self.__publisher.unregister()
         self.__subscriber.unregister()
+        self.__robot_pose_sub.unregister()
 
     def RelocateItselfInMap(self) -> None :
         try:
@@ -244,6 +278,28 @@ class NavSelector :
             self.__srv_clear()
         except rospy.ServiceException as src_exc:
             print(f"Service {srv_name_clear} ne repond pas pcq {src_exc}")
+
+    def ImpossibleGoal(self, nav_goal: NavGoal) -> bool:
+        pose_start  = PoseStamped()
+        pose_start.header.stamp = rospy.Time(0)
+        pose_start.header.frame_id = 'map'
+        pose_start.pose.position   = self.__robot_pose.position
+        pose_start.pose.orientation= self.__robot_pose.orientation
+
+        pose_end    = PoseStamped()
+        pose_end.header.stamp = rospy.Time.now()
+        pose_end.header.frame_id = 'map'
+        pose_end.pose.position = nav_goal.GetPoint()
+        pose_end.pose.orientation = nav_goal.GetOri()
+
+        request_plan = GetPlan()
+        request_plan.start = pose_start
+        request_plan.goal = pose_end
+        # Perimetre autour ou le robot peut aller (zone tampon)
+        request_plan.tolerance = 0.0254
+
+        response = self.__srv_get_plan(request_plan.start, request_plan.goal, request_plan.tolerance)
+        return len(response.plan.poses) == 0
 
     def __pose_cb(self, poseWCS) -> None:
         pose: Pose = poseWCS.pose.pose
