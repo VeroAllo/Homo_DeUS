@@ -5,8 +5,6 @@
 
 class DropState : public State, public DesireSetObserver
 {
-    std::type_index m_nextStateType;
-
     uint64_t m_dropDesireId;
 
 public:
@@ -26,9 +24,6 @@ protected:
     void enable(const std::string& parameter, const std::type_index& previousStageType) override;
     void disable() override;
     std::type_index type() const override;
-
-private:
-    std::string generateDrop();
 };
 
 inline std::type_index DropState::type() const

@@ -4,7 +4,7 @@
 import rospy
 from rospy import Publisher, Subscriber
 
-from homodeus_msgs.msg import Int8Stamped, Float32Stamped
+from homodeus_msgs.msg import Int8Stamped, Float32Stamped, RobotPoseStamped
 from geometry_msgs.msg import Twist, Vector3
 from std_msgs.msg import Header
 
@@ -99,10 +99,29 @@ class PID:
       self.__last_error: float    = 0.
 
 
+  def set_gains(self, kp: float = None, ki: float = None, kd: float = None) -> None:
+    """
+    The function set the PID's gains and reset the target.
+
+    Parameters:
+      kp (float): proportional gain.
+      ki (float): integral gain.
+      kd (float): derivate gain.
+    """
+    if kp != None:
+      self.__Kp = kp
+    if ki != None:
+      self.__Ki = ki
+    if kd != None:
+      self.__Kd = ki
+
+    self.set_target(None, True)
+
+
 # # Access the Class docstring using help()
 # help(PID)
 # # Access the method docstring using help()
-# help(PID.add)
+# help(PID.get_next_command)
 
 
 class BaseRotate():
@@ -125,11 +144,11 @@ class BaseRotate():
   Sources:
 
   """
-  __BASE_ROTATE_CANCEL_TOPIC    = "/homodeus/comportement/base_rotate/cancel"
-  __BASE_ROTATE_FEEDBACK_TOPIC  = "/homodeus/comportement/base_rotate/feedback"
-  __BASE_ROTATE_GOAL_TOPIC      = "/homodeus/comportement/base_rotate/goal"
-  __BASE_ROTATE_RESULT_TOPIC    = "/homodeus/comportement/base_rotate/result"
-  __BASE_ROTATE_STATUS_TOPIC    = "/homodeus/comportement/base_rotate/status"
+  __BASE_ROTATE_CANCEL_TOPIC    = "/homodeus/behavior/base_rotate/cancel"
+  # __BASE_ROTATE_FEEDBACK_TOPIC  = "/homodeus/behavior/base_rotate/feedback"
+  __BASE_ROTATE_GOAL_TOPIC      = "/homodeus/behavior/base_rotate/goal"
+  __BASE_ROTATE_RESULT_TOPIC    = "/homodeus/behavior/base_rotate/result"
+  __BASE_ROTATE_STATUS_TOPIC    = "/homodeus/behavior/base_rotate/status"
   
   __ROBOT_POSE_TOPIC            = "/homodeus/perception/robot_pose"
   __TWIST_TOPIC                 = "nav_vel"
@@ -156,7 +175,7 @@ class BaseRotate():
     self.__last_pose_z: float = 0.
 
     # Subscriber
-    self.__robot_pose_sub: Subscriber = Subscriber(self.__ROBOT_POSE_TOPIC, Vector3, self.__robot_pose_subscriber)
+    self.__robot_pose_sub: Subscriber = Subscriber(self.__ROBOT_POSE_TOPIC, RobotPoseStamped, self.__robot_pose_subscriber)
     self.__base_rotate_cancel_sub: Subscriber = Subscriber(self.__BASE_ROTATE_CANCEL_TOPIC, Header, self.__base_rotate_cancel_subscriber)
     self.__base_rotate_goal_sub: Subscriber = Subscriber(self.__BASE_ROTATE_GOAL_TOPIC, Float32Stamped, self.__base_rotate_goal_subscriber)
 
@@ -222,13 +241,16 @@ class BaseRotate():
     self.__pid.set_target(self.__target)
 
 
-  def __robot_pose_subscriber(self, pose: Vector3) -> None:
+  def __robot_pose_subscriber(self, robot_pose: RobotPoseStamped) -> None:
     """
     The function listening the robot pose
 
     Parameters:
-      pose (Vector3): robot pose (x, y, z:XY plan's angle).
+      pose (RobotPoseStamped):  header with stamp,
+                                lost if value is one,
+                                pose (x, y, z:XY plan's angle);
     """
+    pose: Vector3 = robot_pose.pose
     if self.__target == None:
       self.__last_pose_z  = pose.z
       self.__sens_rotate  = 1
@@ -278,7 +300,6 @@ class BaseRotate():
 
     rospy.loginfo("Behavior Base Rotate - Shutdown")
 
+
 # # Access the Class docstring using help()
 # help(BaseRotate)
-# # Access the method docstring using help()
-# help(BaseRotate.add)

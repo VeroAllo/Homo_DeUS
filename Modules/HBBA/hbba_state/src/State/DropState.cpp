@@ -1,8 +1,7 @@
 #include "DropState.h"
 #include "StateManager.h"
 
-
-#include "../hbba_core/HDDesires.h"
+#include <homodeus_hbba_lite/HDDesires.h>
 
 using namespace std;
 
@@ -11,8 +10,7 @@ DropState::DropState(
     shared_ptr<DesireSet> desireSet,
     ros::NodeHandle& nodeHandle,
     type_index nextStateType)
-    : State(stateManager, desireSet, nodeHandle),
-      m_nextStateType(nextStateType),
+    : State(stateManager, desireSet, nodeHandle, nextStateType),
       m_dropDesireId(MAX_DESIRE_ID)
 {
     m_desireSet->addObserver(this);
@@ -30,29 +28,24 @@ void DropState::onDesireSetChanged(const std::vector<std::unique_ptr<Desire>>& _
         return;
     }
 
-    m_stateManager.switchTo(m_nextStateType);
+    m_stateManager.switchTo(this, m_nextStateType);
 }
 
 void DropState::enable(const string& parameter, const type_index& previousStageType)
 {
     State::enable(parameter, previousStageType);
 
-    auto talkDesire = make_unique<TalkDesire>(generateDrop());
-    m_dropDesireId = talkDesire->id();
+    auto dropDesire = make_unique<DropDesire>();
+    m_dropDesireId = dropDesire->id();
 
-    m_desireIds.emplace_back(talkDesire->id());
+    m_desireIds.emplace_back(dropDesire->id());
 
     auto transaction = m_desireSet->beginTransaction();
-    m_desireSet->addDesire(move(talkDesire));
+    m_desireSet->addDesire(move(dropDesire));
 }
 
 void DropState::disable()
 {
     State::disable();
     m_dropDesireId = MAX_DESIRE_ID;
-}
-
-string DropState::generateDrop()
-{
-    return "drop";
 }

@@ -1,7 +1,6 @@
 #include "GoToState.h"
 #include "StateManager.h"
-#include "../hbba_core/HDDesires.h"
-//#include <t_top_hbba_lite/Desires.h>
+#include <homodeus_hbba_lite/HDDesires.h>
 
 using namespace std;
 
@@ -10,8 +9,7 @@ GoToState::GoToState(
     shared_ptr<DesireSet> desireSet,
     ros::NodeHandle& nodeHandle,
     type_index nextStateType)
-    : State(stateManager, desireSet, nodeHandle),
-      m_nextStateType(nextStateType),
+    : State(stateManager, desireSet, nodeHandle, nextStateType),
       m_gotoDesireId(MAX_DESIRE_ID)
 {
     m_desireSet->addObserver(this);
@@ -29,7 +27,7 @@ void GoToState::onDesireSetChanged(const vector<unique_ptr<Desire>>& _)
         return;
     }
 
-    m_stateManager.switchTo(m_nextStateType);
+    m_stateManager.switchTo(this, m_nextStateType);
 }
 
 void GoToState::enable(const string& parameter, const type_index& previousStageType)
@@ -42,7 +40,6 @@ void GoToState::enable(const string& parameter, const type_index& previousStageT
 
     auto transaction = m_desireSet->beginTransaction();
     m_desireSet->addDesire(move(gotoDesire));
-
 }
 
 void GoToState::disable()

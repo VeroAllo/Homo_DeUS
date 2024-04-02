@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   hbba_lite REQUIRED
+  homodeus_hbba_lite REQUIRED
   std_msgs
 )
 
@@ -104,11 +105,12 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  INCLUDE_DIRS include
+  #INCLUDE_DIRS include
   LIBRARIES hbba_lite_main
   CATKIN_DEPENDS 
     roscpp 
     hbba_lite
+    homodeus_hbba_lite
     std_msgs
 #  DEPENDS system_lib
 )
@@ -122,12 +124,11 @@ catkin_package(
 include_directories(
 # include
   ${catkin_INCLUDE_DIRS}
-  #${"src/hbba_core"}
 )
 
 ## Declare a C++ library
 add_library(${PROJECT_NAME}
-  src/Demo1_main.cpp
+src/Demo1_main.cpp
 )
 
 ## Add cmake target dependencies of the library
@@ -142,22 +143,19 @@ add_executable(${PROJECT_NAME}_node
   # src/Demo1_main.cpp
   src/test_state.cpp
   #src/Test_AccueilMotiv.cpp
-  # src/hbba_core/HDStrategies.cpp
-  # src/hbba_core/HDStrategy.cpp
-  src/hbba_core/HDDesires.cpp
   src/State/GoToState.cpp
-  # src/State/GoToKitchenState.cpp
-  # src/State/DiscussionState.cpp
-  # src/State/TakeState.cpp
-  # src/State/DropState.cpp
+  src/State/GoToKitchenState.cpp
+  src/State/DiscussionState.cpp
+  src/State/TakeState.cpp
   src/State/commons/GoToTableState.cpp
-  src/State/AccueilMotivation/AccueilMotiv_StateManager.cpp
+  # src/State/AccueilMotivation/AccueilMotiv_StateManager.cpp
   src/State/AccueilMotivation/GreetingState.cpp
   src/State/AccueilMotivation/GoToAccueilState.cpp
   src/State/State.cpp
   src/State/StateManager.cpp
   src/State/TalkState.cpp
   src/StringUtils.cpp
+  src/State/DropState.cpp
   
 )
 
