@@ -28,12 +28,14 @@ protected:
     ros::NodeHandle& m_nodeHandle;
 
     std::vector<uint64_t> m_desireIds;
+    std::type_index m_nextStateType;
 
 public:
     State(
         StateManager& stateManager,
         std::shared_ptr<DesireSet> desireSet,
-        ros::NodeHandle& nodeHandle);
+        ros::NodeHandle& nodeHandle, 
+        std::type_index nextStateType);
     virtual ~State();
 
     DECLARE_NOT_COPYABLE(State);
@@ -42,6 +44,7 @@ public:
 protected:
     bool enabled() const;
     std::type_index previousStageType() const;
+    std::type_index nextStateType() const;
     virtual std::type_index type() const = 0;
 
     virtual void enable(const std::string& parameter, const std::type_index& previousStageType);
@@ -58,6 +61,11 @@ inline bool State::enabled() const
 inline std::type_index State::previousStageType() const
 {
     return m_previousStageType;
+}
+
+inline std::type_index State::nextStateType() const
+{
+    return m_nextStateType;
 }
 
 #endif

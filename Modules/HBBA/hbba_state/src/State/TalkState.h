@@ -5,8 +5,6 @@
 
 class TalkState : public State, public DesireSetObserver
 {
-    std::type_index m_nextStateType;
-
     uint64_t m_talkDesireId;
 
 public:

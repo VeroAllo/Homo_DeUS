@@ -11,9 +11,8 @@ TalkState::TalkState(
     shared_ptr<DesireSet> desireSet,
     ros::NodeHandle& nodeHandle,
     type_index nextStateType)
-    : State(stateManager, desireSet, nodeHandle),
-      m_nextStateType(nextStateType),
-      m_talkDesireId(MAX_DESIRE_ID)
+    : State(stateManager, desireSet, nodeHandle, nextStateType),
+    m_talkDesireId(MAX_DESIRE_ID)
 {
     m_desireSet->addObserver(this);
 }
@@ -30,7 +29,7 @@ void TalkState::onDesireSetChanged(const std::vector<std::unique_ptr<Desire>>& _
         return;
     }
 
-    m_stateManager.switchTo(m_nextStateType);
+    m_stateManager.switchTo(this, m_nextStateType);
 }
 
 void TalkState::enable(const string& parameter, const type_index& previousStageType)

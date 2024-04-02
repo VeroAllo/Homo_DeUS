@@ -2,6 +2,7 @@
 #include "State/commons/GoToTableState.h"
 #include "State/AccueilMotivation/GreetingState.h"
 #include "State/AccueilMotivation/GoToAccueilState.h"
+
 #include <ros/ros.h>
 
 #include <hbba_lite/core/DesireSet.h>
@@ -27,7 +28,6 @@ void startNode(ros::NodeHandle& nodeHandle)
 
     vector<unique_ptr<BaseStrategy>> strategies;
     //setup strategy needed for state
-    //strategies.emplace_back(createSpeechToTextStrategy(filterPool)); // does not exist
     strategies.emplace_back(createExploreStrategy(filterPool, desireSet, nodeHandle));
     strategies.emplace_back(createTalkStrategy(filterPool, desireSet, nodeHandle));
     strategies.emplace_back(createGoToStrategy(filterPool, desireSet, nodeHandle));
@@ -42,13 +42,13 @@ void startNode(ros::NodeHandle& nodeHandle)
     type_index greetingStateType = std::type_index(typeid(GreetingState));
 
     stateManager.addState(
-        make_unique<GoToAccueilState>(stateManager, desireSet, nodeHandle)
+        make_unique<GoToAccueilState>(stateManager, desireSet, nodeHandle), 0
     );
     stateManager.addState(
-        make_unique<GreetingState>(stateManager, desireSet, nodeHandle)
+        make_unique<GreetingState>(stateManager, desireSet, nodeHandle), 0
     );
     stateManager.addState(
-        make_unique<GoToTableState>(stateManager, desireSet, nodeHandle, greetingStateType)
+        make_unique<GoToTableState>(stateManager, desireSet, nodeHandle, greetingStateType), 0
     );
     ROS_INFO("state gotoTableState fait");
 

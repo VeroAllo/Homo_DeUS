@@ -5,7 +5,6 @@
 
 class GoToState : public State, public DesireSetObserver
 {
-    std::type_index m_nextStateType;
     uint64_t m_gotoDesireId;
 
 public:
@@ -27,4 +26,5 @@ protected:
 private:
     virtual std::string generateGoal() { return "";};
 };
+
 #endif

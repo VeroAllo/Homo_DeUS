@@ -5,7 +5,6 @@
 
 class DiscussionState : public State, public DesireSetObserver
 {
-    std::type_index m_nextStateType;
     uint64_t m_discussDesireId;
 
     public:

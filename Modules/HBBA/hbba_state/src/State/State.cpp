@@ -5,11 +5,13 @@ using namespace std;
 State::State(
     StateManager& stateManager,
     shared_ptr<DesireSet> desireSet,
-    ros::NodeHandle& nodeHandle)
+    ros::NodeHandle& nodeHandle, 
+    std::type_index nextStateType)
     : m_enabled(false),
       m_stateManager(stateManager),
       m_desireSet(move(desireSet)),
       m_nodeHandle(nodeHandle),
+      m_nextStateType(nextStateType),
       m_previousStageType(typeid(State))
 {
 }

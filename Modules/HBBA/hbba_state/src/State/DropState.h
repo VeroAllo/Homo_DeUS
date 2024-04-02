@@ -5,7 +5,6 @@
 
 class DropState : public State, public DesireSetObserver
 {
-    std::type_index m_nextStateType;
     uint64_t m_dropDesireId;
 
 public:

@@ -36,8 +36,7 @@ void startNode(ros::NodeHandle& nodeHandle)
     strategies.emplace_back(createDiscussStrategy(filterPool, desireSet, nodeHandle));
     strategies.emplace_back(createTakeStrategy(filterPool, desireSet, nodeHandle));
     strategies.emplace_back(createDropStrategy(filterPool, desireSet, nodeHandle));
-    strategies.emplace_back(createExploreStrategy(filterPool, desireSet, nodeHandle));
-
+    // strategies.emplace_back(createExploreStrategy(filterPool, desireSet, nodeHandle));
 
 
     unique_ptr<GecodeSolver> solver = make_unique<GecodeSolver>();
@@ -55,32 +54,28 @@ void startNode(ros::NodeHandle& nodeHandle)
     type_index dropStatetype = type_index(typeid(DropState));
 
     stateManager.addState(
-        make_unique<GoToAccueilState>(stateManager, desireSet, nodeHandle)
+        make_unique<GoToAccueilState>(stateManager, desireSet, nodeHandle), 0
     );
     stateManager.addState(
-        make_unique<GreetingState>(stateManager, desireSet, nodeHandle)
+        make_unique<GreetingState>(stateManager, desireSet, nodeHandle), 0
     );
     stateManager.addState(
-        make_unique<GoToTableState>(stateManager, desireSet, nodeHandle, discussStateType)
+        make_unique<GoToTableState>(stateManager, desireSet, nodeHandle, discussStateType), 0
     );
     ROS_INFO("state gotoTableState fait");
     stateManager.addState(
-        make_unique<DiscussionState>(stateManager, desireSet, nodeHandle, takeStateType)
+        make_unique<DiscussionState>(stateManager, desireSet, nodeHandle, takeStateType), 0
     );
     stateManager.addState(
-        make_unique<TakeState>(stateManager, desireSet, nodeHandle, kitchenStateType)
+        make_unique<TakeState>(stateManager, desireSet, nodeHandle, kitchenStateType), 0
     );
     stateManager.addState(
-        make_unique<GoToKitchenState>(stateManager, desireSet, nodeHandle, dropStatetype)
+        make_unique<GoToKitchenState>(stateManager, desireSet, nodeHandle, dropStatetype), 0
     );
     stateManager.addState(
-        make_unique<DropState>(stateManager, desireSet, nodeHandle, greetingStateType)
+        make_unique<DropState>(stateManager, desireSet, nodeHandle, greetingStateType), 0
     );
     ROS_INFO("state DropState fait");
-
-    stateManager.switchTo<GoToAccueilState>();
-    stateManager.switchTo<GreetingState>();
-    stateManager.switchTo<GoToTableState>();
 
     ros::spin();
 }

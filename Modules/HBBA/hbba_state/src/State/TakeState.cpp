@@ -9,8 +9,7 @@ TakeState::TakeState(
     shared_ptr<DesireSet> desireSet,
     ros::NodeHandle& nodeHandle,
     type_index nextStateType)
-    : State(stateManager, desireSet, nodeHandle),
-      m_nextStateType(nextStateType),
+    : State(stateManager, desireSet, nodeHandle, nextStateType),
       m_takeDesireId(MAX_DESIRE_ID)
 {
     m_desireSet->addObserver(this);
@@ -28,7 +27,7 @@ void TakeState::onDesireSetChanged(const std::vector<std::unique_ptr<Desire>>& _
         return;
     }
 
-    m_stateManager.switchTo(m_nextStateType);
+    m_stateManager.switchTo(this, m_nextStateType);
 }
 
 void TakeState::enable(const string& parameter, const type_index& previousStageType)

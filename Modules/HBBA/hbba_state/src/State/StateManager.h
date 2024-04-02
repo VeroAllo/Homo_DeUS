@@ -9,11 +9,12 @@
 
 #include <memory>
 #include <unordered_map>
+#include <vector>
+
 
 class StateManager
 {
-    std::unordered_map<std::type_index, std::unique_ptr<State>> m_states;
-    State* m_currentState;
+    std::unordered_map<int, std::unordered_map<std::type_index, std::unique_ptr<State>>> m_listStates{};
 
 public:
     StateManager();
@@ -22,31 +23,22 @@ public:
     DECLARE_NOT_COPYABLE(StateManager);
     DECLARE_NOT_MOVABLE(StateManager);
 
-    void addState(std::unique_ptr<State> state);
+    void addState(std::unique_ptr<State> state, int listId);
+
+    State* findState(State* currentState, std::type_index stateType);
+    void startStateMachine(int listKey);
+    // void addListState(std::unique_ptr<State> firstState, int listId);
 
     template<class T>
-    void switchTo(const std::string& parameter = "");
-    void switchTo(std::type_index type, const std::string& parameter = "");
+    void switchTo(State* currentState, const std::string& parameter = "");
+    void switchTo(State* currentState, std::type_index type, const std::string& parameter = "");
+    
 };
 
 template<class T>
-void StateManager::switchTo(const std::string& parameter)
+void StateManager::switchTo(State* currentState,  const std::string& parameter)
 {
-    switchTo(std::type_index(typeid(T)), parameter);
+    switchTo(currentState, std::type_index(typeid(T)), parameter);
 }
 
-inline void StateManager::switchTo(std::type_index stateType, const std::string& parameter)
-{
-    std::type_index previousStageType(typeid(State));
-    if (m_currentState != nullptr)
-    {
-        ROS_INFO("Disabling %s", m_currentState->type().name());
-        m_currentState->disable();
-        previousStageType = m_currentState->type();
-    }
-
-    ROS_INFO("Enabling %s (%s)", stateType.name(), parameter.c_str());
-    m_currentState = m_states.at(stateType).get();
-    m_currentState->enable(parameter, previousStageType);
-}
 #endif
