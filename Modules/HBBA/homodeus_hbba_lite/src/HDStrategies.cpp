@@ -18,8 +18,11 @@ GotoStrategy::GotoStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHand
 
 void GotoStrategy::SubscriberResponseCallBack(const homodeus_msgs::HDResponse& response) 
 {
+    ROS_INFO("DO WE GO HERE ");
+    m_DesireSet->removeDesire(m_desireID);
     if(response.id.desire_id == m_desireID)
     {
+        ROS_INFO("DO WE GO HERE");
         onDisabling();
     }
 }
@@ -36,12 +39,13 @@ void GotoStrategy::SubscriberStatusCallBack(const homodeus_msgs::HDStatus& statu
     //Do stuff
 }
 
-void GotoStrategy::Publish(const GotoDesire& desire)
+void GotoStrategy::onEnabling(const GotoDesire& desire)
 {
+    ROS_INFO("DO WE GO PUBLISH");
     m_desireID = desire.id();
     std_msgs::String msg;
     msg.data = desire.id();
-    onEnabling(desire);
+    //onEnabling(desire);
     for(ros::Publisher pub : m_PublisherList)
     {
         pub.publish(msg);
@@ -72,11 +76,11 @@ void TalkStrategy::SubscriberStatusCallBack(const homodeus_msgs::HDStatus& statu
     //Do stuff
 }
 
-void TalkStrategy::Publish(const TalkDesire& desire)
+void TalkStrategy::onEnabling(const TalkDesire& desire)
 {    
     std_msgs::String msg;
     msg.data = desire.id();
-    onEnabling(desire);
+    //onEnabling(desire);
     for(ros::Publisher pub : m_PublisherList){
         pub.publish(msg);
     }
@@ -106,12 +110,12 @@ void DiscussStrategy::SubscriberStatusCallBack(const homodeus_msgs::HDStatus& st
     //Do stuff
 }
 
-void DiscussStrategy::Publish(const DiscussDesire& desire)
+void DiscussStrategy::onEnabling(const DiscussDesire& desire)
 {
     m_desireID = desire.id();
     std_msgs::String msg;
     msg.data = desire.id();
-    onEnabling(desire);
+    //onEnabling(desire);
     for(ros::Publisher pub : m_PublisherList){
         pub.publish(msg);
     }
@@ -141,12 +145,12 @@ void TakeStrategy::SubscriberStatusCallBack(const homodeus_msgs::HDStatus& statu
     //Do stuff
 }
 
-void TakeStrategy::Publish(const TakeDesire& desire)
+void TakeStrategy::onEnabling(const TakeDesire& desire)
 {
     m_desireID = desire.id();
     std_msgs::String msg;
     msg.data = desire.id();
-    onEnabling(desire);
+    //onEnabling(desire);
     for(ros::Publisher pub : m_PublisherList){
         pub.publish(msg);
     }
@@ -176,12 +180,12 @@ void DropStrategy::SubscriberStatusCallBack(const homodeus_msgs::HDStatus& statu
     //Do stuff
 }
 
-void DropStrategy::Publish(const DropDesire& desire)
+void DropStrategy::onEnabling(const DropDesire& desire)
 {
     m_desireID = desire.id();
     std_msgs::String msg;
     msg.data = desire.id();
-    onEnabling(desire);
+    //onEnabling(desire);
     for(ros::Publisher pub : m_PublisherList)
     {
         pub.publish(msg);
@@ -212,13 +216,13 @@ void ExploreStrategy::SubscriberStatusCallBack(const homodeus_msgs::HDStatus& st
     //Do stuff
 }
 
-void ExploreStrategy::Publish(const ExploreDesire& desire)
+void ExploreStrategy::onEnabling(const ExploreDesire& desire)
 {
     
     m_desireID = desire.id();
     std_msgs::String msg;
     msg.data = desire.id();
-    onEnabling(desire);
+    //onEnabling(desire);
     for(ros::Publisher pub : m_PublisherList){
         pub.publish(msg);
     }
@@ -226,7 +230,7 @@ void ExploreStrategy::Publish(const ExploreDesire& desire)
 
 std::unique_ptr<BaseStrategy> createGoToStrategy(std::shared_ptr<FilterPool> filterPool, std::shared_ptr<DesireSet> desireSet, ros::NodeHandle& nodeHandle, uint16_t utility)
 {
-    return std::make_unique<GotoStrategy>(filterPool, nodeHandle, std::map<std::string, bool>{{BEHAVIOUR "/Goto/Request", false}, {BEHAVIOUR "/Goto/Cancel", false}, {BEHAVIOUR "/Goto/Response", false}, {BEHAVIOUR "/Goto/Status", false}}, std::map<std::string, bool>{}, desireSet, std::unordered_map<std::string, FilterConfiguration>{{"goto/FilterState", FilterConfiguration::onOff()}});
+    return std::make_unique<GotoStrategy>(filterPool, nodeHandle, std::map<std::string, bool>{{BEHAVIOUR "/Goto/Request", true}, {BEHAVIOUR "/Goto/Cancel", false}}, std::map<std::string, bool>{{BEHAVIOUR "/Goto/Response", false}, {BEHAVIOUR "/Goto/Status", false}}, desireSet, std::unordered_map<std::string, FilterConfiguration>{{"goto/FilterState", FilterConfiguration::onOff()}});
 }
 
 std::unique_ptr<BaseStrategy> createTalkStrategy(std::shared_ptr<FilterPool> filterPool, std::shared_ptr<DesireSet> desireSet, ros::NodeHandle& nodeHandle, uint16_t utility)

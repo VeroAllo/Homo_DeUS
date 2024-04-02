@@ -7,15 +7,18 @@
 #define BEHAVIOUR PROJECT "/Behaviour"
 #define PERCEPTION PROJECT "/Perception"
 
-AcceuillirClient::AcceuillirClient(const std::map<std::string, bool>& subscriberTopicList, ros::NodeHandle& nodeHandle, std::vector<bool> PerceptionList, std::shared_ptr<DesireSet> desireSet) : Motivation(desireSet) 
+AcceuillirClient::AcceuillirClient(const std::map<std::string, bool>& subscriberTopicList, ros::NodeHandle& nodeHandle, std::vector<bool> PerceptionList, std::shared_ptr<DesireSet> desireSet, StateManager* SM) : Motivation(desireSet) 
 {
     m_SubscriberList.push_back(nodeHandle.subscribe(subscriberTopicList.begin()->first, 10, &AcceuillirClient::VisionSubscriberCallBack, this));
     m_PerceptionList = PerceptionList;
+    m_StateManager = SM;
 }
 
 void AcceuillirClient::VisionSubscriberCallBack(const std_msgs::String& msg)
 {
-    if(msg.data.find("Person"))
+    m_PerceptionList[0] = true;
+    VerifyCondition();
+    /*if(msg.data.find("Person"))
     {
         if(msg.data.find("Entrée"))
         {
@@ -23,6 +26,7 @@ void AcceuillirClient::VisionSubscriberCallBack(const std_msgs::String& msg)
             VerifyCondition();
         }
     }
+    */
 }
 
 void AcceuillirClient::VerifyCondition()
@@ -43,7 +47,7 @@ void AcceuillirClient::VerifyCondition()
 
 void AcceuillirClient::StateMachine()
 {
-    //To Do
+    m_StateManager->switchTo<GoToAccueilState>();
 }
 
 PrendreCommande::PrendreCommande(const std::map<std::string, bool>& subscriberTopicList, ros::NodeHandle& nodeHandle, std::vector<bool> PerceptionList, std::shared_ptr<DesireSet> desireSet) : Motivation(desireSet) 
@@ -84,7 +88,7 @@ void PrendreCommande::StateMachine()
 }
 
 
-std::unique_ptr<Motivation> createAcceuillirMotivation(ros::NodeHandle& nodeHandle,std::shared_ptr<DesireSet> desireSet)
+std::unique_ptr<Motivation> createAcceuillirMotivation(ros::NodeHandle& nodeHandle,std::shared_ptr<DesireSet> desireSet, StateManager* SM)
 {
-    return std::make_unique<AcceuillirClient>(std::map<std::string, bool>{{PERCEPTION "/Detect", false}}, nodeHandle, std::vector<bool>{false}, desireSet);
+    return std::make_unique<AcceuillirClient>(std::map<std::string, bool>{{PERCEPTION "/Detect", false}}, nodeHandle, std::vector<bool>{false}, desireSet, SM);
 }
