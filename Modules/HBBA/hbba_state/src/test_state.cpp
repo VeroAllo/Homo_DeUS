@@ -52,10 +52,10 @@ void startNode(ros::NodeHandle& nodeHandle)
     type_index takeStateType = type_index(typeid(TakeState));
     type_index kitchenStateType = type_index(typeid(GoToKitchenState));
     type_index dropStatetype = type_index(typeid(DropState));
+    
+    unique_ptr<GoToAccueilState> tmp_state = make_unique<GoToAccueilState>(stateManager, desireSet, nodeHandle);
 
-    stateManager.addState(
-        make_unique<GoToAccueilState>(stateManager, desireSet, nodeHandle), 0
-    );
+    stateManager.addState(move(tmp_state), 0);
     stateManager.addState(
         make_unique<GreetingState>(stateManager, desireSet, nodeHandle), 0
     );
@@ -76,6 +76,8 @@ void startNode(ros::NodeHandle& nodeHandle)
         make_unique<DropState>(stateManager, desireSet, nodeHandle, greetingStateType), 0
     );
     ROS_INFO("state DropState fait");
+
+    stateManager.switchTo<GoToAccueilState>(tmp_state.get());
 
     ros::spin();
 }

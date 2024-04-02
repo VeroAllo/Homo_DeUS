@@ -25,7 +25,7 @@ void StateManager::addState(unique_ptr<State> state, int listId)
     m_listStates[listId].emplace(state->type(), move(state));
 }
 
-void StateManager::switchTo(State* currentState, std::type_index stateType, const std::string& parameter)
+void StateManager::switchTo(State*currentState, std::type_index stateType, const std::string& parameter)
 {
     std::type_index previousStageType(typeid(State));
     if(currentState != nullptr){
@@ -34,7 +34,7 @@ void StateManager::switchTo(State* currentState, std::type_index stateType, cons
         previousStageType = currentState->type();
     }
     ROS_INFO("Enabling %s (%s)", stateType.name(), parameter.c_str());
-    findState(move(currentState), stateType)->enable(parameter, previousStageType);
+    findState(currentState, stateType)->enable(parameter, previousStageType);
 }
 
 State* StateManager::findState(State* currentState, std::type_index stateType)
