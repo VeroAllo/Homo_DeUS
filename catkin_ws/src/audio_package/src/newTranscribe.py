@@ -37,6 +37,13 @@ class AudioConsumer(threading.Thread):
 
         # Chargez votre modèle RASA
         self.agent = Agent.load('/home/tiblond/Documents/Homo_DeUS/catkin_ws/src/audio_package/src/rasa_serveur/models/20240327-181016-senior-area.tar.gz')
+    
+    def clear_queue(self, q):
+        try:
+            while True:
+                q.get_nowait()  # Non bloquant
+        except queue.Empty:
+            pass
 
     async def process_text(self, text):
         if text.strip():  # Vérifie si le texte n'est pas vide
@@ -50,6 +57,11 @@ class AudioConsumer(threading.Thread):
                     tts = gTTS(text=response['text'], lang='en')
                     tts.save("response.mp3")
                     os.system("mpg321 response.mp3")
+
+                    # Vider la queue
+                    self.clear_queue(self.audio_queue)
+
+    
 
     def run(self):
         loop = asyncio.new_event_loop()
