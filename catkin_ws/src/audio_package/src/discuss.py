@@ -17,9 +17,10 @@ class AudioHandler:
         self.consumer = AudioConsumer(self.audio_queue)
 
     def start(self):
-        self.producer.start()
+        
         self.consumer.start()
-
+        self.producer.start()
+        
 class AudioProducer(threading.Thread):
     def __init__(self, audio_queue):
         threading.Thread.__init__(self)
@@ -38,6 +39,7 @@ class AudioConsumer(threading.Thread):
     def __init__(self, audio_queue):
         threading.Thread.__init__(self)
         self.audio_queue = audio_queue
+        self.initial_message_sent = threading.Event() 
         self.vosk_model = vosk.Model('/home/tiblond/Documents/Homo_DeUS/catkin_ws/src/audio_package/src/vosk-model-small-en-us-0.15')
         self.vosk_recognizer = vosk.KaldiRecognizer(self.vosk_model, 16000)
 
@@ -67,12 +69,23 @@ class AudioConsumer(threading.Thread):
                     # Vider la queue
                     self.clear_queue(self.audio_queue)
 
-    
+    async def send_initial_message(self, initial_message):
+        tts = gTTS(text=initial_message, lang='en')
+        tts.save("response.mp3")
+        os.system("mpg321 response.mp3")
+
+        # Vider la queue
+        self.clear_queue(self.audio_queue)
 
     def run(self):
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         print(f"Rasa agent: {self.agent}")  # Debug print statement
+
+        # Envoyer le message initial
+        initial_message = "Welcome to Billy Bob Buger"  
+        loop.run_until_complete(self.send_initial_message(initial_message))
+
         while True:
             data = self.audio_queue.get()
             if self.vosk_recognizer.AcceptWaveform(data):
@@ -83,4 +96,5 @@ class AudioConsumer(threading.Thread):
 
 if __name__ == "__main__":
     handler = AudioHandler()
+    
     handler.start()

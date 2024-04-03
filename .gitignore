@@ -5,9 +5,15 @@ __pycache__/
 
 # C extensions
 *.so
+
+# Others extensions
+*.mp3
+
 #Catkin WS
 *_ws/build/
 *_ws/devel/
+*_ws/logs/
+*_ws/.catkin_tools/
 
 # Distribution / packaging
 .Python
@@ -127,6 +133,7 @@ celerybeat.pid
 .venv
 env/
 venv/
+my_venv/
 ENV/
 env.bak/
 venv.bak/

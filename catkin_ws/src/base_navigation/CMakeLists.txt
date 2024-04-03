@@ -32,8 +32,8 @@ include_directories(
 )
 
 catkin_install_python(PROGRAMS
-    src/base_navigation/BaseRotate.py
-    src/base_navigation/NavSelector.py
+    # src/base_navigation/BaseRotate.py
+    # src/base_navigation/NavSelector.py
     # src/base_navigation/NavGoalDeserializer.py
     # src/base_navigation/NavGoal.py
     DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

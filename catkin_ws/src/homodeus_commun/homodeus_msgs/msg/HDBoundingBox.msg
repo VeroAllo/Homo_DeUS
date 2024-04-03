@@ -1,0 +1,3 @@
+
+homodeus_msgs/DesireID id
+homodeus_msgs/BoundingBox boundingBox

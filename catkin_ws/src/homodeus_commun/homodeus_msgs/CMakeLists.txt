@@ -48,7 +48,12 @@ add_message_files(
   Int8Stamped.msg
   ObjectDetection.msg
   ObjectsDetection.msg
-  RobotPoseStamped.msg
+  HDBoundingBox.msg
+  HDDiscussionStarted.msg
+  HDPose.msg
+  HDResponse.msg
+  HDStatus.msg
+  HDTextToTalk.msg
 )
 
 ## Generate actions in the 'action' folder
