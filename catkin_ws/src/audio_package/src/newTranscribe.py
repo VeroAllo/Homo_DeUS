@@ -10,9 +10,15 @@ from rasa.core.agent import Agent
 from gtts import gTTS
 import os
 
-from rasa.core.channels.channel import UserMessage
-from rasa.shared.core.events import Event
-from rasa.core.processor import MessageProcessor
+class AudioHandler:
+    def __init__(self):
+        self.audio_queue = queue.Queue()
+        self.producer = AudioProducer(self.audio_queue)
+        self.consumer = AudioConsumer(self.audio_queue)
+
+    def start(self):
+        self.producer.start()
+        self.consumer.start()
 
 class AudioProducer(threading.Thread):
     def __init__(self, audio_queue):
@@ -74,8 +80,7 @@ class AudioConsumer(threading.Thread):
                 loop.run_until_complete(self.process_text(result['text'])) 
     
 
-audio_queue = queue.Queue()
-producer = AudioProducer(audio_queue)
-consumer = AudioConsumer(audio_queue)
-producer.start()
-consumer.start()
+
+if __name__ == "__main__":
+    handler = AudioHandler()
+    handler.start()
