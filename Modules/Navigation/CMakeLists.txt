@@ -10,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
     actionlib_msgs
     std_msgs
     move_base_msgs
+    homodeus_msgs
 )
 
 catkin_python_setup()
@@ -24,6 +25,7 @@ catkin_package(
         message_runtime
         actionlib
         actionlib_msgs
+        homodeus_msgs
 )
 
 include_directories(

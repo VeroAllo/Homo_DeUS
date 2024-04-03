@@ -22,8 +22,10 @@ GoToState::~GoToState()
 
 void GoToState::onDesireSetChanged(const vector<unique_ptr<Desire>>& _)
 {
+    ROS_INFO("Goto desireSet changed");
     if(!enabled() || m_desireSet->contains(m_gotoDesireId))
     {
+        ROS_INFO("We got inside");
         return;
     }
 
@@ -34,6 +36,7 @@ void GoToState::enable(const string& parameter, const type_index& previousStageT
 {
     State::enable(parameter, previousStageType);
     auto gotoDesire = make_unique<GotoDesire>(generateGoal());
+    
     m_gotoDesireId = gotoDesire->id();
 
     m_desireIds.emplace_back(gotoDesire->id());

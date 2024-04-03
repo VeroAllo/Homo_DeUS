@@ -15,6 +15,7 @@
 #include <hbba_lite/core/HbbaLite.h>
 #include <hbba_lite/core/RosStrategyStateLogger.h>
 #include <hbba_lite/core/Strategy.h>
+#include <homodeus_hbba_lite/HDMotivations.h>
 
 #include <homodeus_hbba_lite/HDStrategies.h>
 
@@ -77,7 +78,10 @@ void startNode(ros::NodeHandle& nodeHandle)
     );
     ROS_INFO("state DropState fait");
 
-    stateManager.switchTo<GoToAccueilState>();
+    vector<unique_ptr<Motivation>> motivations;
+
+    motivations.emplace_back(createAcceuillirMotivation(nodeHandle,desireSet,&stateManager));
+    //stateManager.switchTo<GoToAccueilState>();
 
     ros::spin();
 }

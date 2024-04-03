@@ -9,7 +9,7 @@ class GotoStrategy : public HDStrategy<GotoDesire>
 {
     public:
         GotoStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, std::map<std::string,bool> publisherTopicList, std::map<std::string,bool> subscriberTopicList, std::shared_ptr<DesireSet> desireSet,std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName);
-        void Publish(const GotoDesire& desire);
+        void onEnabling(const GotoDesire& desire) override;
         void SubscriberResponseCallBack(const homodeus_msgs::HDResponse& response) override;
         void SubscriberCancelCallBack(const homodeus_msgs::DesireID& desireID) override;
         void SubscriberStatusCallBack(const homodeus_msgs::HDStatus& status) override;
@@ -19,7 +19,7 @@ class TalkStrategy : public HDStrategy<TalkDesire>
 {
     public:
         TalkStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, std::map<std::string,bool> publisherTopicList, std::map<std::string,bool> subscriberTopicList, std::shared_ptr<DesireSet> desireSet,std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName);
-        void Publish(const TalkDesire& desire);
+        void onEnabling(const TalkDesire& desire) override;
         void SubscriberResponseCallBack(const homodeus_msgs::HDResponse& response) override;
         void SubscriberCancelCallBack(const homodeus_msgs::DesireID& desireID) override;
         void SubscriberStatusCallBack(const homodeus_msgs::HDStatus& status) override;
@@ -29,7 +29,7 @@ class DiscussStrategy : public HDStrategy<DiscussDesire>
 {
     public:
         DiscussStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, std::map<std::string,bool> publisherTopicList, std::map<std::string,bool> subscriberTopicList, std::shared_ptr<DesireSet> desireSet,std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName);
-        void Publish(const DiscussDesire& desire);
+        void onEnabling(const DiscussDesire& desire) override;
         void SubscriberResponseCallBack(const homodeus_msgs::HDResponse& response) override;
         void SubscriberCancelCallBack(const homodeus_msgs::DesireID& desireID) override;
         void SubscriberStatusCallBack(const homodeus_msgs::HDStatus& status) override;
@@ -39,7 +39,7 @@ class TakeStrategy : public HDStrategy<TakeDesire>
 {
     public:
         TakeStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, std::map<std::string,bool> publisherTopicList, std::map<std::string,bool> subscriberTopicList, std::shared_ptr<DesireSet> desireSet,std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName);
-        void Publish(const TakeDesire& desire);
+        void onEnabling(const TakeDesire& desire) override;
         void SubscriberResponseCallBack(const homodeus_msgs::HDResponse& response) override;
         void SubscriberCancelCallBack(const homodeus_msgs::DesireID& desireID) override;
         void SubscriberStatusCallBack(const homodeus_msgs::HDStatus& status) override;
@@ -49,7 +49,7 @@ class DropStrategy : public HDStrategy<DropDesire>
 {
     public:
         DropStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, std::map<std::string,bool> publisherTopicList, std::map<std::string,bool> subscriberTopicList, std::shared_ptr<DesireSet> desireSet,std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName);
-        void Publish(const DropDesire& desire);
+        void onEnabling(const DropDesire& desire) override;
         void SubscriberResponseCallBack(const homodeus_msgs::HDResponse& response) override;
         void SubscriberCancelCallBack(const homodeus_msgs::DesireID& desireID) override;
         void SubscriberStatusCallBack(const homodeus_msgs::HDStatus& status) override;
@@ -59,7 +59,7 @@ class ExploreStrategy : public HDStrategy<ExploreDesire>
 {
     public:
         ExploreStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, std::map<std::string,bool> publisherTopicList, std::map<std::string,bool> subscriberTopicList, std::shared_ptr<DesireSet> desireSet,std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName);
-        void Publish(const ExploreDesire& desire);
+        void onEnabling(const ExploreDesire& desire) override;
         void SubscriberResponseCallBack(const homodeus_msgs::HDResponse& response) override;
         void SubscriberCancelCallBack(const homodeus_msgs::DesireID& desireID) override;
         void SubscriberStatusCallBack(const homodeus_msgs::HDStatus& status) override;

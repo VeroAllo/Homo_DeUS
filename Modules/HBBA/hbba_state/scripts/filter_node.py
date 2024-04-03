@@ -14,6 +14,11 @@ def callback(data1, data2):
 def main():
     rospy.init_node('goto_filter_state')
     _ = hbba_lite.OnOffHbbaFilterState('goto/FilterState')
+    _2 = hbba_lite.OnOffHbbaFilterState('talk/FilterState')
+    _3 = hbba_lite.OnOffHbbaFilterState('take/FilterState')
+    _4 = hbba_lite.OnOffHbbaFilterState('drop/FilterState')
+    _5 = hbba_lite.OnOffHbbaFilterState('discuss/FilterState')
+    _6 = hbba_lite.OnOffHbbaFilterState('explore/FilterState')
     rospy.spin()
 
 
