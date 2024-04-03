@@ -9,7 +9,7 @@ project(HD_audio)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   rospy
-  audio_common_msgs
+  #audio_common_msgs
   homodeus_msgs
   std_msgs
 )

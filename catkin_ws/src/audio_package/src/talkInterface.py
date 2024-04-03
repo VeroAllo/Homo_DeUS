@@ -6,9 +6,9 @@ from homodeus_msgs.msg import HDResponse, HDTextToTalk, HDStatus
 from talk import AudioTalk
 
 class AudioRos():
-    _TALK_REQUEST_TOPIC = "/HomoDeus/Behavior/Talk/Request"
-    _TALK_RESPONSE_TOPIC = "/HomoDeus/Behavior/Talk/Response"
-    _TALK_STATUS_TOPIC = "/HomoDeus/Behavior/Talk/Status"
+    _TALK_REQUEST_TOPIC = "/Homodeus/Behaviour/Talk/Request"
+    _TALK_RESPONSE_TOPIC = "/Homodeus/Behaviour/Talk/Response"
+    _TALK_STATUS_TOPIC = "/Homodeus/Behaviour/Talk/Status"
     
 
 
@@ -41,7 +41,10 @@ class AudioRos():
         rospy.loginfo("Request to talk received")
         self.__talker.talk(msg.message.data)
         rospy.loginfo("Request to talk finished")
-        self.__talk_response_pub.publish(HDResponse(self.__desireID, True))
+        response = HDResponse()
+        response.id.desire_id = self.__desireID
+        response.result = True
+        self.__talk_response_pub.publish(response)
         rospy.loginfo("Response to talk sent")
 
 
