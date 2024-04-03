@@ -1,6 +1,7 @@
 from homodeus_precomp import *
 from NavGoalDeserializer import NavGoalDeserializer
 from NavGoal import NavGoal
+from homodeus_msgs.msg import HDResponse, DesireID, HDPose
 import std_msgs.msg._String
 
 class NavSelector :
@@ -12,7 +13,7 @@ class NavSelector :
             cls.__instance = super(NavSelector, cls).__new__(cls)
         return cls.__instance
 
-    def __init__(self, goalList : List[NavGoal] = [], currentGoal : NavGoal = None, topic : String = "goto", filename : String = None) -> None:
+    def __init__(self, goalList : List[NavGoal] = [], currentGoal : NavGoal = None, topic : String = "Homodeus/Behaviour/Goto", filename : String = None) -> None:
         self.__currentGoal : NavGoal = currentGoal
         self.__goalSent : NavGoal  = None
         self.__goalList : List[NavGoal] = goalList
@@ -21,10 +22,11 @@ class NavSelector :
         self.__currentLocation : Tuple[Point,Quaternion] = getPose() #remove if not working
         self.__callBack = None
         self.__isActive : bool = False
-        self.__navGoalSerializer = NavGoalDeserializer(filename)
-        self.__navGoalSerializer.Read(self.ExtendGoals)
+        #self.__navGoalSerializer = NavGoalDeserializer(filename)
+        #self.__navGoalSerializer.Read(self.ExtendGoals)
         self.__rate =rospy.Rate(self.__hz)
         self.counter = 0
+        self.__currentID = 0
         rospy.on_shutdown(self.closeConnectionToNode)
 
     def ConnectCallBack(self,callBackFunction) -> None :
@@ -60,11 +62,12 @@ class NavSelector :
         else :
             self.__goalList.append(goal)
 
-    def AddGoalPose(self, pose : Pose) -> None :
-        validationReceived : std_msgs.msg.Int8 = 0b01
-        self.__publisher.publish(validationReceived)
+    def AddGoalPose(self, poses : HDPose) -> None :
+        #peut-être, amener un status ici
+
+        self.id = poses.id.desire_id
         print("Goal was received sending back a response")
-        p, q = pose.position, pose.orientation        
+        p, q = poses.pose.position, poses.pose.orientation        
         x, y, z = p.x, p.y, p.z
         w = quarternion2euler(q).z
         self.AddGoalNav(NavGoal(x, y, z, w, "NoName"))
@@ -151,12 +154,18 @@ class NavSelector :
         pass
 
     def HandleNodeTaskEnd(self, endState, _) -> None:
+        success = False
         if endState == 0:
             self.__OnNavGoalFail(NAVGOALFAILED,endState)
         elif endState == GoalStatus.SUCCEEDED :
+            success = True
             self.__OnNavGoalSuccess()
         else :
             self.__OnNavGoalFail(NAVGOALFAILED,endState)
+        response : HDResponse = HDResponse()
+        response.id.desire_id = self.__currentID
+        response.result = success
+        self.__publisher.publish(response)
         self.RemoveCurrentGoal()
         self.__goalSent = None
 
@@ -227,8 +236,8 @@ class NavSelector :
             print(f"Service {srv_name_get_plan} ne repond pas pcq {src_exc}")
 
     def initConnectionToNode(self) -> None :
-        self.__publisher = rospy.Publisher(self.__topic+"/Response", std_msgs.msg.Int8, queue_size = 10,  latch = False)
-        self.__subscriber = rospy.Subscriber(self.__topic+"/Request", Pose, callback = self.AddGoalPose, queue_size = 10)
+        self.__publisher = rospy.Publisher(self.__topic+"/Response", HDResponse, queue_size = 10,  latch = False)
+        self.__subscriber = rospy.Subscriber(self.__topic+"/Request", HDPose, callback = self.AddGoalPose, queue_size = 10)
         self.__robot_pose_sub = rospy.Subscriber("/robot_pose", PoseWithCovarianceStamped, self.__robot_pose_subscriber)
 
         self.client = actionlib.SimpleActionClient("move_base", MoveBaseAction)

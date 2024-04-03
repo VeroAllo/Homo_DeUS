@@ -2,6 +2,8 @@
 #include <std_msgs/String.h>
 #include <std_msgs/Time.h>
 
+#include <homodeus_msgs/ObjectDetection.h>
+
 #define TIMEAUQUELTABLEAETEPRISE 1
 #define PROJECT "/Homodeus"
 #define BEHAVIOUR PROJECT "/Behaviour"
@@ -14,19 +16,17 @@ AcceuillirClient::AcceuillirClient(const std::map<std::string, bool>& subscriber
     m_StateManager = SM;
 }
 
-void AcceuillirClient::VisionSubscriberCallBack(const std_msgs::String& msg)
+void AcceuillirClient::VisionSubscriberCallBack(const homodeus_msgs::ObjectDetection& detected)
 {
-    m_PerceptionList[0] = true;
-    VerifyCondition();
-    /*if(msg.data.find("Person"))
+    if(detected.header.frame_id.find("Person"))
     {
-        if(msg.data.find("Entrée"))
-        {
-            m_PerceptionList[0] = true;
-            VerifyCondition();
-        }
+        // if(msg.data.find("Entrée"))
+        // {
+        m_PerceptionList[0] = true;
+        VerifyCondition();
+        // }
     }
-    */
+    
 }
 
 void AcceuillirClient::VerifyCondition()
@@ -48,6 +48,11 @@ void AcceuillirClient::VerifyCondition()
 void AcceuillirClient::StateMachine()
 {
     m_StateManager->switchTo<GoToAccueilState>();
+
+    for (bool perception : m_PerceptionList)
+    {
+        perception = false;
+    }
 }
 
 PrendreCommande::PrendreCommande(const std::map<std::string, bool>& subscriberTopicList, ros::NodeHandle& nodeHandle, std::vector<bool> PerceptionList, std::shared_ptr<DesireSet> desireSet, StateManager* SM) : Motivation(desireSet) 

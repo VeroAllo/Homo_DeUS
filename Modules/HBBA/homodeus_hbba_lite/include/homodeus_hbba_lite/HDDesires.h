@@ -16,8 +16,6 @@ public:
     uint64_t id() const { return Desire::id(); }
 
     DECLARE_DESIRE_METHODS(GotoDesire); 
-
-private:
     std::string m_DestinationInText{};
 };
 

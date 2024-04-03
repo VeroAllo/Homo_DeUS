@@ -63,3 +63,6 @@ class NavGoal :
 
     def IsBlocked(self) -> bool :
         return not self.__shouldStart
+    
+    def SetID(self, id : int ) -> None :
+        self.__navGoalID = id

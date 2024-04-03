@@ -3,6 +3,7 @@
 #include <../../hbba_state/src/State/StateManager.h>
 #include<../../hbba_state/src/State/AccueilMotivation/GoToAccueilState.h>
 #include <std_msgs/String.h>
+#include <homodeus_msgs/ObjectDetection.h>
 #include <std_msgs/Time.h>
 
 class AcceuillirClient : public Motivation
@@ -13,7 +14,7 @@ protected:
     StateManager* m_StateManager;
 public:
     AcceuillirClient(const std::map<std::string, bool>& subscriberTopicList, ros::NodeHandle& nodeHandle, std::vector<bool> PerceptionList, std::shared_ptr<DesireSet> desireSet, StateManager* SM);
-    void VisionSubscriberCallBack(const std_msgs::String& msg);
+    void VisionSubscriberCallBack(const homodeus_msgs::ObjectDetection& detected);
     void VerifyCondition();
     void StateMachine();
 };
