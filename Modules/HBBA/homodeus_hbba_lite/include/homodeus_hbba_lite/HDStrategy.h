@@ -4,9 +4,6 @@
 #include <hbba_lite/core/DesireSet.h>
 #include <hbba_lite/core/Strategy.h>
 #include <ros/node_handle.h>
-#include "HDDesires.h"
-
-//Les messages homodeus
 #include <homodeus_msgs/DesireID.h>
 #include <homodeus_msgs/HDResponse.h>
 #include <homodeus_msgs/HDStatus.h>
@@ -14,10 +11,10 @@
 #include <homodeus_msgs/HDDiscussionStarted.h>
 #include <homodeus_msgs/HDTextToTalk.h>
 #include <homodeus_msgs/HDBoundingBox.h>
-
 #include <iostream>
 #include <vector>
 #include <map>
+#include "HDDesires.h"
 
 template<typename T>
 class HDStrategy : public Strategy<T>
@@ -38,10 +35,13 @@ public:
             m_SubscriberList.push_back(generateSub(nodeHandle, subscriberTopic));
         }
     }
-    uint16_t m_desireID;
+    uint16_t GetDesireID() { return m_desireID; }
+    void SetDesireID(uint16_t value) { m_desireID = value; }
     ~HDStrategy() = default;
     
 protected:
+    uint16_t m_desireID{0};
+
     virtual void SubscriberResponseCallBack(const homodeus_msgs::HDResponse& response) = 0;
     virtual void SubscriberCancelCallBack(const homodeus_msgs::DesireID& desireID) = 0;
     virtual void SubscriberStatusCallBack(const homodeus_msgs::HDStatus& status) = 0;
@@ -87,8 +87,7 @@ private:
         }
         return nh.advertise<std_msgs::String>("Failed", 10, true);
     }
-
-ros::Subscriber generateSub(ros::NodeHandle& nh, std::string str)
+    ros::Subscriber generateSub(ros::NodeHandle& nh, std::string str)
     {
         std::size_t failed = std::string::npos;
 
@@ -102,5 +101,4 @@ ros::Subscriber generateSub(ros::NodeHandle& nh, std::string str)
         }
         return nh.subscribe("Failed", 1, &HDStrategy<T>::SubscriberCancelCallBack, this);
     }
-
 };

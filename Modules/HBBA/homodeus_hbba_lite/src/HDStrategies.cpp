@@ -5,6 +5,7 @@
 #include <hbba_lite/filters/FilterState.h>
 #include <hbba_lite/core/Strategy.h>
 #include <std_msgs/String.h>
+#include <std_msgs/UInt16.h>
 #include <geometry_msgs/Pose.h>
 #include <homodeus_msgs/HDPose.h>
 #include <homodeus_msgs/HDTextToTalk.h>
@@ -22,260 +23,255 @@ geometry_msgs::Pose mapStringToPose(std::string name)
     geometry_msgs::Pose poseToReturn{};
     if (name == "Accueil") 
     {
-        poseToReturn.position.x = 2.53;
-        poseToReturn.position.y = 0.891;
+        poseToReturn.position.x = 2.53f;
+        poseToReturn.position.y = 0.891f;
         poseToReturn.orientation.z = 0.f;
     }
     else if (name == "Table")
     {
-        //0 all
+        // For now, let the default values
     }
     else if (name == "Kitchen")
     {
-        //0 all
+        // For now, let the default values
     }
     return poseToReturn;
 }
 
-
-GotoStrategy::GotoStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, std::map<std::string,bool> publisherTopicList, std::map<std::string,bool> subscriberTopicList, std::shared_ptr<DesireSet> desireSet,
- std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName) 
-: HDStrategy(filterPool, nodeHandle, publisherTopicList, subscriberTopicList, desireSet, filterConfigurationByName){}
+GotoStrategy::GotoStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, std::map<std::string,bool> publisherTopicList, std::map<std::string,bool> subscriberTopicList, std::shared_ptr<DesireSet> desireSet, std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName) : HDStrategy(filterPool, nodeHandle, publisherTopicList, subscriberTopicList, desireSet, filterConfigurationByName){}
 
 void GotoStrategy::SubscriberResponseCallBack(const homodeus_msgs::HDResponse& response) 
 {
     if(response.id.desire_id == m_desireID)
     {
-        ROS_INFO("Goto Finished");
+        ROS_INFO_STREAM("GotoDesire Finished - DesireID : " << m_desireID);
         m_DesireSet->removeDesire(m_desireID);
         onDisabling();
     }
+    ROS_ERROR_STREAM("The desireIDs do not match - Received : " << response.id.desire_id << ", Expected : " << m_desireID);
 }
+
 void GotoStrategy::SubscriberCancelCallBack(const homodeus_msgs::DesireID& desireID) 
 {
     if(desireID.desire_id == m_desireID)
     {
-        //Do stuff
+        // TODO : Implement behaviour in V2
     }
 }
 
 void GotoStrategy::SubscriberStatusCallBack(const homodeus_msgs::HDStatus& status) 
 {
-    //Do stuff
+    // TODO : Implement behaviour in V2
 }
 
 void GotoStrategy::onEnabling(const GotoDesire& desire)
 {
-    ROS_INFO("Goto Started %ld", desire.id());
+    ROS_INFO("GotoDesire started for DesireID : %ld", desire.id());
+    ROS_INFO_STREAM("Destination du desire : " << desire.m_DestinationInText);
     m_desireID = desire.id();
     homodeus_msgs::HDPose hdPose{};
     hdPose.id.desire_id = m_desireID;
-    ROS_INFO_STREAM("Bonjour voici mon but: " << desire.m_DestinationInText);
     hdPose.pose = mapStringToPose(desire.m_DestinationInText);
-    //onEnabling(desire);
+    
     for(ros::Publisher pub : m_PublisherList)
     {
         pub.publish(hdPose);
     }
 }
 
-TalkStrategy::TalkStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, std::map<std::string,bool> publisherTopicList, std::map<std::string,bool> subscriberTopicList, std::shared_ptr<DesireSet> desireSet,
- std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName) 
-: HDStrategy(filterPool, nodeHandle, publisherTopicList, subscriberTopicList, desireSet, filterConfigurationByName){}
+TalkStrategy::TalkStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, std::map<std::string,bool> publisherTopicList, std::map<std::string,bool> subscriberTopicList, std::shared_ptr<DesireSet> desireSet, std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName) : HDStrategy(filterPool, nodeHandle, publisherTopicList, subscriberTopicList, desireSet, filterConfigurationByName){}
 
 void TalkStrategy::SubscriberResponseCallBack(const homodeus_msgs::HDResponse& response) 
 {
     ROS_INFO("We got the response, inside was : desire id = %d, other thing = %d", response.id.desire_id, response.result);
     if(response.id.desire_id == m_desireID)
     {
-        ROS_INFO("Talk Finished");
+        ROS_INFO_STREAM("TalkDesire Finished - DesireID : " << m_desireID);
         m_DesireSet->removeDesire(m_desireID);
         onDisabling();
     }
+    ROS_ERROR_STREAM("The desireIDs do not match - Received : " << response.id.desire_id << ", Expected : " << m_desireID);
 }
+
 void TalkStrategy::SubscriberCancelCallBack(const homodeus_msgs::DesireID& desireID) 
 {
     if(desireID.desire_id == m_desireID)
     {
-        //Do stuff
+        // TODO : Implement behaviour in V2
     }
 }
 
 void TalkStrategy::SubscriberStatusCallBack(const homodeus_msgs::HDStatus& status) 
 {
-    //Do stuff
+    // TODO : Implement behaviour in V2
 }
 
 void TalkStrategy::onEnabling(const TalkDesire& desire)
 {   
-    ROS_INFO("Talk Started %ld", desire.id());
+    ROS_INFO("TalkDesire started for DesireID : %ld", desire.id());
     m_desireID = desire.id();
     std_msgs::String msg;
     msg.data = "message";
-    homodeus_msgs::HDTextToTalk ttt;
-    ttt.id.desire_id = m_desireID;
-    ttt.message = msg;
+    homodeus_msgs::HDTextToTalk textToTalk;
+    textToTalk.id.desire_id = m_desireID;
+    textToTalk.message = msg;
 
-    //onEnabling(desire);
     for(ros::Publisher pub : m_PublisherList)
     {
-        pub.publish(ttt);
+        pub.publish(textToTalk);
     }
 }
 
-DiscussStrategy::DiscussStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, std::map<std::string,bool> publisherTopicList, std::map<std::string,bool> subscriberTopicList, std::shared_ptr<DesireSet> desireSet,
- std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName) 
-: HDStrategy(filterPool, nodeHandle, publisherTopicList, subscriberTopicList, desireSet, filterConfigurationByName){}
+DiscussStrategy::DiscussStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, std::map<std::string,bool> publisherTopicList, std::map<std::string,bool> subscriberTopicList, std::shared_ptr<DesireSet> desireSet, std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName) : HDStrategy(filterPool, nodeHandle, publisherTopicList, subscriberTopicList, desireSet, filterConfigurationByName){}
 
 void DiscussStrategy::SubscriberResponseCallBack(const homodeus_msgs::HDResponse& response) 
 {
-    
     if(response.id.desire_id == m_desireID)
     {
-        ROS_INFO("Discuss Finished");
+        ROS_INFO_STREAM("DiscussDesire Finished - DesireID : " << m_desireID);
         m_DesireSet->removeDesire(m_desireID);
         onDisabling();
     }
+    ROS_ERROR_STREAM("The desireIDs do not match - Received : " << response.id.desire_id << ", Expected : " << m_desireID);
 }
+
 void DiscussStrategy::SubscriberCancelCallBack(const homodeus_msgs::DesireID& desireID) 
 {
     if(desireID.desire_id == m_desireID)
     {
-        //Do stuff
+        // TODO : Implement behaviour in V2
     }
 }
 
 void DiscussStrategy::SubscriberStatusCallBack(const homodeus_msgs::HDStatus& status) 
 {
-    //Do stuff
+    // TODO : Implement behaviour in V2
 }
 
 void DiscussStrategy::onEnabling(const DiscussDesire& desire)
 {
-    ROS_INFO("Discuss Started %ld", desire.id());
+    ROS_INFO("DiscussDesire started for DesireID : %ld", desire.id());
     m_desireID = desire.id();
     homodeus_msgs::HDDiscussionStarted discussionStarted{};
     discussionStarted.id.desire_id = m_desireID;
-    //onEnabling(desire);
+
     for(ros::Publisher pub : m_PublisherList)
     {
         pub.publish(discussionStarted);
     }
 }
 
-TakeStrategy::TakeStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, std::map<std::string,bool> publisherTopicList, std::map<std::string,bool> subscriberTopicList, std::shared_ptr<DesireSet> desireSet,
- std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName) 
-: HDStrategy(filterPool, nodeHandle, publisherTopicList, subscriberTopicList, desireSet, filterConfigurationByName){}
+TakeStrategy::TakeStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, std::map<std::string,bool> publisherTopicList, std::map<std::string,bool> subscriberTopicList, std::shared_ptr<DesireSet> desireSet, std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName) : HDStrategy(filterPool, nodeHandle, publisherTopicList, subscriberTopicList, desireSet, filterConfigurationByName) {}
 
 void TakeStrategy::SubscriberResponseCallBack(const homodeus_msgs::HDResponse& response) 
-{
-    
+{    
     if(response.id.desire_id == m_desireID)
     {
-        ROS_INFO("Take finished");
+        ROS_INFO_STREAM("TakeDesire Finished - DesireID : " << m_desireID);
         m_DesireSet->removeDesire(m_desireID);
         onDisabling();
     }
+    ROS_ERROR_STREAM("The desireIDs do not match - Received : " << response.id.desire_id << ", Expected : " << m_desireID);
 }
+
 void TakeStrategy::SubscriberCancelCallBack(const homodeus_msgs::DesireID& desireID) 
 {
     if(desireID.desire_id == m_desireID)
     {
-        //Do stuff
+        // TODO : Implement behaviour in V2
     }
 }
 
 void TakeStrategy::SubscriberStatusCallBack(const homodeus_msgs::HDStatus& status) 
 {
-    //Do stuff
+    // TODO : Implement behaviour in V2
 }
 
 void TakeStrategy::onEnabling(const TakeDesire& desire)
 {
-    ROS_INFO("take started %ld", desire.id());
+    ROS_INFO("TakeDesire started for DesireID : %ld", desire.id());
     m_desireID = desire.id();
-    homodeus_msgs::HDBoundingBox hbBB{};
-    hbBB.id.desire_id = m_desireID;
-    //onEnabling(desire);
+    homodeus_msgs::HDBoundingBox boundingBox{};
+    boundingBox.id.desire_id = m_desireID;
+
     for(ros::Publisher pub : m_PublisherList)
     {
-        pub.publish(hbBB);
+        pub.publish(boundingBox);
     }
 }
 
-DropStrategy::DropStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, std::map<std::string,bool> publisherTopicList, std::map<std::string,bool> subscriberTopicList, std::shared_ptr<DesireSet> desireSet,
- std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName) 
-: HDStrategy(filterPool, nodeHandle, publisherTopicList, subscriberTopicList, desireSet, filterConfigurationByName){}
+DropStrategy::DropStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, std::map<std::string,bool> publisherTopicList, std::map<std::string,bool> subscriberTopicList, std::shared_ptr<DesireSet> desireSet, std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName) : HDStrategy(filterPool, nodeHandle, publisherTopicList, subscriberTopicList, desireSet, filterConfigurationByName){}
 
 void DropStrategy::SubscriberResponseCallBack(const homodeus_msgs::HDResponse& response) 
 {
-    
     if(response.id.desire_id == m_desireID)
     {
-        ROS_INFO("drop finished");
+        ROS_INFO_STREAM("DropDesire Finished - DesireID : " << m_desireID);
         m_DesireSet->removeDesire(m_desireID);
         onDisabling();
     }
+    ROS_ERROR_STREAM("The desireIDs do not match - Received : " << response.id.desire_id << ", Expected : " << m_desireID);
 }
+
 void DropStrategy::SubscriberCancelCallBack(const homodeus_msgs::DesireID& desireID) 
 {
     if(desireID.desire_id == m_desireID)
     {
-        //Do stuff
+        // TODO : Implement behaviour in V2
     }
 }
 
 void DropStrategy::SubscriberStatusCallBack(const homodeus_msgs::HDStatus& status) 
 {
-    //Do stuff
+    // TODO : Implement behaviour in V2
 }
 
 void DropStrategy::onEnabling(const DropDesire& desire)
 {
-    ROS_INFO("Drop started %ld", desire.id());
+    ROS_INFO("DropDesire started for DesireID : %ld", desire.id());
     m_desireID = desire.id();
-    homodeus_msgs::HDBoundingBox hbBB{};
-    hbBB.id.desire_id = m_desireID;
-    //onEnabling(desire);
+    homodeus_msgs::HDBoundingBox boundingBox{};
+    boundingBox.id.desire_id = m_desireID;
+
     for(ros::Publisher pub : m_PublisherList)
     {
-        pub.publish(hbBB);
+        pub.publish(boundingBox);
     }
 }
 
-ExploreStrategy::ExploreStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, std::map<std::string,bool> publisherTopicList, std::map<std::string,bool> subscriberTopicList, std::shared_ptr<DesireSet> desireSet,
- std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName) 
-: HDStrategy(filterPool, nodeHandle, publisherTopicList, subscriberTopicList, desireSet, filterConfigurationByName){}
+ExploreStrategy::ExploreStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, std::map<std::string,bool> publisherTopicList, std::map<std::string,bool> subscriberTopicList, std::shared_ptr<DesireSet> desireSet, std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName) : HDStrategy(filterPool, nodeHandle, publisherTopicList, subscriberTopicList, desireSet, filterConfigurationByName){}
 
 void ExploreStrategy::SubscriberResponseCallBack(const homodeus_msgs::HDResponse& response) 
 {
     if(response.id.desire_id == m_desireID)
     {
-        ROS_INFO("Explore finished");
+        ROS_INFO_STREAM("ExploreDesire Finished - DesireID : " << m_desireID);
         m_DesireSet->removeDesire(m_desireID);
         onDisabling();
     }
+    ROS_ERROR_STREAM("The desireIDs do not match - Received : " << response.id.desire_id << ", Expected : " << m_desireID);
 }
+
 void ExploreStrategy::SubscriberCancelCallBack(const homodeus_msgs::DesireID& desireID) 
 {
     if(desireID.desire_id == m_desireID)
     {
-        //Do stuff
+        // TODO : Implement behaviour in V2
     }
 }
 
 void ExploreStrategy::SubscriberStatusCallBack(const homodeus_msgs::HDStatus& status) 
 {
-    //Do stuff
+    // TODO : Implement behaviour in V2
 }
 
 void ExploreStrategy::onEnabling(const ExploreDesire& desire)
 {
-    ROS_INFO("explore started %ld", desire.id());
-    m_desireID = desire.id();
+    ROS_INFO_STREAM("ExploreDesire started for DesireID : " << desire.id());
     homodeus_msgs::DesireID desireID{};
+    m_desireID = desire.id();
     desireID.desire_id = m_desireID;
-    //onEnabling(desire);
+
     for(ros::Publisher pub : m_PublisherList)
     {
         pub.publish(desireID);

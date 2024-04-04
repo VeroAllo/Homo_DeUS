@@ -21,7 +21,7 @@
   
   <arg name="recording"     default="false"/>
 
-  <arg name="launch_script" default="true"/>
+  <arg name="launch_script" default="false"/>
   <!-- scripts flags -->
   <arg name="tuck_arm"      default="true"/>
  

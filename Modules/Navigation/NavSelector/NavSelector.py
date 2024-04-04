@@ -65,15 +65,13 @@ class NavSelector :
     def AddGoalPose(self, poses : HDPose) -> None :
         #peut-être, amener un status ici
 
-        self.id = poses.id.desire_id
+        self.__currentID = poses.id.desire_id
         print("Goal was received sending back a response")
         p, q = poses.pose.position, poses.pose.orientation        
         x, y, z = p.x, p.y, p.z
         w = quarternion2euler(q).z
         self.AddGoalNav(NavGoal(x, y, z, w, "NoName"))
         print(f"Nombre de goal dans la liste : {len(self.__goalList) + 1}")
-        # if not DEBUG_NAV_SELECTOR :
-        #     self.Behave()
 
     def AddGoal(self, goalX : float, goalY : float, goalZ : float, goalOri : float, name : str) -> None :
         nav_goal = NavGoal(goalX, goalY, goalZ, goalOri, name)

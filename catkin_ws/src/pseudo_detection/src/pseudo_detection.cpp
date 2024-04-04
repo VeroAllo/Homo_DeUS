@@ -84,7 +84,7 @@ static const std::string CAMERA_FRAME     = "/xtion_rgb_optical_frame";
 static const std::string IMAGE_TOPIC      = "/xtion/rgb/image_raw";
 static const std::string DEPTH_TOPIC      = "/xtion/depth_registered/image_raw";
 static const std::string CAMERA_INFO_TOPIC= "/xtion/rgb/camera_info";
-static const std::string DETECTION_TOPIC  = "/homodeus/perception/detection";
+static const std::string DETECTION_TOPIC  = "/Homodeus/Perception/Detect";
 
 // Intrinsic parameters of the camera
 cv::Mat cameraIntrinsics;
