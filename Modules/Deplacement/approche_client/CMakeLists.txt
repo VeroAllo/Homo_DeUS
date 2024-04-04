@@ -10,6 +10,7 @@ project(approche_client)
 find_package(catkin REQUIRED COMPONENTS
   rospy
   cv_bridge
+  homodeus_library
   homodeus_msgs
   image_geometry
   sensor_msgs
@@ -108,7 +109,7 @@ catkin_python_setup()
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES approche_client
-CATKIN_DEPENDS cv_bridge homodeus_msgs image_geometry rospy sensor_msgs std_msgs
+CATKIN_DEPENDS cv_bridge homodeus_library homodeus_msgs image_geometry rospy sensor_msgs std_msgs
 #  DEPENDS system_lib
 )
 

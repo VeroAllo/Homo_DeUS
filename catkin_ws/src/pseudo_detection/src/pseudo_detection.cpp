@@ -59,21 +59,21 @@
 // #include <boost/shared_ptr.hpp>
 
 // ROS headers
-#include <geometry_msgs/PoseStamped.h>
-#include <homodeus_msgs/ObjectDetection.h>
+#include <ros/ros.h>
 #include <image_transport/image_transport.h>
 #include <image_geometry/stereo_camera_model.h>
-#include <ros/ros.h>
-#include <ros/topic.h>
 #include <sensor_msgs/CameraInfo.h>
+#include <geometry_msgs/PoseStamped.h>
+#include <homodeus_msgs/ObjectDetection.h>
 #include <sensor_msgs/image_encodings.h>
+#include <ros/topic.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2_ros/transform_listener.h>
 
 // OpenCV headers
-#include <cv_bridge/cv_bridge.h>
 #include <opencv2/highgui/highgui.hpp>
+#include <cv_bridge/cv_bridge.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

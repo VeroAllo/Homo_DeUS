@@ -51,6 +51,7 @@
  
   <build_depend>cv_bridge</build_depend>
   <build_depend>image_geometry</build_depend>
+  <build_depend>homodeus_library</build_depend>
   <build_depend>homodeus_msgs</build_depend>
   <build_depend>rospy</build_depend>
   <build_depend>sensor_msgs</build_depend>
@@ -58,6 +59,7 @@
 
   <build_export_depend>cv_bridge</build_export_depend>
   <build_export_depend>image_geometry</build_export_depend>
+  <build_export_depend>homodeus_library</build_export_depend>
   <build_export_depend>homodeus_msgs</build_export_depend>
   <build_export_depend>rospy</build_export_depend>
   <build_export_depend>sensor_msgs</build_export_depend>
