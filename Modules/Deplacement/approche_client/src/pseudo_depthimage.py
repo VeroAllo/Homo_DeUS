@@ -2,8 +2,7 @@
 
 # TODO PerceptionNode (PseudoDepthImage)
 import rospy
-from std_msgs.msg import String, Bool, Empty, Float32MultiArray, MultiArrayDimension
-import numpy as np
+from std_msgs.msg import Float32MultiArray, MultiArrayDimension
 
 def PseudoDepthImage() -> None:
   pub = rospy.Publisher('proc_output_depth_image', Float32MultiArray, queue_size=10)

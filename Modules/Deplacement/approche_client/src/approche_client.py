@@ -2,13 +2,12 @@
 
 import rospy
 
-from homodeus_msgs.msg import FacePositions, BoundingBox, ObjectDetection
-from image_geometry import StereoCameraModel
+from homodeus_msgs.msg import BoundingBoxes, BoundingBox, ObjectDetection
 
 from homodeus_library.homodeus_precomp import *
 from base_navigation.NavSelector import NavSelector
 
-from cv_bridge import CvBridge, CvBridgeError
+from cv_bridge import CvBridge
 from image_geometry import PinholeCameraModel
 import numpy as np
 
@@ -29,6 +28,7 @@ class ApproachClient():
     # https://docs.ros.org/en/api/image_geometry/html/python/
     self.__model    = PinholeCameraModel()
     self.__cam_info = rospy.wait_for_message(self.__CAMERA_INFO_TOPIC, CameraInfo, timeout=10)
+    # rospy.loginfo(self.__cam_info)
     self.__model.fromCameraInfo(self.__cam_info)
 
     __camera_P = [522.1910329546544, 0.0, 320.5, -0.0, 0.0, 522.1910329546544, 240.5, 0.0, 0.0, 0.0, 1.0, 0.0]
@@ -47,20 +47,20 @@ class ApproachClient():
     self.__camera_sub = rospy.Subscriber('xtion/depth_registered/image_raw', Image, self.__camera_callback, queue_size=5)
 
     # JT, Utiliser ce subscriber si vous voulez utiliser les rosbags & pseudo_facedetection
-    # self.__face_sub =rospy.Subscriber('proc_output_face_positions', FacePositions, self.__face_callback, queue_size=5)
+    # self.__face_sub =rospy.Subscriber('proc_output_face_positions', BoundingBoxes, self.__face_callback, queue_size=5)
     self.__face_sub =rospy.Subscriber('/homodeus/perception/detection', ObjectDetection, self.__face_callback, queue_size=5)
 
     rospy.on_shutdown(self.__close_connection_node)
     rospy.loginfo("approach client initialized")
 
 
-  def __ownProjectPixelTo3dRay(self, ctr_pt:[], disparity: float) -> Vector3:
+  def __ownProjectPixelTo3dRay(self, ctr_pt:list, disparity: float) -> Vector3:
     point_2d = point_2d = np.array([[ctr_pt[0], ctr_pt[1], 1]])
     (x, y, z,_) = self.__camera_Pinv @ (point_2d * disparity).T
     return Vector3(x[0], y[0], disparity)
 
 
-  def __prepareMsgObjectDetection(self, what_is: str, start_pt: [], end_pt: []) -> ObjectDetection:
+  def __prepareMsgObjectDetection(self, what_is: str, start_pt: list, end_pt: list) -> ObjectDetection:
     up_left_pt: Point     = Point( start_pt[0] if start_pt[0] < end_pt[0] else end_pt[0], 
                                    start_pt[1] if start_pt[1] < end_pt[1] else end_pt[1], 0 )
     down_right_pt: Point  = Point( start_pt[0] if start_pt[0] > end_pt[0] else end_pt[0], 
@@ -76,7 +76,7 @@ class ApproachClient():
     object_dist: float  = np.nanmean(face_depth_view)
 
     # Trouver les coordonnées 3D a partir des coordonnées 2D pixels
-    center_pt: [] = [0,0]
+    center_pt: list = [0,0]
     center_pt[0]  = int(up_left_pt.x + width / 2)
     center_pt[1]  = int(up_left_pt.y + height / 2)
     point_3d      = self.__model.projectPixelTo3dRay(center_pt)
@@ -119,11 +119,15 @@ class ApproachClient():
     objectDetected.distance         = object_dist
     objectDetected.angle            = angle
     objectDetected.pose             = map_pose.pose
+    print('distance', object_dist)
+    print('angle', angle)
+    print('pose\n', map_pose.pose)
 
+    # return msg objectDetection
     return objectDetected
 
 
-  # def __face_callback(self, detections : FacePositions) -> None:
+  # def __face_callback(self, detections : BoundingBoxes) -> None:
   def __face_callback(self, object_detected : ObjectDetection) -> None:
     rospy.loginfo("approach client face CB")
 
@@ -142,7 +146,7 @@ class ApproachClient():
       if object_dist > (1+self.__tolerance)*self.__approach_dist and 0 < object_dist:
         dist_to_approach = object_dist - self.__approach_dist
 
-        center_pt: [] = [0,0]
+        center_pt: list = [0,0]
         center_pt[0]  = min_x + width / 2
         center_pt[1]  = min_y + height / 2
         point_3d      = self.__model.projectPixelTo3dRay(center_pt)
@@ -166,7 +170,7 @@ class ApproachClient():
         pose.header.stamp     = rospy.Time(0)
         pose.header.frame_id  = frame_from
         map_pose              = self.__tf_listener.transformPose("/map", pose)
-        print(map_pose)
+        # print(map_pose)
         print(quarternion2euler(map_pose.pose.orientation).z)
 
         print('GetState()', self.__navigator.GetState())

@@ -42,6 +42,7 @@ find_package(catkin REQUIRED COMPONENTS
 add_message_files(
   FILES
   BoundingBox.msg
+  BoundingBoxes.msg
   DesireID.msg
   Float32Stamped.msg
   Int8Stamped.msg
