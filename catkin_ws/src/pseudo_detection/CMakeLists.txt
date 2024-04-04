@@ -3,23 +3,22 @@ project(pseudo_detection)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
-  actionlib
-  cv_bridge
-  image_geometry
-  image_transport
-  tf
-  control_msgs
   geometry_msgs
   homodeus_msgs
+  image_geometry
+  image_transport
   sensor_msgs
-  std_msgs
+  tf
+  cv_bridge
 )
 
 find_package(OpenCV REQUIRED 
     COMPONENTS
     opencv_highgui)
 
-catkin_package()
+catkin_package(
+  CATKIN_DEPENDS geometry_msgs homodeus_msgs sensor_msgs
+)
 
 include_directories(
   SYSTEM
