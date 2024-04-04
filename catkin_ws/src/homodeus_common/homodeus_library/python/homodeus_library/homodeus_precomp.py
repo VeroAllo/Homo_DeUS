@@ -4,10 +4,10 @@ import rospy
 import actionlib
 
 from actionlib import GoalStatus
-from cv_bridge import CvBridge, CvBridgeError
 from geometry_msgs.msg import Point, Pose, PoseStamped, PoseWithCovarianceStamped, Quaternion, Vector3, Twist
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal, MoveBaseActionFeedback
 from nav_msgs.msg import Odometry
+from nav_msgs.srv import GetPlan
 from sensor_msgs.msg import CameraInfo, Image, LaserScan
 from std_msgs.msg import Bool, Float32MultiArray, Header, Int8, String
 from std_srvs.srv import Empty, SetBool, Trigger

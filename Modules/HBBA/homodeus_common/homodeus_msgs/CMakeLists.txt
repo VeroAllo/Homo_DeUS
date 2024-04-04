@@ -8,7 +8,6 @@ project(homodeus_msgs)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  # actionlib
   actionlib_msgs
   geometry_msgs
   std_msgs
@@ -54,6 +53,7 @@ add_message_files(
   HDResponse.msg
   HDStatus.msg
   HDTextToTalk.msg
+  RobotPoseStamped.msg
 )
 
 ## Generate actions in the 'action' folder

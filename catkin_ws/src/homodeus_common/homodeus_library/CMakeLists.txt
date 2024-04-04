@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.0.2)
 project(homodeus_library)
 
 find_package(catkin REQUIRED COMPONENTS
@@ -8,7 +8,6 @@ find_package(catkin REQUIRED COMPONENTS
     geometry_msgs
     move_base_msgs
     std_msgs
-    message_generation
 )
 
 catkin_python_setup()
@@ -21,7 +20,6 @@ catkin_package(
         geometry_msgs
         move_base_msgs
         std_msgs
-        message_runtime
 )
 
 
