@@ -81,7 +81,7 @@ class RobotPose():
 
     # Publisher
     self.__rate: Rate = Rate(10) # 10hz
-    self.__robot_pose_pub: Publisher = Publisher("/homodeus/perception/robot_pose", RobotPoseStamped, queue_size=1)
+    self.__robot_pose_pub: Publisher = Publisher("/Homodeus/Perception/RobotPose", RobotPoseStamped, queue_size=1)
 
     rospy.on_shutdown(self.__node_shutdown)
     rospy.loginfo("Robot Pose initialized")

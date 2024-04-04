@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 
-# from homodeus_library.homodeus_precomp import *
+from homodeus_library.homodeus_precomp import *
 from base_navigation.BaseRotate import BaseRotate
 
 

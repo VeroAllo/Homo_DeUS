@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-from homodeus_precomp import *
+
+from homodeus_library.homodeus_precomp import *
 import std_msgs.msg._String
 
 def callbackResponse(val : std_msgs.msg.Int8) -> None :

@@ -1,4 +1,6 @@
-from homodeus_precomp import *
+#!/usr/bin/env python3
+
+from homodeus_library.homodeus_precomp import *
 import time
 
 class NavGoal :

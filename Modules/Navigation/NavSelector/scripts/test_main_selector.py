@@ -1,11 +1,24 @@
 #!/usr/bin/env python3
 # $HOME/tiago_public_ws/src/pmb2_simulation/pmb2_2dnav_gazebo/script/main_navSelector.py
-from homodeus_precomp import *
-# from approche_client import ApproachClient
-from NavSelector import NavSelector
+
+from homodeus_library.homodeus_precomp import *
+from NavSelector.NavSelector import NavSelector
 from time import sleep
 
+
+# TODO
+#   Atteindre son but avec une orientation ish cree un decalage entre carte et pose du robot
+#   Les objets fantomes restent une coupe de secondes (5 secs) ce qui peut causer un comportement non pres du robot (contour un osbtacle fantome)
+#     ~planner_patience (double, default: 5.0)
+#       How long the planner will wait in seconds in an attempt to find a valid plan before space-clearing operations are performed. 
+#     ~controller_patience (double, default: 15.0)
+#       How long the controller will wait in seconds without receiving a valid control before space-clearing operations are performed. 
+#     ~conservative_reset_dist (double, default: 3.0)
+#       The distance away from the robot in meters beyond which obstacles will be cleared from the costmap when attempting to clear space in the map. Note, this parameter is only used when the default recovery behaviors are used for move_base. 
+
+
 sendSecondGoal = False
+filename : str = "/home/urobot/tiago_public_ws/src/zhomodeus/NavSelector/scripts/predefNavGoal.json"
 
 def f(a) -> None: #As we see, we can get events from the NavSelector in the controller
   print(f"Voici ce qu'on recoit comme résultat du goal : {convGoalStatus(a)}")
@@ -17,8 +30,6 @@ def wait_for_goal_end() :
   while(sendSecondGoal == False) :
     pass
   sendSecondGoal = False
-
-filename : str = "/home/urobot/tiago_public_ws/src/zhomodeus/base_navigation/scripts/predefNavGoal.json"
 
 def __node_shutdown():
   nav = NavSelector()
@@ -34,8 +45,6 @@ def main() -> None:
 
   nav = NavSelector()
   nav.SetFilename(filename=filename)
-#   nav.AddGoal(-1.53, 0, 0, 0, "test1")
-#   nav.AddGoal(2, -3, 0, 1.57 * 3, "test2") 
   nav.ConnectCallBack(f)
 
   str_input : str = input("start recover (o/n) | 2D pose estimate: ")

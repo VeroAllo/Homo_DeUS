@@ -48,7 +48,7 @@ class ApproachClient():
 
     # JT, Utiliser ce subscriber si vous voulez utiliser les rosbags & pseudo_facedetection
     # self.__face_sub =rospy.Subscriber('proc_output_face_positions', BoundingBoxes, self.__face_callback, queue_size=5)
-    self.__face_sub =rospy.Subscriber('/homodeus/perception/detection', ObjectDetection, self.__face_callback, queue_size=5)
+    self.__face_sub =rospy.Subscriber('/Homodeus/Perception/Detect', ObjectDetection, self.__face_callback, queue_size=5)
 
     rospy.on_shutdown(self.__close_connection_node)
     rospy.loginfo("approach client initialized")

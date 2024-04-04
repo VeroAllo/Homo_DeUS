@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
+
 # $HOME/tiago_public_ws/src/pmb2_simulation/pmb2_2dnav_gazebo/script/main_navSelector.py
-from homodeus_precomp import *
-from NavSelector import NavSelector
+from homodeus_library.homodeus_precomp import *
+from NavSelector.NavSelector import NavSelector
 
 filename : str = "/home/pal/tiago_public_ws/src/hbba_lite-main/scripts/NavSelector/predefNavGoal.json"
 

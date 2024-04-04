@@ -1,8 +1,13 @@
-from homodeus_precomp import *
-from NavGoalDeserializer import NavGoalDeserializer
-from NavGoal import NavGoal
-from homodeus_msgs.msg import HDResponse, DesireID, HDPose
-import std_msgs.msg._String
+#!/usr/bin/env python3
+
+
+from homodeus_library.homodeus_precomp import *
+# from NavGoalDeserializer import NavGoalDeserializer
+from NavSelector.NavGoalDeserializer import NavGoalDeserializer
+# from NavGoal import NavGoal
+from NavSelector.NavGoal import NavGoal
+from homodeus_msgs.msg import Int8Stamped, Float32Stamped, RobotPoseStamped
+
 
 class NavSelector :
     __instance = None
@@ -62,12 +67,12 @@ class NavSelector :
         else :
             self.__goalList.append(goal)
 
-    def AddGoalPose(self, poses : HDPose) -> None :
+    def AddGoalPose(self, pose : HDPose) -> None :
         #peut-être, amener un status ici
 
-        self.__currentID = poses.id.desire_id
+        self.__currentID = pose.id.desire_id
         print("Goal was received sending back a response")
-        p, q = poses.pose.position, poses.pose.orientation        
+        p, q = pose.pose.position, pose.pose.orientation        
         x, y, z = p.x, p.y, p.z
         w = quarternion2euler(q).z
         self.AddGoalNav(NavGoal(x, y, z, w, "NoName"))
@@ -79,6 +84,10 @@ class NavSelector :
 
     def ExtendGoals(self, goals : List[NavGoal]) -> None :
         self.__goalList.extend(goals)
+
+    def CancelAllGoals(self) -> None:
+        if self.client != None:
+            self.client.cancel_all_goals()
 
     def RemoveGoal(self, index : int) -> None :
         del self.__goalList[index]
@@ -240,7 +249,7 @@ class NavSelector :
 
         self.client = actionlib.SimpleActionClient("move_base", MoveBaseAction)
         if not self.client.wait_for_server(timeout=rospy.Duration(5)):
-            print("SimpleActionClient isn't available !")
+            print("MoveBaseAction isn't available !")
 
         self.initSrvGetPlan()
 
