@@ -40,5 +40,5 @@
   </include>
 
     <!-- https://wiki.ros.org/roslaunch/XML/node -->
-  <node if="true" name="nav_simul" pkg="base_navigation" type="main_navSelector.py" respawn="false" output="screen" launch-prefix="gnome-terminal --command"/>
+  <node if="true" name="base_navigation" pkg="base_navigation" type="main_baseRotate.py" respawn="false" output="screen" launch-prefix="gnome-terminal --command"/>
 </launch>
