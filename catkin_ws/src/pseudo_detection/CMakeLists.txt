@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(pseudo_detection)
 
 find_package(catkin REQUIRED COMPONENTS
+  rospy
   roscpp
   geometry_msgs
   homodeus_msgs
@@ -40,5 +41,12 @@ install(TARGETS pseudo_detection
 
 catkin_install_python(PROGRAMS
     scripts/object_detection_package/detect.py
+    # scripts/object_detection_package/PrepareMsgObjectsDetection.py
+    # scripts/object_detection_package/models/experimental.py
+    # scripts/object_detection_package/utils/datasets.py
+    # scripts/object_detection_package/utils/general.py
+    # scripts/object_detection_package/utils/plots.py
+    # scripts/object_detection_package/utils/torch_utils.py
+    
     DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
