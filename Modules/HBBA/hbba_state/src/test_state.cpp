@@ -56,32 +56,31 @@ void startNode(ros::NodeHandle& nodeHandle)
     
     unique_ptr<GoToAccueilState> tmp_state = make_unique<GoToAccueilState>(stateManager, desireSet, nodeHandle);
 
-    stateManager.addState(move(tmp_state));
-    stateManager.addState(
+    stateManager.addListStates(0, move(tmp_state));
+    stateManager.addState(0,
         make_unique<GreetingState>(stateManager, desireSet, nodeHandle)
     );
-    stateManager.addState(
+    stateManager.addState(0,
         make_unique<GoToTableState>(stateManager, desireSet, nodeHandle, discussStateType)
     );
-    ROS_INFO("state gotoTableState fait");
-    stateManager.addState(
+    stateManager.addState(0,
         make_unique<DiscussionState>(stateManager, desireSet, nodeHandle, takeStateType)
     );
-    stateManager.addState(
+    stateManager.addState(1,
         make_unique<TakeState>(stateManager, desireSet, nodeHandle, kitchenStateType)
     );
-    stateManager.addState(
+    stateManager.addState(1,
         make_unique<GoToKitchenState>(stateManager, desireSet, nodeHandle, dropStatetype)
     );
-    stateManager.addState(
+    stateManager.addState(1,
         make_unique<DropState>(stateManager, desireSet, nodeHandle, greetingStateType)
     );
-    ROS_INFO("state DropState fait");
 
     vector<unique_ptr<Motivation>> motivations;
 
     motivations.emplace_back(createAcceuillirMotivation(nodeHandle,desireSet,&stateManager));
-    //stateManager.switchTo<GoToAccueilState>();
+    //stateManager.switchTo<GoToAccueilState>(0);
+
 
     ros::spin();
 }
@@ -91,7 +90,6 @@ int main(int argc, char** argv)
     ros::init(argc, argv, "hbba_lite_main_node");
     ros::NodeHandle nodeHandle;
     ros::NodeHandle privateNodeHandle("~");
-    ROS_INFO("Allo node");
 
     startNode(nodeHandle);
     return 0;

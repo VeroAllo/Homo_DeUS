@@ -26,11 +26,4 @@ void State::enable(const string& parameter, const type_index& previousStageType)
 void State::disable()
 {
     m_enabled = false;
-
-    // auto transaction = m_desireSet->beginTransaction();
-    // for (auto id : m_desireIds)
-    // {
-    //     m_desireSet->removeDesire(id);
-    // }
-    // m_desireIds.clear();
 }

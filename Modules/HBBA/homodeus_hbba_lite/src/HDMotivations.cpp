@@ -47,7 +47,7 @@ void AcceuillirClient::VerifyCondition()
 
 void AcceuillirClient::StateMachine()
 {
-    m_StateManager->switchTo<GoToAccueilState>();
+    m_StateManager->switchTo<GoToAccueilState>(0);
 
     for (bool perception : m_PerceptionList)
     {
