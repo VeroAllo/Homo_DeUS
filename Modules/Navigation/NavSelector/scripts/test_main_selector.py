@@ -2,7 +2,7 @@
 # $HOME/tiago_public_ws/src/pmb2_simulation/pmb2_2dnav_gazebo/script/main_navSelector.py
 
 from homodeus_library.homodeus_precomp import *
-from NavSelector.NavSelector import NavSelector
+from NavigationSelector.NavSelector import NavSelector
 from time import sleep
 
 

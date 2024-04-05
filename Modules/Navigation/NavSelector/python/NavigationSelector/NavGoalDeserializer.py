@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from homodeus_library.homodeus_precomp import *
-from NavSelector.NavGoal import NavGoal
+from NavigationSelector.NavGoal import NavGoal
 import json
 
 # TODO Must be rename class

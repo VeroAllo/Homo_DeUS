@@ -15,9 +15,9 @@ AcceuillirClient::AcceuillirClient(const std::map<std::string, bool>& subscriber
 
 void AcceuillirClient::VisionSubscriberCallBack(const homodeus_msgs::ObjectDetection& detected)
 {
-    if(detected.header.frame_id.find("Person"))
+    if(detected.header.frame_id.find("person"))
     {
-        if(true || detected.header.frame_id.find("Entrée"))
+        if(true || detected.header.frame_id.find("entrée"))
         {
             m_PerceptionList[0] = true;
             VerifyCondition();

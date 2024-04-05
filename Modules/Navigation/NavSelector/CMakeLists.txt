@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(NavSelector)
+project(NavigationSelector)
 
 find_package(
     catkin REQUIRED COMPONENTS
@@ -27,7 +27,10 @@ include_directories(
 )
 
 catkin_install_python(PROGRAMS
-    python/NavSelector/NavSelector.py
+    python/NavigationSelector/NavSelector.py
+    python/NavigationSelector/NavGoalDeserializer.py
+    python/NavigationSelector/NavGoal.py
+    scripts/main_navSelector.py
     DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
