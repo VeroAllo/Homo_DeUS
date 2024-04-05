@@ -37,3 +37,8 @@ install(TARGETS pseudo_detection
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
+
+catkin_install_python(PROGRAMS
+    scripts/object_detection_package/detect.py
+    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
