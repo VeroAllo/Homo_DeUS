@@ -2,7 +2,6 @@
 #define HD_STATES_STATE_MANAGER_H
 
 #include "State.h"
-
 #include <ros/ros.h>
 
 #include <hbba_lite/utils/ClassMacros.h>
@@ -20,7 +19,6 @@ public:
 
     DECLARE_NOT_COPYABLE(StateManager);
     DECLARE_NOT_MOVABLE(StateManager);
-
 
     void addState(int indexList, std::unique_ptr<State> state);
     void addListStates(int indexList, std::unique_ptr<State> fistState);

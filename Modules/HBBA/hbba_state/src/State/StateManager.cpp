@@ -35,25 +35,23 @@ void StateManager::switchTo(State* state, type_index stateType, const std::strin
     nextStageType = stateType;
     State* tmp_state;
 
-    for(auto& [key, value]: m_listsStates)// = m_listsStates.begin(); it != m_listsStates.end() ; it++
+    for(auto& [key, value]: m_listsStates)
     {
         ROS_INFO("cherche right state %s in %i", state->type().name(), key);
         if(value.find(state->type()) != value.end())
         {
-            
-            tmp_state = m_listsStates[key][state->type()].get();
+            tmp_state = value[state->type()].get();
             if (state->type() != stateType)
             {
                 ROS_INFO("Disabling %s", state->type().name());
-                m_listsStates[key][state->type()].get()->disable();
+                value[state->type()].get()->disable();
                 previousStageType = state->type();
                 nextStageType = state->nextStateType();
             }
             
             if( nextStageType == stateType)
             {
-                ROS_INFO("nextStateType(%s) = stateType (%s)", tmp_state->type().name(), stateType.name());
-                m_listsStates[key][stateType].get()->enable(parameter, stateType);
+                value[stateType].get()->enable(parameter, stateType);
                 ROS_INFO("Enabling %s (%s)", stateType.name(), parameter.c_str());
             }
         }

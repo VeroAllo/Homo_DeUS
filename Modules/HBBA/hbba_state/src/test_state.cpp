@@ -78,7 +78,7 @@ void startNode(ros::NodeHandle& nodeHandle)
 
     vector<unique_ptr<Motivation>> motivations;
 
-    motivations.emplace_back(createAcceuillirMotivation(nodeHandle,desireSet,&stateManager));
+    motivations.emplace_back(createAccueillirMotivation(nodeHandle,desireSet,&stateManager));
     //stateManager.switchTo<GoToAccueilState>(0);
 
 
