@@ -61,12 +61,10 @@
 // ROS headers
 #include <ros/ros.h>
 #include <image_transport/image_transport.h>
-// #include <actionlib/client/simple_action_client.h>
 #include <image_geometry/stereo_camera_model.h>
 #include <sensor_msgs/CameraInfo.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <homodeus_msgs/ObjectDetection.h>
-// #include <control_msgs/PointHeadAction.h>
 #include <sensor_msgs/image_encodings.h>
 #include <ros/topic.h>
 #include <tf2/LinearMath/Quaternion.h>
@@ -84,19 +82,13 @@ static const std::string CAMERA_FRAME     = "/xtion_rgb_optical_frame";
 static const std::string IMAGE_TOPIC      = "/xtion/rgb/image_raw";
 static const std::string DEPTH_TOPIC      = "/xtion/depth_registered/image_raw";
 static const std::string CAMERA_INFO_TOPIC= "/xtion/rgb/camera_info";
-static const std::string DETECTION_TOPIC  = "/homodeus/perception/detection";
+static const std::string DETECTION_TOPIC  = "/Homodeus/Perception/Detect";
 
 // Intrinsic parameters of the camera
 cv::Mat cameraIntrinsics;
 
 // https://docs.ros.org/en/api/image_geometry/html/c++/
 image_geometry::PinholeCameraModel model_;
-
-// Our Action interface type for moving TIAGo's head, provided as a typedef for convenience
-// typedef actionlib::SimpleActionClient<control_msgs::PointHeadAction> PointHeadClient;
-// typedef boost::shared_ptr<PointHeadClient> PointHeadClientPtr;
-
-// PointHeadClientPtr pointHeadClient;
 
 cv::Mat rgbImage;
 
@@ -176,6 +168,7 @@ void sendObjectDetection(ros::Time timestamp, std::string what_is,
                                     up_left_pnt.y + height / 2 );
   // Pin Hole Camera
   cv::Point3d point_3d = model_.projectPixelTo3dRay( center_pnt ) * disparity;
+  ROS_INFO_STREAM("point_3d " << point_3d );
   float angle = std::atan2( point_3d.x, point_3d.z );
 
   // Ce que la perception pourrait traiter de plus
@@ -271,27 +264,6 @@ void onMouse( int event, int u, int v, int, void* )
   sendObjectDetection( latestImageStamp, what_is, start_pnt, end_pnt );
 }
 
-// Create a ROS action client to move TIAGo's head
-/*
-void createPointHeadClient(PointHeadClientPtr& actionClient)
-{
-  ROS_INFO("Creating action client to head controller ...");
-
-  actionClient.reset( new PointHeadClient("/head_controller/point_head_action") );
-
-  int iterations = 0, max_iterations = 3;
-  // Wait for head controller action server to come up
-  while( !actionClient->waitForServer(ros::Duration(2.0)) && ros::ok() && iterations < max_iterations )
-  {
-    ROS_DEBUG("Waiting for the point_head_action server to come up");
-    ++iterations;
-  }
-
-  if ( iterations == max_iterations )
-    throw std::runtime_error("Error in createPointHeadClient: head controller action server not available");
-}
-*/
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Entry point
@@ -327,8 +299,10 @@ int main(int argc, char** argv)
   model_.fromCameraInfo(cam_info);
   ROS_INFO_STREAM("Model Camera is initialize ? " << model_.initialized() );
 
-  // Create a point head action client to move the TIAGo's head
-  // createPointHeadClient( pointHeadClient );
+  // ROS_INFO_STREAM("Shape: " << model_.fullResolution());
+  // ROS_INFO_STREAM("P: " << model_.projectionMatrix ());
+  // ROS_INFO_STREAM("binning_x: " << model_.binningX());
+  // ROS_INFO_STREAM("binning_y: " << model_.binningY());
 
   // Create the window to show TIAGo's camera images
   cv::namedWindow(WINDOW_NAME, cv::WINDOW_AUTOSIZE);
