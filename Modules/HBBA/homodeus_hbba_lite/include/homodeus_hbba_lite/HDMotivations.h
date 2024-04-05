@@ -42,4 +42,4 @@ public:
     void StateMachine();
 };
 
-std::unique_ptr<Motivation> createAcceuillirMotivation(ros::NodeHandle& nodeHandle, std::shared_ptr<DesireSet> desireSet, StateManager* stateManager);
+std::unique_ptr<Motivation> createAccueillirMotivation(ros::NodeHandle& nodeHandle, std::shared_ptr<DesireSet> desireSet, StateManager* stateManager);

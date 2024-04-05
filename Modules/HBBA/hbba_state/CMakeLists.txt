@@ -152,6 +152,7 @@ add_executable(${PROJECT_NAME}_node
   src/State/DiscussionState.cpp
   src/State/TakeState.cpp
   src/State/commons/GoToTableState.cpp
+  src/State/commons/IdleState.cpp
   src/State/AccueilMotivation/GreetingState.cpp
   src/State/AccueilMotivation/GoToAccueilState.cpp
   src/State/State.cpp
