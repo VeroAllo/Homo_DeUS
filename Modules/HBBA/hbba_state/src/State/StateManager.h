@@ -2,7 +2,6 @@
 #define HD_STATES_STATE_MANAGER_H
 
 #include "State.h"
-
 #include <ros/ros.h>
 
 #include <hbba_lite/utils/ClassMacros.h>
@@ -12,8 +11,7 @@
 
 class StateManager
 {
-    std::unordered_map<std::type_index, std::unique_ptr<State>> m_states;
-    State* m_currentState;
+    std::unordered_map<int, std::unordered_map<std::type_index, std::unique_ptr<State>>> m_listsStates;
 
 public:
     StateManager();
@@ -22,33 +20,19 @@ public:
     DECLARE_NOT_COPYABLE(StateManager);
     DECLARE_NOT_MOVABLE(StateManager);
 
-    void addState(std::unique_ptr<State> state);
+    void addState(int indexList, std::unique_ptr<State> state);
+    void addListStates(int indexList, std::unique_ptr<State> fistState);
 
+    void switchTo(State* state, std::type_index type, const std::string& parameter = "");
     template<class T>
-    void switchTo(const std::string& parameter = "");
-    void switchTo(std::type_index type, const std::string& parameter = "");
+    void switchTo(int indexMotivation, const std::string& parameter = "");
+
 };
 
 template<class T>
-void StateManager::switchTo(const std::string& parameter)
+void StateManager::switchTo(int indexMotivation, const std::string& parameter)
 {
-    switchTo(std::type_index(typeid(T)), parameter);
-}
-
-inline void StateManager::switchTo(std::type_index stateType, const std::string& parameter)
-{
-    if (m_currentState->type() == stateType) return;
-    std::type_index previousStageType(typeid(State));
-    if (m_currentState != nullptr)
-    {
-        ROS_INFO("Disabling %s", m_currentState->type().name());
-        m_currentState->disable();
-        previousStageType = m_currentState->type();
-    }
-
-    ROS_INFO("Enabling %s (%s)", stateType.name(), parameter.c_str());
-    m_currentState = m_states.at(stateType).get();
-    m_currentState->enable(parameter, previousStageType);
+    switchTo(m_listsStates[indexMotivation][std::type_index(typeid(T))].get(), std::type_index(typeid(T)), parameter);
 }
 
 #endif

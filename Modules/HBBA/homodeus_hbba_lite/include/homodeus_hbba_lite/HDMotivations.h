@@ -7,14 +7,14 @@
 #include <homodeus_msgs/ObjectsDetection.h>
 #include <std_msgs/Time.h>
 
-class AcceuillirClient : public Motivation
+class AccueillirClient : public Motivation
 {
 protected:
     std::vector<bool> m_PerceptionList{};
     std::vector<ros::Subscriber> m_SubscriberList{};
     StateManager* m_StateManager;
 public:
-    AcceuillirClient(const std::map<std::string, bool>& subscriberTopicList, ros::NodeHandle& nodeHandle, std::vector<bool> PerceptionList, std::shared_ptr<DesireSet> desireSet, StateManager* stateManager);
+    AccueillirClient(const std::map<std::string, bool>& subscriberTopicList, ros::NodeHandle& nodeHandle, std::vector<bool> PerceptionList, std::shared_ptr<DesireSet> desireSet, StateManager* stateManager);
     void VisionSubscriberCallBack(const homodeus_msgs::ObjectsDetection& detected);
     void VerifyCondition();
     void StateMachine();
@@ -43,4 +43,4 @@ public:
     void StateMachine();
 };
 
-std::unique_ptr<Motivation> createAcceuillirMotivation(ros::NodeHandle& nodeHandle, std::shared_ptr<DesireSet> desireSet, StateManager* stateManager);
+std::unique_ptr<Motivation> createAccueillirMotivation(ros::NodeHandle& nodeHandle, std::shared_ptr<DesireSet> desireSet, StateManager* stateManager);

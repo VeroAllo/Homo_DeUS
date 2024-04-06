@@ -129,6 +129,12 @@ include_directories(
 ## Declare a C++ library
 add_library(${PROJECT_NAME}
 src/test_state.cpp
+src/State/State.cpp
+src/State/StateManager.cpp
+src/State/GoToState.cpp
+src/State/AccueilMotivation/GoToAccueilState.cpp
+src/State/GoToKitchenState.cpp
+src/State/commons/GoToTableState.cpp
 )
 
 ## Add cmake target dependencies of the library
@@ -140,15 +146,13 @@ src/test_state.cpp
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(${PROJECT_NAME}_node 
-  # src/Demo1_main.cpp
   src/test_state.cpp
-  #src/Test_AccueilMotiv.cpp
   src/State/GoToState.cpp
   src/State/GoToKitchenState.cpp
   src/State/DiscussionState.cpp
   src/State/TakeState.cpp
   src/State/commons/GoToTableState.cpp
-  # src/State/AccueilMotivation/AccueilMotiv_StateManager.cpp
+  src/State/commons/IdleState.cpp
   src/State/AccueilMotivation/GreetingState.cpp
   src/State/AccueilMotivation/GoToAccueilState.cpp
   src/State/State.cpp

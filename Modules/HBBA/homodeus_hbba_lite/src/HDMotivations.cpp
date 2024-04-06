@@ -9,12 +9,12 @@
 #define BEHAVIOUR PROJECT "/Behaviour"
 #define PERCEPTION PROJECT "/Perception"
 
-AcceuillirClient::AcceuillirClient(const std::map<std::string, bool>& subscriberTopicList, ros::NodeHandle& nodeHandle, std::vector<bool> perceptionList, std::shared_ptr<DesireSet> desireSet, StateManager* stateManager) : Motivation(desireSet), m_StateManager(stateManager), m_PerceptionList(perceptionList)
+AccueillirClient::AccueillirClient(const std::map<std::string, bool>& subscriberTopicList, ros::NodeHandle& nodeHandle, std::vector<bool> perceptionList, std::shared_ptr<DesireSet> desireSet, StateManager* stateManager) : Motivation(desireSet), m_StateManager(stateManager), m_PerceptionList(perceptionList)
 {
-    m_SubscriberList.push_back(nodeHandle.subscribe(subscriberTopicList.begin()->first, 10, &AcceuillirClient::VisionSubscriberCallBack, this));
+    m_SubscriberList.push_back(nodeHandle.subscribe(subscriberTopicList.begin()->first, 10, &AccueillirClient::VisionSubscriberCallBack, this));
 }
 
-void AcceuillirClient::VisionSubscriberCallBack(const homodeus_msgs::ObjectsDetection& detected)
+void AccueillirClient::VisionSubscriberCallBack(const homodeus_msgs::ObjectsDetection& detected)
 {
     for (const homodeus_msgs::ObjectDetection& detected_object : detected.objects)
     {
@@ -28,7 +28,7 @@ void AcceuillirClient::VisionSubscriberCallBack(const homodeus_msgs::ObjectsDete
     
 }
 
-void AcceuillirClient::VerifyCondition()
+void AccueillirClient::VerifyCondition()
 {
     for(bool perception : m_PerceptionList)
     {
@@ -37,10 +37,10 @@ void AcceuillirClient::VerifyCondition()
     StateMachine();
 }
 
-void AcceuillirClient::StateMachine()
+void AccueillirClient::StateMachine()
 {
-    m_StateManager->switchTo<GoToAccueilState>();
-    
+
+    m_StateManager->switchTo<GoToAccueilState>(0);
     for (bool&& perception : m_PerceptionList)
     {
         ROS_INFO_STREAM("Perception was : " << m_PerceptionList[0]);
@@ -75,7 +75,7 @@ void PrendreCommande::VerifyCondition()
 
 void PrendreCommande::StateMachine(){} // TODO : Add stuff
 
-std::unique_ptr<Motivation> createAcceuillirMotivation(ros::NodeHandle& nodeHandle,std::shared_ptr<DesireSet> desireSet, StateManager* stateManager)
+std::unique_ptr<Motivation> createAccueillirMotivation(ros::NodeHandle& nodeHandle,std::shared_ptr<DesireSet> desireSet, StateManager* stateManager)
 {
     return std::make_unique<AcceuillirClient>(std::map<std::string, bool>{{PERCEPTION "/Detect", false}}, nodeHandle, std::vector<bool>{false}, desireSet, stateManager);
 }

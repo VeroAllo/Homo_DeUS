@@ -28,7 +28,7 @@ void DropState::onDesireSetChanged(const std::vector<std::unique_ptr<Desire>>& _
         return;
     }
 
-    m_stateManager.switchTo(m_nextStateType);
+    m_stateManager.switchTo(this, m_nextStateType);
 }
 
 void DropState::enable(const string& parameter, const type_index& previousStageType)

@@ -16,7 +16,6 @@ public:
 
 protected:
     std::type_index type() const override;
-
     std::string generateGoal() override;
    
 };
