@@ -37,6 +37,7 @@ void StateManager::switchTo(const std::string& parameter)
 
 inline void StateManager::switchTo(std::type_index stateType, const std::string& parameter)
 {
+    if (m_currentState->type() == stateType) return;
     std::type_index previousStageType(typeid(State));
     if (m_currentState != nullptr)
     {

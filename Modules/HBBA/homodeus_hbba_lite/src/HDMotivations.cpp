@@ -16,15 +16,12 @@ AcceuillirClient::AcceuillirClient(const std::map<std::string, bool>& subscriber
 
 void AcceuillirClient::VisionSubscriberCallBack(const homodeus_msgs::ObjectsDetection& detected)
 {
-    static bool hasDone = false;
-    if (hasDone) return;
     for (const homodeus_msgs::ObjectDetection& detected_object : detected.objects)
     {
         if(detected_object.header.frame_id.find("person"))
         {
             m_PerceptionList[0] = true;
             VerifyCondition();
-            hasDone = true;
             return;
         }
     }

@@ -25,10 +25,12 @@ geometry_msgs::Pose mapStringToPose(std::string name)
     {
         poseToReturn.position.x = 2.53f;
         poseToReturn.position.y = 0.891f;
-        poseToReturn.orientation.z = 0.f;
     }
     else if (name == "Table")
-    {
+    {        
+        poseToReturn.position.x = 0.21f;
+        poseToReturn.orientation.z = -0.79f;
+
         // For now, let the default values
     }
     else if (name == "Kitchen")
@@ -47,6 +49,7 @@ void GotoStrategy::SubscriberResponseCallBack(const homodeus_msgs::HDResponse& r
         ROS_INFO_STREAM("GotoDesire Finished - DesireID : " << m_desireID);
         m_DesireSet->removeDesire(m_desireID);
         onDisabling();
+        return;
     }
     ROS_ERROR_STREAM("The desireIDs do not match - Received : " << response.id.desire_id << ", Expected : " << m_desireID);
 }
@@ -89,6 +92,7 @@ void TalkStrategy::SubscriberResponseCallBack(const homodeus_msgs::HDResponse& r
         ROS_INFO_STREAM("TalkDesire Finished - DesireID : " << m_desireID);
         m_DesireSet->removeDesire(m_desireID);
         onDisabling();
+        return;
     }
     ROS_ERROR_STREAM("The desireIDs do not match - Received : " << response.id.desire_id << ", Expected : " << m_desireID);
 }
@@ -131,6 +135,7 @@ void DiscussStrategy::SubscriberResponseCallBack(const homodeus_msgs::HDResponse
         ROS_INFO_STREAM("DiscussDesire Finished - DesireID : " << m_desireID);
         m_DesireSet->removeDesire(m_desireID);
         onDisabling();
+        return;
     }
     ROS_ERROR_STREAM("The desireIDs do not match - Received : " << response.id.desire_id << ", Expected : " << m_desireID);
 }
@@ -170,6 +175,7 @@ void TakeStrategy::SubscriberResponseCallBack(const homodeus_msgs::HDResponse& r
         ROS_INFO_STREAM("TakeDesire Finished - DesireID : " << m_desireID);
         m_DesireSet->removeDesire(m_desireID);
         onDisabling();
+        return;
     }
     ROS_ERROR_STREAM("The desireIDs do not match - Received : " << response.id.desire_id << ", Expected : " << m_desireID);
 }
@@ -209,6 +215,7 @@ void DropStrategy::SubscriberResponseCallBack(const homodeus_msgs::HDResponse& r
         ROS_INFO_STREAM("DropDesire Finished - DesireID : " << m_desireID);
         m_DesireSet->removeDesire(m_desireID);
         onDisabling();
+        return;
     }
     ROS_ERROR_STREAM("The desireIDs do not match - Received : " << response.id.desire_id << ", Expected : " << m_desireID);
 }
@@ -248,6 +255,7 @@ void ExploreStrategy::SubscriberResponseCallBack(const homodeus_msgs::HDResponse
         ROS_INFO_STREAM("ExploreDesire Finished - DesireID : " << m_desireID);
         m_DesireSet->removeDesire(m_desireID);
         onDisabling();
+        return;
     }
     ROS_ERROR_STREAM("The desireIDs do not match - Received : " << response.id.desire_id << ", Expected : " << m_desireID);
 }
