@@ -6,6 +6,7 @@
 #include "State/TakeState.h"
 #include "State/DropState.h"
 #include "State/GoToKitchenState.h"
+#include "State/commons/IdleState.h"
 
 #include <ros/ros.h>
 
@@ -54,9 +55,14 @@ void startNode(ros::NodeHandle& nodeHandle)
     type_index kitchenStateType = type_index(typeid(GoToKitchenState));
     type_index dropStatetype = type_index(typeid(DropState));
     
-    unique_ptr<GoToAccueilState> tmp_state = make_unique<GoToAccueilState>(stateManager, desireSet, nodeHandle);
 
-    stateManager.addListStates(0, move(tmp_state));
+
+    stateManager.addListStates(0,
+        make_unique<IdleState>(stateManager, desireSet, nodeHandle, gotoAccueilStateType)
+    );
+    stateManager.addState(0, 
+        make_unique<GoToAccueilState>(stateManager, desireSet, nodeHandle)
+    );
     stateManager.addState(0,
         make_unique<GreetingState>(stateManager, desireSet, nodeHandle)
     );
@@ -76,6 +82,11 @@ void startNode(ros::NodeHandle& nodeHandle)
         make_unique<DropState>(stateManager, desireSet, nodeHandle, greetingStateType)
     );
 
+    stateManager.addState(0,
+        make_unique<IdleState>(stateManager, desireSet, nodeHandle)
+    );
+    stateManager.switchTo<IdleState>(0);
+
     vector<unique_ptr<Motivation>> motivations;
 
     motivations.emplace_back(createAccueillirMotivation(nodeHandle,desireSet,&stateManager));
@@ -87,7 +98,7 @@ void startNode(ros::NodeHandle& nodeHandle)
 
 int main(int argc, char** argv)
 {
-    ros::init(argc, argv, "hbba_lite_main_node");
+    ros::init(argc, argv, "hbba_state_node");
     ros::NodeHandle nodeHandle;
     ros::NodeHandle privateNodeHandle("~");
 

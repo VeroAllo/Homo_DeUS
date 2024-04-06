@@ -27,6 +27,8 @@ public:
     template<class T>
     void switchTo(int indexMotivation, const std::string& parameter = "");
 
+    bool isIdle(int indexMotivation);
+
 };
 
 template<class T>
