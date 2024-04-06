@@ -3,8 +3,8 @@ from distutils.core import setup
 from catkin_pkg.python_setup import generate_distutils_setup
 
 distutils_setup = generate_distutils_setup(
-    packages=['NavigationSelector'],
-    package_dir={'':'python'}
+    packages=['pseudo_detection'],
+    package_dir={'':'scripts/object_detection_package'}
 )
 
 setup(**distutils_setup)

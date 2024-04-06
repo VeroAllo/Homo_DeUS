@@ -3,10 +3,10 @@
 
 from homodeus_library.homodeus_precomp import *
 # from NavGoalDeserializer import NavGoalDeserializer
-from NavSelector.NavGoalDeserializer import NavGoalDeserializer
+from NavigationSelector.NavGoalDeserializer import NavGoalDeserializer
 # from NavGoal import NavGoal
-from NavSelector.NavGoal import NavGoal
-from homodeus_msgs.msg import Int8Stamped, Float32Stamped, RobotPoseStamped
+from NavigationSelector.NavGoal import NavGoal
+from homodeus_msgs.msg import *
 
 
 class NavSelector :

@@ -1,5 +1,6 @@
 #include <homodeus_hbba_lite/HDMotivations.h>
 #include <homodeus_msgs/ObjectDetection.h>
+#include <homodeus_msgs/ObjectsDetection.h>
 #include <std_msgs/String.h>
 #include <std_msgs/Time.h>
 
@@ -13,16 +14,18 @@ AccueillirClient::AccueillirClient(const std::map<std::string, bool>& subscriber
     m_SubscriberList.push_back(nodeHandle.subscribe(subscriberTopicList.begin()->first, 10, &AccueillirClient::VisionSubscriberCallBack, this));
 }
 
-void AccueillirClient::VisionSubscriberCallBack(const homodeus_msgs::ObjectDetection& detected)
+void AccueillirClient::VisionSubscriberCallBack(const homodeus_msgs::ObjectsDetection& detected)
 {
-    if(detected.header.frame_id.find("Person"))
+    for (const homodeus_msgs::ObjectDetection& detected_object : detected.objects)
     {
-        if(true || detected.header.frame_id.find("Entrée"))
+        if(detected_object.header.frame_id.find("person"))
         {
             m_PerceptionList[0] = true;
             VerifyCondition();
+            return;
         }
     }
+    
 }
 
 void AccueillirClient::VerifyCondition()

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>NavSelector</name>
+  <name>NavigationSelector</name>
   <version>0.0.7</version>
   <description>Nav Selector from homodeus</description>
   <maintainer email="homodeus@usherbrooke.ca">HomoDeUS</maintainer>
