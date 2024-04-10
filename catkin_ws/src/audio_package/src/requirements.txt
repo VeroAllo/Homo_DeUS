@@ -1,0 +1,6 @@
+# A confirmer par Alexandre Bernier
+# PyAudio==0.2.14
+# vosk==0.3.45
+# rasa==3.6.16
+# gTTS==2.5.1
+# asyncio==3.4.3
