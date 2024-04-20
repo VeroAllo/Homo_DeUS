@@ -144,10 +144,10 @@ class BaseRotate():
   Sources:
 
   """
-  __BASE_ROTATE_CANCEL_TOPIC    = "/Homodeus/Behaviour/BaseRotate/Cancel"
-  __BASE_ROTATE_GOAL_TOPIC      = "/Homodeus/Behaviour/BaseRotate/Request"
-  __BASE_ROTATE_RESULT_TOPIC    = "/Homodeus/Behaviour/BaseRotate/Response"
-  __BASE_ROTATE_STATUS_TOPIC    = "/Homodeus/Behaviour/BaseRotate/Status"
+  __BASE_ROTATE_CANCEL_TOPIC    = "/Homodeus/Behaviour/TurnAround/Cancel"
+  __BASE_ROTATE_GOAL_TOPIC      = "/Homodeus/Behaviour/TurnAround/Request"
+  __BASE_ROTATE_RESULT_TOPIC    = "/Homodeus/Behaviour/TurnAround/Response"
+  __BASE_ROTATE_STATUS_TOPIC    = "/Homodeus/Behaviour/TurnAround/Status"
   
   __ROBOT_POSE_TOPIC            = "/Homodeus/Perception/RobotPose"
   __TWIST_TOPIC                 = "nav_vel"
