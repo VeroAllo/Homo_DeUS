@@ -1,1 +1,0 @@
-Prendre les scripts Python "*main*.py" dans les dossiers Modules/Navigation/NavSelector & Modules/Navigation/base_navigation

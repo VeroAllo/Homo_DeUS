@@ -1,9 +1,4 @@
-Suivre instructions pour 20.04 - http://wiki.ros.org/Robots/TIAGo/Tutorials/Installation/InstallUbuntuAndROS ROS installation
-
-ROS installation
-ROS packages installation
-Source-based installation
-Packages ajoutés (avec instructions)
+## Sous-module de navigation, comportement « aller à »
 
 Exemple d'utilisation du module en simulation : 
 
@@ -13,6 +8,7 @@ Exemple d'utilisation du module en simulation :
     - Donner les permissions au NavSelector
 4. Lancer la simulation
 5. Lancer le module en utilisant rosrun
+
 # NavSelector
 
 # Class Variables
