@@ -1,0 +1,59 @@
+COMMANDS
+
+Pour lancer une simulation de prehension (prendre un objet)
+- Lancer la "world"
+- Positionner le robot devant un objet
+- Lancer le noeud "arm_interface_node"
+- Attendre que le robot se positionne
+- Lancer le noeud "object_segmentation"
+
+====================
+ === Compilation ===
+====================
+cd ~/tiago_public_ws
+source /home/totok/ws_moveit/devel/setup.bash
+catkin_make_isolated -DCATKIN_ENABLE_TESTING=0 -j $(expr `nproc` / 2)
+
+
+====================
+ === Tous ===
+====================
+cd ~/tiago_public_ws
+source ./devel_isolated/setup.bash
+
+
+
+====================
+ === world ===
+====================
+cd ~/tiago_public_ws
+source ./devel_isolated/setup.bash
+roslaunch tiago_gazebo tiago_gazebo.launch public_sim:=true end_effector:=pal-gripper world:=3it_introlab_P2-2007
+
+
+====================
+ === arm_interface_node ===
+====================
+cd ~/tiago_public_ws
+source ./devel_isolated/setup.bash
+rosrun homodeus_prehension arm_interface_node
+
+====================
+ === object_segmentation ===
+====================
+cd ~/tiago_public_ws
+source ./devel_isolated/setup.bash
+roslaunch homodeus_prehension object_segmentation.launch
+
+
+
+====================
+ === Joint controller ===
+====================
+cd ~/tiago_public_ws
+source ./devel_isolated/setup.bash
+rosrun rqt_joint_trajectory_controller rqt_joint_trajectory_controller 
+
+
+
+====================

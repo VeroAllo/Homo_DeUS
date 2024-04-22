@@ -1,0 +1,36 @@
+MOVEIT FIX
+
+
+Il y a un probleme avec MoveIt lorsqu'on veut utiliser cette librairie sur le robot.
+Cet environnement de developpement n'a pas exactement la bonne version que celle sur le robot et cela empeche tous tests sur le robot.
+Pour corriger, il faut installe les bonne version dans un workspace et s'assurer de bien les utiliser.
+
+Il faut s'assurer d'avoir le fichier "moveit.rosinstall" dans le workspace.
+Ce fichier possede les bonne version de MoveIt a installer
+
+Apres l'installation, il faut aller prednre les dernier commit qui on la version exacte souhaite
+
+
+====================
+ === Installer MoveIt ===
+====================
+wstool init src
+wstool merge -t src moveit.rosinstall
+wstool update -t src
+rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO}
+catkin build -DCATKIN_ENABLE_TESTING=0 -j $(expr `nproc` / 2)
+
+====================
+ === Bonnes version ===
+====================
+Aller dans le dossier git de chacun 
+Faire un git checkout avec le bon hash
+
+moveit
+cd ~/ws_moveit/src/moveit
+git checkout b9a1e8e648b674e71e23c5f230467e98d70f24fa
+
+moveit_msgs
+cd ~/ws_moveit/src/moveit_msgs
+git checkout 3667e9dabc3a9b3da669743f968fe38c265b1953
+
