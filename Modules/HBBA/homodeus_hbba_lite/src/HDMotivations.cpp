@@ -16,16 +16,27 @@ AccueillirClient::AccueillirClient(const std::map<std::string, bool>& subscriber
 
 void AccueillirClient::VisionSubscriberCallBack(const homodeus_msgs::ObjectsDetection& detected)
 {
+    Person = false;
     for (const homodeus_msgs::ObjectDetection& detected_object : detected.objects)
     {
         if(detected_object.header.frame_id.find("person"))
         {
-            m_PerceptionList[0] = true;
-            VerifyCondition();
-            return;
+            Person = true
+            if(TimeDelay > 2)
+            {
+                TimeDelay = 0;
+                m_PerceptionList[0] = true;
+                VerifyCondition();
+                return;
+            }
         }
     }
-    
+    if (Person = true)
+    {
+        TimeDelay++;
+    } else {
+        TimeDelay = 0;
+    }
 }
 
 void AccueillirClient::VerifyCondition()
