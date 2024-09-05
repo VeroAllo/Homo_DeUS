@@ -1,0 +1,29 @@
+version: "3.1"
+
+stories:
+- story: Complete order process
+  steps:
+  - intent: greet
+  - action: utter_greet
+  - intent: ask_for_menu
+  - action: utter_show_menu
+  - intent: order_drink
+    entities:
+    - drink: coke
+  - action: utter_confirm_order
+  - intent: confirm_order
+  - action: utter_order_completed
+
+- story: Deny order
+  steps:
+  - intent: greet
+  - action: utter_greet
+  - intent: ask_for_menu
+  - action: utter_show_menu
+  - intent: order_drink
+    entities:
+    - drink: coke
+  - action: utter_confirm_order
+  - intent: deny_order
+  - action: utter_apologize
+  - action: utter_show_menu  

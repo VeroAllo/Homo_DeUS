@@ -1,0 +1,33 @@
+version: "3.1"
+
+rules:
+- rule: Say hello
+  steps:
+  - intent: greet
+  - action: utter_greet
+
+- rule: Show menu
+  steps:
+  - intent: ask_for_menu
+  - action: utter_show_menu
+
+- rule: Order drink
+  steps:
+  - intent: order_drink
+  - action: utter_confirm_order
+
+- rule: Confirm order
+  steps:
+  - intent: confirm_order
+  - action: utter_order_completed
+
+- rule: Deny order
+  steps:
+  - intent: deny_order
+  - action: utter_apologize
+  - action: utter_show_menu 
+
+- rule: Fallback rule
+  steps:
+  - intent: nlu_fallback
+  - action: utter_unknown

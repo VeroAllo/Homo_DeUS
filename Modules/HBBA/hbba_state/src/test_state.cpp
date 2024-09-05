@@ -54,7 +54,6 @@ void startNode(ros::NodeHandle& nodeHandle)
     type_index takeStateType = type_index(typeid(TakeState));
     type_index kitchenStateType = type_index(typeid(GoToKitchenState));
     type_index dropStatetype = type_index(typeid(DropState));
-    type_index idleStateType = type_index(typeid(IdleState));
     
 
 
@@ -68,7 +67,10 @@ void startNode(ros::NodeHandle& nodeHandle)
         make_unique<GreetingState>(stateManager, desireSet, nodeHandle)
     );
     stateManager.addState(0,
-        make_unique<GoToTableState>(stateManager, desireSet, nodeHandle, idleStateType)
+        make_unique<GoToTableState>(stateManager, desireSet, nodeHandle, discussStateType)
+    );
+    stateManager.addState(0,
+        make_unique<DiscussionState>(stateManager, desireSet, nodeHandle, takeStateType)
     );
     stateManager.addState(1,
         make_unique<TakeState>(stateManager, desireSet, nodeHandle, kitchenStateType)
@@ -88,6 +90,7 @@ void startNode(ros::NodeHandle& nodeHandle)
     vector<unique_ptr<Motivation>> motivations;
 
     motivations.emplace_back(createAccueillirMotivation(nodeHandle,desireSet,&stateManager));
+    //stateManager.switchTo<GoToAccueilState>(0);
 
 
     ros::spin();
