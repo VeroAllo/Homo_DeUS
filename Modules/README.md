@@ -14,9 +14,9 @@ Après avoir installer les modules dans son workspace ROS et confirmer le foncti
 
 2. À partir du root fichier homodeus où tous les modules sont placés
     1. lancer filter node avec   
-    `rosrun hbba_lite_main filter_node.py`
+    `rosrun hbba_state filter_node.py`
     2. lancer la state machine node    
-    `rosrun hbba_lite_main hbba_lite_main_node`
+    `rosrun hbba_state hbba_state_node`
     3. lancer le talk node et le navigation node (l'ordre n'est pas important entre ces deux nodes)  
     `rosrun NavigationSelector main_navSelector.py`   
     `rosrun HD_audio talkInterface.py`
