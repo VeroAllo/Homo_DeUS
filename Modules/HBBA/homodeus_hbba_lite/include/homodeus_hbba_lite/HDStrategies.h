@@ -5,6 +5,8 @@
 #include <vector>
 #include <memory>
 
+#include "HDStrategyToMotivationInterface.h"
+
 class GotoStrategy : public HDStrategy<GotoDesire>
 {
     public:
@@ -13,6 +15,8 @@ class GotoStrategy : public HDStrategy<GotoDesire>
         void SubscriberResponseCallBack(const homodeus_msgs::HDResponse& response) override;
         void SubscriberCancelCallBack(const homodeus_msgs::DesireID& desireID) override;
         void SubscriberStatusCallBack(const homodeus_msgs::HDStatus& status) override;
+    private:
+        HDStrategyMotivationInterface strategy_motivation_interface_;
 };
 
 class TalkStrategy : public HDStrategy<TalkDesire>

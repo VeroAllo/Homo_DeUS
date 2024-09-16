@@ -29,8 +29,8 @@ class PrendreCommande : public Motivation
 protected:
     std::vector<bool> m_PerceptionList{};
     std::vector<ros::Subscriber> m_SubscriberList{};
-    std::vector<std::Time> m_Time{};
-    std::vector<bool> m_Tables{};
+    std::vector<std::Time> m_Time{0, 0, 0, 0};
+    std::vector<bool> m_Tables{false, false, false, false};
 public:
     PrendreCommande(const std::map<std::string, bool>& subscriberTopicList, ros::NodeHandle& nodeHandle, std::vector<bool> PerceptionList, std::shared_ptr<DesireSet> desireSet, StateManager* stateManager);
     void TimerSubscriberCallBack(const std_msgs::Time time);

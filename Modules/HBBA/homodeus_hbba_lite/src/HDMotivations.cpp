@@ -4,7 +4,8 @@
 #include <std_msgs/String.h>
 #include <std_msgs/Time.h>
 
-#define TIMEAUQUELTABLEAETEPRISE 1
+#define TIMEAUQUELTABLEAETEPRISE 10
+#define NBTABLES 4
 #define PROJECT "/Homodeus"
 #define BEHAVIOUR PROJECT "/Behaviour"
 #define PERCEPTION PROJECT "/Perception"
@@ -71,17 +72,31 @@ void AccueillirClient::StateMachine()
 PrendreCommande::PrendreCommande(const std::map<std::string, bool>& subscriberTopicList, ros::NodeHandle& nodeHandle, std::vector<bool> perceptionList, std::shared_ptr<DesireSet> desireSet, StateManager* stateManager) : Motivation(desireSet) , m_PerceptionList(perceptionList), strategy_motivation_interface_(nodeHandle)
 {
     m_SubscriberList.push_back(nodeHandle.subscribe(subscriberTopicList.begin()->first, 10, &PrendreCommande::TimerSubscriberCallBack, this));
+    strategy_motivation_interface_.setCallback(std::bind(&PrendreCommande::StrategySubscriberCallBack, this, std::placeholders::_1));
     
 }
 
-void PrendreCommande::TimerSubscriberCallBack(const std_msgs::Time time)
+void PrendreCommande::StrategySubscriberCallBack(const homodeus_msgs::HDStrategyToMotivation& msg)
 {
-    double diffTime = ros::Time::now().toSec() - TIMEAUQUELTABLEAETEPRISE;
-    if(diffTime > 180)
+    ROS_INFO_STREAM("Received message from GotoStrategy: " << msg.data);
+    if (msg.data == "TablePrise : 0")
+{
+        this.m_Tables[0] = true;
+        this.m_Time[0] = ros::Time::now().toSec();
+    }
+
+void PrendreCommande::TimerSubscriberCallBack(const std_msgs::Time time) #### à vérifier ####
+{
+    for (int i = 0; i < NBTABLES; i++)
     {
+        if (m_Time[i] + TIMEAUQUELTABLEAETEPRISE < ros::Time::now().toSec()))
+    {
+            this.m_Time[i] = 0;
+            this.Tables[i] = false;
         m_PerceptionList[0] = true;
         VerifyCondition();
     }
+}
 }
 
 void PrendreCommande::VerifyCondition()
