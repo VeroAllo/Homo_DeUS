@@ -6,6 +6,7 @@
 #include <homodeus_msgs/ObjectDetection.h>
 #include <homodeus_msgs/ObjectsDetection.h>
 #include <std_msgs/Time.h>
+#include "HDStrategyToMotivationInterface.h"
 
 class AccueillirClient : public Motivation
 {
@@ -16,8 +17,10 @@ protected:
 public:
     AccueillirClient(const std::map<std::string, bool>& subscriberTopicList, ros::NodeHandle& nodeHandle, std::vector<bool> PerceptionList, std::shared_ptr<DesireSet> desireSet, StateManager* stateManager);
     void VisionSubscriberCallBack(const homodeus_msgs::ObjectsDetection& detected);
+    void StrategySubscriberCallBack(const homodeus_msgs::HDStrategyToMotivation& msg);
     void VerifyCondition();
     void StateMachine();
+    HDStrategyMotivationInterface strategy_motivation_interface_;
 };
 
 class PrendreCommande : public Motivation
@@ -25,11 +28,15 @@ class PrendreCommande : public Motivation
 protected:
     std::vector<bool> m_PerceptionList{};
     std::vector<ros::Subscriber> m_SubscriberList{};
+    std::vector<std::Time> m_Time{};
+    std::vector<bool> m_Tables{};
 public:
     PrendreCommande(const std::map<std::string, bool>& subscriberTopicList, ros::NodeHandle& nodeHandle, std::vector<bool> PerceptionList, std::shared_ptr<DesireSet> desireSet, StateManager* stateManager);
     void TimerSubscriberCallBack(const std_msgs::Time time);
+    void StrategySubscriberCallBack(const homodeus_msgs::HDStrategyToMotivation& msg);
     void VerifyCondition();
     void StateMachine();
+    HDStrategyMotivationInterface strategy_motivation_interface_;
 };
 
 class ChercherCommande : public Motivation
