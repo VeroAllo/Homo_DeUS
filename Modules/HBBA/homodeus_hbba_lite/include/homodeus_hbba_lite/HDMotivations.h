@@ -14,6 +14,7 @@ protected:
     std::vector<bool> m_PerceptionList{};
     std::vector<ros::Subscriber> m_SubscriberList{};
     StateManager* m_StateManager;
+    int TimeDelay = 0;
 public:
     AccueillirClient(const std::map<std::string, bool>& subscriberTopicList, ros::NodeHandle& nodeHandle, std::vector<bool> PerceptionList, std::shared_ptr<DesireSet> desireSet, StateManager* stateManager);
     void VisionSubscriberCallBack(const homodeus_msgs::ObjectsDetection& detected);
