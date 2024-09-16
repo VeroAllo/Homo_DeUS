@@ -49,7 +49,7 @@ void startNode(ros::NodeHandle& nodeHandle)
 
 
     // type_index gotoTableStateType(typeid(GoToTableState));
-    // type_index greetingStateType = type_index(typeid(GreetingState));
+    type_index greetingStateType = type_index(typeid(GreetingState));
     type_index discussStateType = type_index(typeid(DiscussionState));
     type_index takeStateType = type_index(typeid(TakeState));
     type_index kitchenStateType = type_index(typeid(GoToKitchenState));
