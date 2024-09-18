@@ -16,7 +16,7 @@ StateManager& stateManager,
 GoToKitchenState::~GoToKitchenState(){}
 
 
-string GoToKitchenState::generateGoal()
+string GoToKitchenState::generateGoal(const std::string& parameter)
 {
     return "Kitchen";
 }

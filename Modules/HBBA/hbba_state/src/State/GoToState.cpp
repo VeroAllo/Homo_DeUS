@@ -35,7 +35,7 @@ void GoToState::onDesireSetChanged(const vector<unique_ptr<Desire>>& _)
 void GoToState::enable(const string& parameter, const type_index& previousStageType)
 {
     State::enable(parameter, previousStageType);
-    auto gotoDesire = make_unique<GotoDesire>(generateGoal());
+    auto gotoDesire = make_unique<GotoDesire>(generateGoal(parameter));
     
     m_gotoDesireId = gotoDesire->id();
 

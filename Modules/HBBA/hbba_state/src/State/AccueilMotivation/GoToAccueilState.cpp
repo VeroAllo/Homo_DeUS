@@ -15,7 +15,7 @@ GoToAccueilState::GoToAccueilState(
 
 GoToAccueilState::~GoToAccueilState(){}
 
-string GoToAccueilState::generateGoal()
+string GoToAccueilState::generateGoal(const std::string& parameter)
 {
     return "Accueil";
 }

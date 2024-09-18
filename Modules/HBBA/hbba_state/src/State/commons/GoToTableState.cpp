@@ -15,7 +15,7 @@ GoToTableState::GoToTableState(
 
 GoToTableState::~GoToTableState() {}
 
-string GoToTableState::generateGoal()
+string GoToTableState::generateGoal(const std::string& parameter)
 {
-    return "Table";
+    return parameter;
 }

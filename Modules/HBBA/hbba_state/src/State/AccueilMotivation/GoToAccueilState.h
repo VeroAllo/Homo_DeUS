@@ -16,7 +16,7 @@ public:
 
 protected:
     std::type_index type() const override;
-    std::string generateGoal() override;
+    std::string generateGoal(const std::string& parameter = "") override;
    
 };
 inline std::type_index GoToAccueilState::type() const

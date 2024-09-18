@@ -46,10 +46,10 @@ void GotoStrategy::SubscriberResponseCallBack(const homodeus_msgs::HDResponse& r
 {
     if(response.id.desire_id == m_desireID)
     {
-        ROS_INFO_STREAM("GotoDesire Finished - DesireID : " << m_desireID << " - Result : " << response.result);
+        ROS_INFO_STREAM("GotoDesire Finished - DesireID : " << m_desireID << " - Result : " << response.message);
         m_DesireSet->removeDesire(m_desireID);
         onDisabling();
-        strategy_motivation_interface_.publishMessage(response.result);
+        strategy_motivation_interface_.publishMessage(response.message);
         return;
     }
     ROS_ERROR_STREAM("The desireIDs do not match - Received : " << response.id.desire_id << ", Expected : " << m_desireID);

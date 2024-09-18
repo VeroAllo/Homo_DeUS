@@ -24,7 +24,7 @@ protected:
     void disable() override;
 
 private:
-    virtual std::string generateGoal() { return "";};
+    virtual std::string generateGoal(const std::string& parameter = "") { return "";};
 };
 
 #endif

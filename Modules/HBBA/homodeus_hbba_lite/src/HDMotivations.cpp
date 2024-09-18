@@ -4,7 +4,7 @@
 #include <std_msgs/String.h>
 #include <std_msgs/Time.h>
 
-#define TIMEAUQUELTABLEAETEPRISE 10
+#define TEMPSDATTENTE 10
 #define NBTABLES 4
 #define PROJECT "/Homodeus"
 #define BEHAVIOUR PROJECT "/Behaviour"
@@ -43,7 +43,7 @@ void AccueillirClient::VisionSubscriberCallBack(const homodeus_msgs::ObjectsDete
     
 }
 
-void AccueillirClient::StrategySubscriberCallBack(const homodeus_msgs::StrategyToMotivation& msg)
+void AccueillirClient::StrategySubscriberCallBack(const std_msgs::String& msg)
 {
     ROS_INFO_STREAM("Received message from GotoStrategy: " << msg.data);
 }
@@ -73,44 +73,50 @@ PrendreCommande::PrendreCommande(const std::map<std::string, bool>& subscriberTo
 {
     m_SubscriberList.push_back(nodeHandle.subscribe(subscriberTopicList.begin()->first, 10, &PrendreCommande::TimerSubscriberCallBack, this));
     strategy_motivation_interface_.setCallback(std::bind(&PrendreCommande::StrategySubscriberCallBack, this, std::placeholders::_1));
-    
+    m_Timer[0] = nodeHandle.createTimer(ros::Duration(TEMPSDATTENTE), [this](const ros::TimerEvent&) { this->TimerSubscriberCallBack(0); }, false, false);
+    m_Timer[1] = nodeHandle.createTimer(ros::Duration(TEMPSDATTENTE), [this](const ros::TimerEvent&) { this->TimerSubscriberCallBack(1); }, false, false);
+    m_Timer[2] = nodeHandle.createTimer(ros::Duration(TEMPSDATTENTE), [this](const ros::TimerEvent&) { this->TimerSubscriberCallBack(2); }, false, false);
+    m_Timer[3] = nodeHandle.createTimer(ros::Duration(TEMPSDATTENTE), [this](const ros::TimerEvent&) { this->TimerSubscriberCallBack(3); }, false, false);
 }
 
-void PrendreCommande::StrategySubscriberCallBack(const homodeus_msgs::HDStrategyToMotivation& msg)
+void PrendreCommande::StrategySubscriberCallBack(const std_msgs::String& msg)
 {
     ROS_INFO_STREAM("Received message from GotoStrategy: " << msg.data);
-    if (msg.data == "TablePrise : 0")
-{
-        this.m_Tables[0] = true;
-        this.m_Time[0] = ros::Time::now().toSec();
-    }
-
-void PrendreCommande::TimerSubscriberCallBack(const std_msgs::Time time) #### à vérifier ####
-{
-    for (int i = 0; i < NBTABLES; i++)
+    if (msg.data.find("Table") != std::string::npos)
     {
-        if (m_Time[i] + TIMEAUQUELTABLEAETEPRISE < ros::Time::now().toSec()))
-    {
-            this.m_Time[i] = 0;
-            this.Tables[i] = false;
-        m_PerceptionList[0] = true;
-        VerifyCondition();
+        int table = std::stoi(msg.data.substr(5,6));
+        if (this.m_Tables[table] = false)
+        {
+            this.m_Tables[table] = true;
+            m_Timer[table].start();
+        }
     }
 }
-}
 
-void PrendreCommande::VerifyCondition()
+void PrendreCommande::TimerSubscriberCallBack(int table)
 {
-    for(bool perception : m_PerceptionList)
-    {
-        if (!perception) return;
-    }
-    StateMachine();
+    m_Timer[table].stop();
+    VerifyCondition(table);
 }
 
-void PrendreCommande::StateMachine(){} // TODO : Add stuff
+void PrendreCommande::VerifyCondition(int tb)
+{
+    if(m_Tables[tb] == true)
+    {
+        StateMachine(tb);
+    }
+}
+
+void PrendreCommande::StateMachine(int tb){
+    m_StateManager->switchTo<GoToTableState>(1, "Table" + std::to_string(tb));
+} 
 
 std::unique_ptr<Motivation> createAccueillirMotivation(ros::NodeHandle& nodeHandle,std::shared_ptr<DesireSet> desireSet, StateManager* stateManager)
 {
     return std::make_unique<AcceuillirClient>(std::map<std::string, bool>{{PERCEPTION "/Detect", false}}, nodeHandle, std::vector<bool>{false}, desireSet, stateManager);
+}
+
+std::unique_ptr<Motivation> createPrendreCommandeMotivation(ros::NodeHandle& nodeHandle,std::shared_ptr<DesireSet> desireSet, StateManager* stateManager)
+{
+    return std::make_unique<PrendreCommande>(std::map<std::string, bool>{}, nodeHandle, std::vector<bool>{false}, desireSet, stateManager);
 }
