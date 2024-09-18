@@ -8,14 +8,14 @@ public:
     HDStrategyMotivationInterface(ros::NodeHandle& nodeHandle);
 
     void publishMessage(const std::string& data);
-    void setCallback(std::function<void(const homodeus_msgs::HDStrategyToMotivation&)> callback);
+    void setCallback(std::function<void(const std_msgs::String&)> callback);
 
 private:
     ros::Publisher strategy_pub_;
     ros::Subscriber strategy_sub_;
-    std::function<void(const homodeus_msgs::HDStrategyToMotivation&)> callback_;
+    std::function<void(const std_msgs::String&)> callback_;
 
-    void subscriberCallback(const homodeus_msgs::HDStrategyToMotivation& msg);
+    void subscriberCallback(const std_msgs::String& msg);
 };
 
 #endif 
