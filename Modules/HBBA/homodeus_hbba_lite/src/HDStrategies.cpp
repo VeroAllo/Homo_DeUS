@@ -115,11 +115,9 @@ void TalkStrategy::onEnabling(const TalkDesire& desire)
 {   
     ROS_INFO("TalkDesire started for DesireID : %ld", desire.id());
     m_desireID = desire.id();
-    std_msgs::String msg;
-    msg.data = "message";
     homodeus_msgs::HDTextToTalk textToTalk;
     textToTalk.id.desire_id = m_desireID;
-    textToTalk.message = msg;
+    textToTalk.message = m_TextToTalk;
 
     for(ros::Publisher pub : m_PublisherList)
     {
@@ -160,6 +158,7 @@ void DiscussStrategy::onEnabling(const DiscussDesire& desire)
     m_desireID = desire.id();
     homodeus_msgs::HDDiscussionStarted discussionStarted{};
     discussionStarted.id.desire_id = m_desireID;
+    discussionStarted.fistMessage = "Welcome to Billy Bob Buger"
 
     for(ros::Publisher pub : m_PublisherList)
     {
