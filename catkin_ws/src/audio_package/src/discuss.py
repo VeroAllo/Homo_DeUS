@@ -24,8 +24,7 @@ class AudioHandler:
 class AudioProducer(threading.Thread):
     def __init__(self, audio_queue):
         threading.Thread.__init__(self)
-        openai.api_key = 'your-api-key'
-        self.agent = openai.ChatCompletion.create(model="gpt-3.5-turbo")
+
         self.audio_queue = audio_queue
         self.p = pyaudio.PyAudio()
         self.stream = self.p.open(format=pyaudio.paInt16, channels=1, rate=16000, input=True, frames_per_buffer=8000)
@@ -41,17 +40,40 @@ class AudioConsumer(threading.Thread):
     def __init__(self, audio_queue):
         threading.Thread.__init__(self)
         self.audio_queue = audio_queue
-        self.initial_message_sent = threading.Event() 
-        self.vosk_model = vosk.Model('/home/tiblond/Documents/Homo_DeUS/catkin_ws/src/audio_package/src/vosk-model-small-en-us-0.15')
+        self.vosk_model = vosk.Model('catkin_ws/src/audio_package/src/vosk-model-small-en-us-0.15')
         self.vosk_recognizer = vosk.KaldiRecognizer(self.vosk_model, 16000)
 
-        # Chargez votre modèle RASA
-        self.agent = Agent.load('/home/tiblond/Documents/Homo_DeUS/catkin_ws/src/audio_package/src/rasa_serveur/models/20240402-144236-all-caption.tar.gz')
-    
+        # Configure OpenAI
+        openai.api_key = ''
+
+    def run(self):
+        while True:
+            data = self.audio_queue.get()
+            if self.vosk_recognizer.AcceptWaveform(data):
+                result = json.loads(self.vosk_recognizer.Result())
+                text = result['text']
+
+                # Use the recognized text as input for ChatGPT
+                response = openai.ChatCompletion.create(
+                    model="gpt-3.5-turbo",
+                    messages=[
+                        {"role": "system", "content": "You are a helpful assistant."},
+                        {"role": "user", "content": text}
+                    ]
+                )
+
+                # Use the response from ChatGPT as input for gTTS
+                tts = gTTS(text=response['choices'][0]['message']['content'], lang='en')
+                tts.save("response.mp3")
+                os.system("mpg321 response.mp3")
+
+                # Clear the queue
+                self.clear_queue(self.audio_queue)
+
     def clear_queue(self, q):
         try:
             while True:
-                q.get_nowait()  # Non bloquant
+                q.get_nowait()  # Non-blocking
         except queue.Empty:
             pass
 
@@ -79,10 +101,10 @@ class AudioConsumer(threading.Thread):
     def run(self):
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        print(f"Rasa agent: {self.agent}")  # Debug print statement
+        # print(f"Agent: {self.agent}")  # Debug print statement
 
         # Envoyer le message initial
-        initial_message = "Welcome to Billy Bob Buger"  
+        initial_message = "Welcome to Tiagoh bstro, how can I help you?"  
         loop.run_until_complete(self.send_initial_message(initial_message))
 
         while True:
@@ -94,6 +116,5 @@ class AudioConsumer(threading.Thread):
 
 
 if __name__ == "__main__":
-    handler = AudioHandler()
-    
+    handler = AudioHandler()    
     handler.start()
