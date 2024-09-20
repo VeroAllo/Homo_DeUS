@@ -48,14 +48,15 @@ class AudioConsumer(threading.Thread):
             You are a helpful assistant and restaurant server. Your job is to take orders, answer questions about the menu, and provide recommendations. 
             You should be polite, friendly, and professional at all times. Here are some specific instructions:
             0. the restaurant is the Tiagoh Bistro.
-            1. Greet the customer warmly when they start speaking.
+            1. Greet the customer warmly if it's their first interaction.
             2. If the customer asks for recommendations, suggest one of the item in the menu.
             3. The menu only have 3 items Dr. Pepper, Coke, and Sprite
-            4. Confirm the order before ending the conversation.
-            5. Thank the customer and wish them a pleasant meal.
+            4. You absolutely need to confirm the order after all selection by the customer
+            5. Thank the customer at the end.
             """}
         ]
         openai.api_key = ''
+        self.selected_item = None
 
     def run(self):
         while True:
@@ -70,17 +71,25 @@ class AudioConsumer(threading.Thread):
                 self.message_history.append({"role": "assistant", "content": response_text})
                 
                 # Vérification de la confirmation de la commande dans la réponse de ChatGPT
+                print(f"Réponse de l'agent : {response_text}")  # Debugging line
                 if "confirm" in response_text.lower() or "your order of" in response_text.lower():
                     # Extraire l'item sélectionné
-                    selected_item = self.extract_order_item(response_text)
-                    if selected_item:
-                        print(f"Commande confirmée : {selected_item}")
+                    self.selected_item = self.extract_order_item(response_text)
+                    if self.selected_item:
+                        print(f"Commande confirmée : {self.selected_item}")
 
                 tts = gTTS(text=response_text, lang='en')
                 tts.save("response.mp3")
                 self.is_playing.set()
                 os.system("mpg321 response.mp3")
                 self.is_playing.clear()
+
+                # Vérification de la fin de la conversation
+                if "thank you" in response_text.lower() or "have a pleasant meal" in response_text.lower():
+                    print("Fin de la conversation")
+                    if self.selected_item:
+                        print(f"Item sélectionné : {self.selected_item}")
+                    break
 
     def extract_order_item(self, response_text):
         # Extraire l'item de la commande à partir de la réponse de ChatGPT
