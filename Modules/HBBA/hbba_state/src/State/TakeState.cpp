@@ -34,11 +34,10 @@ void TakeState::enable(const string& parameter, const type_index& previousStageT
 {
     State::enable(parameter, previousStageType);
 
-    auto takeDesire = make_unique<TalkDesire>(generateObjectToTake(parameter));
+    auto takeDesire = make_unique<TakeDesire>(GetCommandeObject());
+    m_takeDesireId = takeDesire->id();
     m_desireIds.emplace_back(takeDesire->id());
-
-    m_desireIds.emplace_back(takeDesire->id());
-
+    
     auto transaction = m_desireSet->beginTransaction();
     m_desireSet->addDesire(move(takeDesire));
 }
@@ -46,10 +45,11 @@ void TakeState::enable(const string& parameter, const type_index& previousStageT
 void TakeState::disable()
 {
     State::disable();
+    m_Commande.clear();
     m_takeDesireId = MAX_DESIRE_ID;
 }
 
-string TakeState::generateObjectToTake(const std::string& parameter)
+void TakeState::GenerateObjectToTake(const std::string& parameter)
 {
-    return parameter;
+    m_Commande = parameter;
 }

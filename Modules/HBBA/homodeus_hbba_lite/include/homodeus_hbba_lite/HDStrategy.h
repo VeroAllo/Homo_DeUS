@@ -11,6 +11,7 @@
 #include <homodeus_msgs/HDDiscussionStarted.h>
 #include <homodeus_msgs/HDTextToTalk.h>
 #include <homodeus_msgs/HDBoundingBox.h>
+#include <homodeus_msgs/ObjectsDetection.h>
 #include <iostream>
 #include <vector>
 #include <map>
@@ -45,6 +46,7 @@ protected:
     virtual void SubscriberResponseCallBack(const homodeus_msgs::HDResponse& response) = 0;
     virtual void SubscriberCancelCallBack(const homodeus_msgs::DesireID& desireID) = 0;
     virtual void SubscriberStatusCallBack(const homodeus_msgs::HDStatus& status) = 0;
+    virtual void SubscriberVisionCallback(const homodeus_msgs::ObjectsDetection& status) {}
     std::vector<ros::Publisher>  m_PublisherList{};
     std::vector<ros::Subscriber> m_SubscriberList{};
     std::shared_ptr<DesireSet> m_DesireSet = nullptr;
@@ -98,6 +100,10 @@ private:
         else if (str.find("Status") != failed)
         {
             return nh.subscribe(str, 10, &HDStrategy<T>::SubscriberStatusCallBack, this);
+        }
+        else if (str.find("Detect") != failed)
+        {
+            return nh.subscribe(str, 10, &HDStrategy<T>::SubscriberVisionCallback, this);
         }
         return nh.subscribe("Failed", 1, &HDStrategy<T>::SubscriberCancelCallBack, this);
     }

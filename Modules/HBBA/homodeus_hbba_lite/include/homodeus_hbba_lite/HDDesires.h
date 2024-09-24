@@ -33,12 +33,15 @@ public:
 class TakeDesire : public Desire
 {
 public:
-    explicit TakeDesire(uint16_t intensity = 1);
+    explicit TakeDesire(std::string commande, uint16_t intensity = 1);
     ~TakeDesire() = default;
 
     uint64_t id() const { return Desire::id(); }
+    std::string GetCommande() const {return m_Commande;}
 
     DECLARE_DESIRE_METHODS(TakeDesire); 
+private:
+    std::string m_Commande;
 };
 
 class DropDesire : public Desire

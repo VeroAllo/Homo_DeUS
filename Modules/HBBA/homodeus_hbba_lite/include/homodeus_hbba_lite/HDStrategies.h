@@ -37,6 +37,8 @@ class DiscussStrategy : public HDStrategy<DiscussDesire>
         void SubscriberResponseCallBack(const homodeus_msgs::HDResponse& response) override;
         void SubscriberCancelCallBack(const homodeus_msgs::DesireID& desireID) override;
         void SubscriberStatusCallBack(const homodeus_msgs::HDStatus& status) override;
+    private:
+        HDStrategyMotivationInterface strategy_motivation_interface_;
 };
 
 class TakeStrategy : public HDStrategy<TakeDesire>
@@ -47,6 +49,24 @@ class TakeStrategy : public HDStrategy<TakeDesire>
         void SubscriberResponseCallBack(const homodeus_msgs::HDResponse& response) override;
         void SubscriberCancelCallBack(const homodeus_msgs::DesireID& desireID) override;
         void SubscriberStatusCallBack(const homodeus_msgs::HDStatus& status) override;
+        void SubscriberVisionCallback(const homodeus_msgs::ObjectsDetection& status) override;
+    private:
+        homodeus_msgs::ObjectDetection GetClosestTagMatchingCommande(const std::string& commande)
+        {
+            std::remove_if(m_ObjectsToDetect.objects.begin(), m_ObjectsToDetect.objects.end(), [commande](const homodeus_msgs::ObjectDetection& object){ return object.header.frame_id != commande; });
+            std::sort(m_ObjectsToDetect.objects.begin(), m_ObjectsToDetect.objects.end(), [](const homodeus_msgs::ObjectDetection& lhs, const homodeus_msgs::ObjectDetection& rhs) { return lhs.distance < rhs.distance; });
+            if (m_ObjectsToDetect.objects.size())
+            {
+                return m_ObjectsToDetect.objects[0];
+            }
+            else
+            {
+                return homodeus_msgs::ObjectDetection{};
+            }
+        }
+
+        homodeus_msgs::ObjectsDetection m_ObjectsToDetect{};
+        ros::NodeHandle& m_NodeHandle;
 };
 
 class DropStrategy : public HDStrategy<DropDesire>

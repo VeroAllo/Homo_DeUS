@@ -11,9 +11,9 @@
 
 class StateManager
 {
-    std::unordered_map<int, std::unordered_map<std::type_index, std::unique_ptr<State>>> m_listsStates;
 
 public:
+    std::unordered_map<int, std::unordered_map<std::type_index, std::unique_ptr<State>>> m_listsStates;
     StateManager();
     virtual ~StateManager();
 

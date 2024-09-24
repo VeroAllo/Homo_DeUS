@@ -80,14 +80,25 @@ void startNode(ros::NodeHandle& nodeHandle)
     stateManager.addState(1,
         make_unique<DiscussionState>(stateManager, desireSet, nodeHandle, idleStateType)
     );
+    stateManager.addState(2,
+        make_unique<IdleState>(stateManager, desireSet, nodeHandle, kitchenStateType)
+    );
+    stateManager.addState(2,
+        make_unique<GoToKitchenState>(stateManager, desireSet, nodeHandle, takeStateType)
+    );
+    stateManager.addState(2,
+        make_unique<TakeState>(stateManager, desireSet, nodeHandle, idleStateType)
+    );
 
     stateManager.switchTo<IdleState>(0);
     stateManager.switchTo<IdleState>(1); /*Help vero*/
+    stateManager.switchTo<IdleState>(2);
 
     vector<unique_ptr<Motivation>> motivations;
 
     motivations.emplace_back(createAccueillirMotivation(nodeHandle,desireSet,&stateManager));
-    motivations.emplace_back(createPrendreCommandeMotivation(nodeHandle,desireSet,&stateManager)); /* segmentation fault*/
+    motivations.emplace_back(createPrendreCommande(nodeHandle,desireSet,&stateManager));
+    motivations.emplace_back(createChercherCommande(nodeHandle, desireSet, &stateManager));
 
 
     ros::spin();

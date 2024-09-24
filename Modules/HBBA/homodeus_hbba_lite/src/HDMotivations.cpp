@@ -1,6 +1,7 @@
 #include <homodeus_hbba_lite/HDMotivations.h>
 #include <homodeus_msgs/ObjectDetection.h>
 #include <homodeus_msgs/ObjectsDetection.h>
+#include <../../hbba_state/src/State/TakeState.h>
 #include <std_msgs/String.h>
 #include <std_msgs/Time.h>
 // #include <../hbba_state/src/State/commons/GoToTableState.h>
@@ -70,15 +71,14 @@ void AccueillirClient::StateMachine()
     }
 }
 
-PrendreCommande::PrendreCommande(const std::map<std::string, bool>& subscriberTopicList, ros::NodeHandle& nodeHandle, std::vector<bool> perceptionList, std::shared_ptr<DesireSet> desireSet, StateManager* stateManager) : Motivation(desireSet), m_StateManager(stateManager), m_PerceptionList(perceptionList)//, strategy_motivation_interface_(nodeHandle)
+PrendreCommande::PrendreCommande(const std::map<std::string, bool>& subscriberTopicList, ros::NodeHandle& nodeHandle, std::vector<bool> perceptionList, std::shared_ptr<DesireSet> desireSet, StateManager* stateManager) : Motivation(desireSet), m_StateManager(stateManager), m_PerceptionList(perceptionList), strategy_motivation_interface_(nodeHandle)
 {
     ROS_INFO("PrendreCommande");
-    m_SubscriberList.push_back(nodeHandle.subscribe(subscriberTopicList.begin()->first, 10, &PrendreCommande::TimerSubscriberCallBack, this));
-    // strategy_motivation_interface_.setCallback(std::bind(&PrendreCommande::StrategySubscriberCallBack, this, std::placeholders::_1));
-    m_Timers[0] = nodeHandle.createTimer(ros::Duration(TEMPSDATTENTE), [this](const ros::TimerEvent&) { this->TimerSubscriberCallBack(0); }, false, false);
-    m_Timers[1] = nodeHandle.createTimer(ros::Duration(TEMPSDATTENTE), [this](const ros::TimerEvent&) { this->TimerSubscriberCallBack(1); }, false, false);
-    m_Timers[2] = nodeHandle.createTimer(ros::Duration(TEMPSDATTENTE), [this](const ros::TimerEvent&) { this->TimerSubscriberCallBack(2); }, false, false);
-    m_Timers[3] = nodeHandle.createTimer(ros::Duration(TEMPSDATTENTE), [this](const ros::TimerEvent&) { this->TimerSubscriberCallBack(3); }, false, false);
+    strategy_motivation_interface_.setCallback(std::bind(&PrendreCommande::StrategySubscriberCallBack, this, std::placeholders::_1));
+    m_Timers[0] = nodeHandle.createTimer(ros::Duration(TEMPSDATTENTE), [&](const ros::TimerEvent&) { TimerSubscriberCallBack(0); }, false, false);
+    m_Timers[1] = nodeHandle.createTimer(ros::Duration(TEMPSDATTENTE), [&](const ros::TimerEvent&) { TimerSubscriberCallBack(1); }, false, false);
+    m_Timers[2] = nodeHandle.createTimer(ros::Duration(TEMPSDATTENTE), [&](const ros::TimerEvent&) { TimerSubscriberCallBack(2); }, false, false);
+    m_Timers[3] = nodeHandle.createTimer(ros::Duration(TEMPSDATTENTE), [&](const ros::TimerEvent&) { TimerSubscriberCallBack(3); }, false, false);
 }
 
 void PrendreCommande::StrategySubscriberCallBack(const std_msgs::String& msg)
@@ -87,10 +87,10 @@ void PrendreCommande::StrategySubscriberCallBack(const std_msgs::String& msg)
     if (msg.data.find("Table") != std::string::npos)
     {
         int table = std::stoi(msg.data.substr(5,6));
-        if (this.m_Tables[table] = false)
+        if (m_Tables[table] = false)
         {
-            this.m_Tables[table] = true;
-            m_Timer[table].start();
+            m_Tables[table] = true;
+            m_Timers[table].start();
         }
     }
 }
@@ -113,12 +113,32 @@ void PrendreCommande::StateMachine(int tb){
     m_StateManager->switchTo<GoToTableState>(1, "Table" + std::to_string(tb));
 } 
 
+
+ChercherCommande::ChercherCommande(const std::map<std::string, bool>& subscriberTopicList, ros::NodeHandle& nodeHandle, std::vector<bool> perceptionList, std::shared_ptr<DesireSet> desireSet, StateManager* stateManager) : Motivation(desireSet), m_StateManager(stateManager), m_PerceptionList(perceptionList), strategy_motivation_interface_(nodeHandle)
+{
+    strategy_motivation_interface_.setCallback(std::bind(&ChercherCommande::StrategySubscriberCallBack, this, std::placeholders::_1));
+}
+
+void ChercherCommande::StrategySubscriberCallBack(const std_msgs::String& msg)
+{
+    ROS_INFO_STREAM("Received message from Discuss: " << msg.data);
+    if (msg.data.find("Commande") != std::string::npos)
+    {
+        static_cast<TakeState*>(m_StateManager->m_listsStates[2][std::type_index(typeid(TakeState))].get())->GenerateObjectToTake(msg.data);
+    }
+}
+
 std::unique_ptr<Motivation> createAccueillirMotivation(ros::NodeHandle& nodeHandle,std::shared_ptr<DesireSet> desireSet, StateManager* stateManager)
 {
     return std::make_unique<AccueillirClient>(std::map<std::string, bool>{{PERCEPTION "/Detect", false}}, nodeHandle, std::vector<bool>{false}, desireSet, stateManager);
 }
 
-std::unique_ptr<Motivation> createPrendreCommandeMotivation(ros::NodeHandle& nodeHandle,std::shared_ptr<DesireSet> desireSet, StateManager* stateManager)
+std::unique_ptr<Motivation> createPrendreCommande(ros::NodeHandle& nodeHandle,std::shared_ptr<DesireSet> desireSet, StateManager* stateManager)
 {
     return std::make_unique<PrendreCommande>(std::map<std::string, bool>{}, nodeHandle, std::vector<bool>{false}, desireSet, stateManager);
+}
+
+std::unique_ptr<Motivation> createChercherCommande(ros::NodeHandle& nodeHandle,std::shared_ptr<DesireSet> desireSet, StateManager* stateManager)
+{
+    return std::make_unique<ChercherCommande>(std::map<std::string, bool>{}, nodeHandle, std::vector<bool>{false}, desireSet, stateManager);
 }

@@ -19,6 +19,8 @@ public:
     DECLARE_NOT_MOVABLE(TakeState);
 
     void onDesireSetChanged(const std::vector<std::unique_ptr<Desire>>& _) override;
+    void GenerateObjectToTake(const std::string& parameter);
+    std::string GetCommandeObject() { return m_Commande; }
 
 protected:
     void enable(const std::string& parameter, const std::type_index& previousStageType) override;
@@ -26,7 +28,7 @@ protected:
     std::type_index type() const override;
 
 private:
-    std::string generateObjectToTake(const std::string& parameter);
+    std::string m_Commande{};
 };
 
 inline std::type_index TakeState::type() const

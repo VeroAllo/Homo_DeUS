@@ -4,7 +4,7 @@ GotoDesire::GotoDesire(std::string destinationInText, uint16_t intensity) : Desi
 
 ExploreDesire::ExploreDesire(uint16_t intensity) : Desire(intensity) {}
 
-TakeDesire::TakeDesire(uint16_t intensity) : Desire(intensity) {}
+TakeDesire::TakeDesire(std::string commande, uint16_t intensity) : Desire(intensity), m_Commande(commande) {}
 
 DropDesire::DropDesire(uint16_t intensity) : Desire(intensity) {}
 

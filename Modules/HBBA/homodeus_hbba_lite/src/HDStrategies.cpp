@@ -46,10 +46,10 @@ void GotoStrategy::SubscriberResponseCallBack(const homodeus_msgs::HDResponse& r
 {
     if(response.id.desire_id == m_desireID)
     {
-        ROS_INFO_STREAM("GotoDesire Finished - DesireID : " << m_desireID << " - Result : " << response.message);
+        ROS_INFO_STREAM("GotoDesire Finished - DesireID : " << m_desireID << " - Result : " << response.result);
         m_DesireSet->removeDesire(m_desireID);
         onDisabling();
-        // strategy_motivation_interface_.publishMessage(response.message.data);
+        strategy_motivation_interface_.publishMessage(response.message.data);
         return;
     }
     ROS_ERROR_STREAM("The desireIDs do not match - Received : " << response.id.desire_id << ", Expected : " << m_desireID);
@@ -125,7 +125,7 @@ void TalkStrategy::onEnabling(const TalkDesire& desire)
     }
 }
 
-DiscussStrategy::DiscussStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, std::map<std::string,bool> publisherTopicList, std::map<std::string,bool> subscriberTopicList, std::shared_ptr<DesireSet> desireSet, std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName) : HDStrategy(filterPool, nodeHandle, publisherTopicList, subscriberTopicList, desireSet, filterConfigurationByName){}
+DiscussStrategy::DiscussStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, std::map<std::string,bool> publisherTopicList, std::map<std::string,bool> subscriberTopicList, std::shared_ptr<DesireSet> desireSet, std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName) : HDStrategy(filterPool, nodeHandle, publisherTopicList, subscriberTopicList, desireSet, filterConfigurationByName), strategy_motivation_interface_(nodeHandle) {}
 
 void DiscussStrategy::SubscriberResponseCallBack(const homodeus_msgs::HDResponse& response) 
 {
@@ -134,6 +134,7 @@ void DiscussStrategy::SubscriberResponseCallBack(const homodeus_msgs::HDResponse
         ROS_INFO_STREAM("DiscussDesire Finished - DesireID : " << m_desireID);
         m_DesireSet->removeDesire(m_desireID);
         onDisabling();
+        strategy_motivation_interface_.publishMessage(response.message.data);
         return;
     }
     ROS_ERROR_STREAM("The desireIDs do not match - Received : " << response.id.desire_id << ", Expected : " << m_desireID);
@@ -166,7 +167,7 @@ void DiscussStrategy::onEnabling(const DiscussDesire& desire)
     }
 }
 
-TakeStrategy::TakeStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, std::map<std::string,bool> publisherTopicList, std::map<std::string,bool> subscriberTopicList, std::shared_ptr<DesireSet> desireSet, std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName) : HDStrategy(filterPool, nodeHandle, publisherTopicList, subscriberTopicList, desireSet, filterConfigurationByName) {}
+TakeStrategy::TakeStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, std::map<std::string,bool> publisherTopicList, std::map<std::string,bool> subscriberTopicList, std::shared_ptr<DesireSet> desireSet, std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName) : HDStrategy(filterPool, nodeHandle, publisherTopicList, subscriberTopicList, desireSet, filterConfigurationByName), m_NodeHandle(nodeHandle) {}
 
 void TakeStrategy::SubscriberResponseCallBack(const homodeus_msgs::HDResponse& response) 
 {    
@@ -188,6 +189,11 @@ void TakeStrategy::SubscriberCancelCallBack(const homodeus_msgs::DesireID& desir
     }
 }
 
+void TakeStrategy::SubscriberVisionCallback(const homodeus_msgs::ObjectsDetection& objects)
+{
+    m_ObjectsToDetect = objects;
+}
+
 void TakeStrategy::SubscriberStatusCallBack(const homodeus_msgs::HDStatus& status) 
 {
     // TODO : Implement behaviour in V2
@@ -197,8 +203,7 @@ void TakeStrategy::onEnabling(const TakeDesire& desire)
 {
     ROS_INFO("TakeDesire started for DesireID : %ld", desire.id());
     m_desireID = desire.id();
-    homodeus_msgs::HDBoundingBox boundingBox{};
-    boundingBox.id.desire_id = m_desireID;
+    homodeus_msgs::ObjectDetection boundingBox = GetClosestTagMatchingCommande(desire.GetCommande());
 
     for(ros::Publisher pub : m_PublisherList)
     {
@@ -303,7 +308,7 @@ std::unique_ptr<BaseStrategy> createDiscussStrategy(std::shared_ptr<FilterPool> 
 
 std::unique_ptr<BaseStrategy> createTakeStrategy(std::shared_ptr<FilterPool> filterPool, std::shared_ptr<DesireSet> desireSet, ros::NodeHandle& nodeHandle, uint16_t utility)
 {
-    return std::make_unique<TakeStrategy>(filterPool, nodeHandle, std::map<std::string, bool>{{BEHAVIOUR "/Take/Request", false}, {BEHAVIOUR "/Take/Cancel", false}},std::map<std::string, bool>{{BEHAVIOUR "/Take/Response", false}, {BEHAVIOUR "/Take/Status", false}}, desireSet, std::unordered_map<std::string, FilterConfiguration>{{"take/FilterState", FilterConfiguration::onOff()}});
+    return std::make_unique<TakeStrategy>(filterPool, nodeHandle, std::map<std::string, bool>{{BEHAVIOUR "/Take/Request", false}, {BEHAVIOUR "/Take/Cancel", false}},std::map<std::string, bool>{{BEHAVIOUR "/Take/Response", false}, {BEHAVIOUR "/Take/Status", false}, {PERCEPTION "/Detect", true}}, desireSet, std::unordered_map<std::string, FilterConfiguration>{{"take/FilterState", FilterConfiguration::onOff()},{ "take/", FilterConfiguration::onOff()}});
 }
 
 std::unique_ptr<BaseStrategy> createDropStrategy(std::shared_ptr<FilterPool> filterPool, std::shared_ptr<DesireSet> desireSet, ros::NodeHandle& nodeHandle, uint16_t utility)
