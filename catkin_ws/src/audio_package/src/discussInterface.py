@@ -31,6 +31,7 @@ class AudioRosDiscuss():
     def __discuss_request_subscriber_callback(self, msg: HDDiscussionStarted):
         self.__desireID = msg.id.desire_id
         rospy.loginfo("Request to discuss received")
+        # self.__discusser.discuss(msg.message.data)
         self.__discusser.start()
         rospy.loginfo("Request to discuss finished")
         
