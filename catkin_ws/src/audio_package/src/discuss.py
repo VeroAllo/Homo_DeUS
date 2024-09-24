@@ -63,7 +63,7 @@ class AudioConsumer(threading.Thread):
             5. Thank the customer and wish them a pleasant meal.
             """}
         ]
-        openai.api_key = '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'
+        openai.api_key = ''
         self.selected_item = None
 
     def run(self):
