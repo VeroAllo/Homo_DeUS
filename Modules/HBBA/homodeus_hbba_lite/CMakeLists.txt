@@ -30,6 +30,7 @@ src/HDDesires.cpp
 src/HDStrategy.cpp
 src/HDStrategies.cpp
 src/HDMotivations.cpp
+# src/HDStrategyToMotivationInterface.cpp
 )
 
 add_dependencies(${PROJECT_NAME} ${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})

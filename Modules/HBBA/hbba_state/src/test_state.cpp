@@ -17,6 +17,7 @@
 #include <hbba_lite/core/RosStrategyStateLogger.h>
 #include <hbba_lite/core/Strategy.h>
 #include <homodeus_hbba_lite/HDMotivations.h>
+#include <hbba_lite/core/Motivation.h>
 
 #include <homodeus_hbba_lite/HDStrategies.h>
 
@@ -47,8 +48,6 @@ void startNode(ros::NodeHandle& nodeHandle)
     ROS_INFO("Allo HBBA lite");
     StateManager stateManager;
 
-
-    // type_index gotoTableStateType(typeid(GoToTableState));
     type_index greetingStateType = type_index(typeid(GreetingState));
     type_index discussStateType = type_index(typeid(DiscussionState));
     type_index takeStateType = type_index(typeid(TakeState));
@@ -88,7 +87,7 @@ void startNode(ros::NodeHandle& nodeHandle)
     vector<unique_ptr<Motivation>> motivations;
 
     motivations.emplace_back(createAccueillirMotivation(nodeHandle,desireSet,&stateManager));
-    motivations.emplace_back(createPrendreCommandeMotivation(nodeHandle,desireSet,&stateManager));
+    motivations.emplace_back(createPrendreCommandeMotivation(nodeHandle,desireSet,&stateManager)); /* segmentation fault*/
 
 
     ros::spin();

@@ -81,6 +81,7 @@ public:
     ~TalkDesire() = default;
 
     uint64_t id() const { return Desire::id(); }
+    std::string getMessage() const { return m_TextToTalk;}
 
     DECLARE_DESIRE_METHODS(TalkDesire); 
 

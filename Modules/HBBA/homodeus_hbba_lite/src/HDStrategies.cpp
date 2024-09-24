@@ -40,7 +40,7 @@ geometry_msgs::Pose mapStringToPose(std::string name)
     return poseToReturn;
 }
 
-GotoStrategy::GotoStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, std::map<std::string,bool> publisherTopicList, std::map<std::string,bool> subscriberTopicList, std::shared_ptr<DesireSet> desireSet, std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName) : HDStrategy(filterPool, nodeHandle, publisherTopicList, subscriberTopicList, desireSet, filterConfigurationByName), strategy_motivation_interface_(nodeHandle){}
+GotoStrategy::GotoStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, std::map<std::string,bool> publisherTopicList, std::map<std::string,bool> subscriberTopicList, std::shared_ptr<DesireSet> desireSet, std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName) : HDStrategy(filterPool, nodeHandle, publisherTopicList, subscriberTopicList, desireSet, filterConfigurationByName)/*, strategy_motivation_interface_(nodeHandle)*/{}
 
 void GotoStrategy::SubscriberResponseCallBack(const homodeus_msgs::HDResponse& response) 
 {
@@ -49,7 +49,7 @@ void GotoStrategy::SubscriberResponseCallBack(const homodeus_msgs::HDResponse& r
         ROS_INFO_STREAM("GotoDesire Finished - DesireID : " << m_desireID << " - Result : " << response.message);
         m_DesireSet->removeDesire(m_desireID);
         onDisabling();
-        strategy_motivation_interface_.publishMessage(response.message);
+        // strategy_motivation_interface_.publishMessage(response.message.data);
         return;
     }
     ROS_ERROR_STREAM("The desireIDs do not match - Received : " << response.id.desire_id << ", Expected : " << m_desireID);
@@ -117,7 +117,7 @@ void TalkStrategy::onEnabling(const TalkDesire& desire)
     m_desireID = desire.id();
     homodeus_msgs::HDTextToTalk textToTalk;
     textToTalk.id.desire_id = m_desireID;
-    textToTalk.message = m_TextToTalk;
+    textToTalk.message.data = desire.getMessage();
 
     for(ros::Publisher pub : m_PublisherList)
     {
@@ -158,7 +158,7 @@ void DiscussStrategy::onEnabling(const DiscussDesire& desire)
     m_desireID = desire.id();
     homodeus_msgs::HDDiscussionStarted discussionStarted{};
     discussionStarted.id.desire_id = m_desireID;
-    discussionStarted.fistMessage = "Welcome to Billy Bob Buger"
+    discussionStarted.fistMessage = "Welcome to Billy Bob Buger";
 
     for(ros::Publisher pub : m_PublisherList)
     {
