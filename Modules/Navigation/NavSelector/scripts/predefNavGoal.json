@@ -1,0 +1,32 @@
+{
+    "Maison": {
+        "PosX" : 9.75,
+        "PosY" : 5.00,
+        "PosZ" : 0.00,
+        "ObjOri" : 2.3562
+    },
+    "Reception": {
+        "PosX" :  8.25,
+        "PosY" :  6.50,
+        "PosZ" : 0.00,
+        "ObjOri" : 2.3562
+    },
+    "Table 1": {
+        "PosX" : 8.25,
+        "PosY" : 4.00,
+        "PosZ" : 0.00,
+        "ObjOri" : 3.1416
+    },
+    "Table 2": {
+        "PosX" : 6.00,
+        "PosY" : 0.00,
+        "PosZ" : 0.00,
+        "ObjOri" : -1.5708
+    },
+    "Cuisine": {
+        "PosX" : 9.75,
+        "PosY" : 6.00,
+        "PosZ" : 0.00,
+        "ObjOri" : 1.5708
+    }
+}
