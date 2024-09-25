@@ -60,34 +60,34 @@ void startNode(ros::NodeHandle& nodeHandle)
 
 
     stateManager.addListStates(0,
-        make_unique<IdleState>(stateManager, desireSet, nodeHandle, gotoAccueilStateType)
+        make_unique<IdleState>(stateManager, desireSet, nodeHandle, gotoAccueilStateType, 0)
     );
     stateManager.addState(0, 
-        make_unique<GoToAccueilState>(stateManager, desireSet, nodeHandle)
+        make_unique<GoToAccueilState>(stateManager, desireSet, nodeHandle, greetingStateType, 1), 
     );
     stateManager.addState(0,
-        make_unique<GreetingState>(stateManager, desireSet, nodeHandle)
+        make_unique<GreetingState>(stateManager, desireSet, nodeHandle, gotoTableStateType, 2)
     );
     stateManager.addState(0,
-        make_unique<GoToTableState>(stateManager, desireSet, nodeHandle, idleStateType)
+        make_unique<GoToTableState>(stateManager, desireSet, nodeHandle, idleStateType, 3)
     );
     stateManager.addState(1,
-        make_unique<IdleState>(stateManager, desireSet, nodeHandle, gotoTableStateType)
+        make_unique<IdleState>(stateManager, desireSet, nodeHandle, gotoTableStateType, 0)
     );
     stateManager.addState(1,
-        make_unique<GoToTableState>(stateManager, desireSet, nodeHandle, discussStateType)
+        make_unique<GoToTableState>(stateManager, desireSet, nodeHandle, discussStateType, 1)
     );
     stateManager.addState(1,
-        make_unique<DiscussionState>(stateManager, desireSet, nodeHandle, idleStateType)
+        make_unique<DiscussionState>(stateManager, desireSet, nodeHandle, idleStateType, 2)
     );
     stateManager.addState(2,
-        make_unique<IdleState>(stateManager, desireSet, nodeHandle, kitchenStateType)
+        make_unique<IdleState>(stateManager, desireSet, nodeHandle, kitchenStateType, 0)
     );
     stateManager.addState(2,
-        make_unique<GoToKitchenState>(stateManager, desireSet, nodeHandle, takeStateType)
+        make_unique<GoToKitchenState>(stateManager, desireSet, nodeHandle, takeStateType, 1)
     );
     stateManager.addState(2,
-        make_unique<TakeState>(stateManager, desireSet, nodeHandle, idleStateType)
+        make_unique<TakeState>(stateManager, desireSet, nodeHandle, idleStateType, 2)
     );
 
     stateManager.switchTo<IdleState>(0);

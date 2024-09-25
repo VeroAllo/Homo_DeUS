@@ -29,13 +29,15 @@ protected:
 
     std::vector<uint64_t> m_desireIds;
     std::type_index m_nextStateType;
+    std::int m_Intensite = 0;
 
 public:
     State(
         StateManager& stateManager,
         std::shared_ptr<DesireSet> desireSet,
         ros::NodeHandle& nodeHandle, 
-        std::type_index nextStateType);
+        std::type_index nextStateType
+        std::int Intensite);
     virtual ~State();
 
     DECLARE_NOT_COPYABLE(State);

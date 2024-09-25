@@ -7,7 +7,8 @@ class GoToAccueilState : public GoToState
 public:
     GoToAccueilState(StateManager& stateManager,
         std::shared_ptr<DesireSet> desireSet,
-        ros::NodeHandle& nodeHandle);
+        ros::NodeHandle& nodeHandle,
+        std::int Intensite);
 
     ~GoToAccueilState() override;
 

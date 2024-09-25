@@ -7,8 +7,9 @@ using namespace std;
 GreetingState::GreetingState(
     StateManager& stateManager,
     shared_ptr<DesireSet> desireSet,
-    ros::NodeHandle& nodeHandle)
-    : TalkState(stateManager, desireSet, nodeHandle, type_index(typeid(GoToTableState)))
+    ros::NodeHandle& nodeHandle,
+    std::int Intensite)
+    : TalkState(stateManager, desireSet, nodeHandle, type_index(typeid(GoToTableState)), Intensite)
 {
 
 }

@@ -7,8 +7,9 @@ using namespace std;
 GoToAccueilState::GoToAccueilState(
     StateManager& stateManager,
     shared_ptr<DesireSet> desireSet,
-    ros::NodeHandle& nodeHandle)
-    : GoToState(stateManager, desireSet, nodeHandle,  type_index(typeid(GreetingState)))
+    ros::NodeHandle& nodeHandle,
+    std::int Intensite)
+    : GoToState(stateManager, desireSet, nodeHandle,  type_index(typeid(GreetingState)), Intensite)
 {
     ROS_INFO("state GoToAccueilState creer");
 }

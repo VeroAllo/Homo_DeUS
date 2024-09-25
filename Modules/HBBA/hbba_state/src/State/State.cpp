@@ -6,13 +6,16 @@ State::State(
     StateManager& stateManager,
     shared_ptr<DesireSet> desireSet,
     ros::NodeHandle& nodeHandle, 
-    std::type_index nextStateType)
+    std::type_index nextStateType,
+    std::int Intensite)
     : m_enabled(false),
       m_stateManager(stateManager),
       m_desireSet(move(desireSet)),
       m_nodeHandle(nodeHandle),
       m_nextStateType(nextStateType),
-      m_previousStageType(typeid(State))
+      m_previousStageType(typeid(State)),
+      m_Intensite(Intensite)
+
 {
 }
 State::~State(){}

@@ -7,8 +7,9 @@ GoToTableState::GoToTableState(
     StateManager& stateManager,
     shared_ptr<DesireSet> desireSet,
     ros::NodeHandle& nodeHandle,
-    std::type_index nextStateType)
-    : GoToState(stateManager, desireSet, nodeHandle, nextStateType)
+    std::type_index nextStateType,
+    std::int Intensite)
+    : GoToState(stateManager, desireSet, nodeHandle, nextStateType, Intensite)
 {
     ROS_INFO("state GoToTableState creer");
 }

@@ -8,8 +8,10 @@ DiscussionState::DiscussionState(
     StateManager& stateManager,
     std::shared_ptr<DesireSet> desireSet,
     ros::NodeHandle& nodeHandle,
-    std::type_index nextStateType)
-    : State(stateManager, desireSet, nodeHandle, nextStateType)
+    std::type_index nextStateType,
+    std::int Intensite)
+    : State(stateManager, desireSet, nodeHandle, nextStateType, Intensite),
+      m_discussDesireId(MAX_DESIRE_ID)
 {
     ROS_INFO("state DiscussionState creer");
     m_desireSet->addObserver(this);
