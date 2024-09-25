@@ -10,7 +10,8 @@ public :
         StateManager& stateManager,
         std::shared_ptr<DesireSet> desireSet,
         ros::NodeHandle& nodeHandle,
-        std::int Intensite);
+        std::type_index nextStateType,
+        int Intensite);
     ~GreetingState() override;
 
     DECLARE_NOT_COPYABLE(GreetingState);

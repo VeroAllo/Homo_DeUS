@@ -63,7 +63,7 @@ void startNode(ros::NodeHandle& nodeHandle)
         make_unique<IdleState>(stateManager, desireSet, nodeHandle, gotoAccueilStateType, 0)
     );
     stateManager.addState(0, 
-        make_unique<GoToAccueilState>(stateManager, desireSet, nodeHandle, greetingStateType, 1), 
+        make_unique<GoToAccueilState>(stateManager, desireSet, nodeHandle, greetingStateType, 1)
     );
     stateManager.addState(0,
         make_unique<GreetingState>(stateManager, desireSet, nodeHandle, gotoTableStateType, 2)
@@ -90,14 +90,14 @@ void startNode(ros::NodeHandle& nodeHandle)
         make_unique<TakeState>(stateManager, desireSet, nodeHandle, idleStateType, 2)
     );
 
-    stateManager.switchTo<IdleState>(0);
-    stateManager.switchTo<IdleState>(1); /*Help vero*/
+    //stateManager.switchTo<IdleState>(0);
+    //stateManager.switchTo<IdleState>(1); /*Help vero*/
     stateManager.switchTo<IdleState>(2);
 
     vector<unique_ptr<Motivation>> motivations;
 
-    motivations.emplace_back(createAccueillirMotivation(nodeHandle,desireSet,&stateManager));
-    motivations.emplace_back(createPrendreCommande(nodeHandle,desireSet,&stateManager));
+    //motivations.emplace_back(createAccueillirMotivation(nodeHandle,desireSet,&stateManager));
+    //motivations.emplace_back(createPrendreCommande(nodeHandle,desireSet,&stateManager));
     motivations.emplace_back(createChercherCommande(nodeHandle, desireSet, &stateManager));
 
 

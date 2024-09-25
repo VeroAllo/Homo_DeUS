@@ -11,7 +11,7 @@ public:
         std::shared_ptr<DesireSet> desireSet,
         ros::NodeHandle& nodeHandle,
         std::type_index nextStateType,
-        std::int Intensite);
+        int Intensite);
     ~IdleState() override;
 
     DECLARE_NOT_COPYABLE(IdleState);

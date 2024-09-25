@@ -9,7 +9,7 @@ DiscussionState::DiscussionState(
     std::shared_ptr<DesireSet> desireSet,
     ros::NodeHandle& nodeHandle,
     std::type_index nextStateType,
-    std::int Intensite)
+    int Intensite)
     : State(stateManager, desireSet, nodeHandle, nextStateType, Intensite),
       m_discussDesireId(MAX_DESIRE_ID)
 {

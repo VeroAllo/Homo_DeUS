@@ -14,12 +14,12 @@ void HDStrategyMotivationInterface::publishMessage(const std::string& data)
     strategy_pub_.publish(msg);
 }
 
-void HDStrategyMotivationInterface::setCallback(std::function<void(const std_msgs::String&)> callback)
+void HDStrategyMotivationInterface::setCallback(std::function<void(std_msgs::String)> callback)
 {
     callback_ = callback;
 }
 
-void HDStrategyMotivationInterface::subscriberCallback(const std_msgs::String& msg)
+void HDStrategyMotivationInterface::subscriberCallback(std_msgs::String msg)
 {
     if (callback_)
     {

@@ -13,7 +13,7 @@ public:
         std::shared_ptr<DesireSet> desireSet,
         ros::NodeHandle& nodeHandle,
         std::type_index nextStateType,
-        std::int Intensite);
+        int Intensite);
     ~DropState() override;
 
     DECLARE_NOT_COPYABLE(DropState);

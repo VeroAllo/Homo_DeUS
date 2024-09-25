@@ -10,6 +10,7 @@
 class GotoDesire : public Desire
 {
 public:
+    void setIntensity(uint16_t intensite) { }
     explicit GotoDesire(std::string destinationInText, uint16_t intensity = 1);
     ~GotoDesire() = default;
 
@@ -22,6 +23,7 @@ public:
 class ExploreDesire : public Desire
 {
 public:
+    void setIntensity(uint16_t intensite) { }
     explicit ExploreDesire(uint16_t intensity = 1);
     ~ExploreDesire() = default;
 

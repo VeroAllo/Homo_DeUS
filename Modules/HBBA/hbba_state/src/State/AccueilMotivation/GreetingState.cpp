@@ -8,7 +8,8 @@ GreetingState::GreetingState(
     StateManager& stateManager,
     shared_ptr<DesireSet> desireSet,
     ros::NodeHandle& nodeHandle,
-    std::int Intensite)
+    std::type_index nextStateType,
+    int Intensite)
     : TalkState(stateManager, desireSet, nodeHandle, type_index(typeid(GoToTableState)), Intensite)
 {
 

@@ -13,7 +13,7 @@ class DiscussionState : public State, public DesireSetObserver
         std::shared_ptr<DesireSet> desireSet,
         ros::NodeHandle& nodeHandle,
         std::type_index nextStateType,
-        std::int Intensite);
+        int Intensite);
     ~DiscussionState() override;
 
     DECLARE_NOT_COPYABLE(DiscussionState);

@@ -9,8 +9,8 @@ TakeState::TakeState(
     shared_ptr<DesireSet> desireSet,
     ros::NodeHandle& nodeHandle,
     type_index nextStateType,
-    std::int intensite)
-    : State(stateManager, desireSet, nodeHandle, nextStateType, intensite)
+    int intensite)
+    : State(stateManager, desireSet, nodeHandle, nextStateType, intensite),
       m_takeDesireId(MAX_DESIRE_ID)
 {
     m_desireSet->addObserver(this);

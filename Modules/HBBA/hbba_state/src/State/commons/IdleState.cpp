@@ -10,7 +10,7 @@ IdleState::IdleState(
     shared_ptr<DesireSet> desireSet,
     ros::NodeHandle& nodeHandle,
     type_index nextStateType,
-    std::int intensite)
+    int intensite)
     : State(stateManager, desireSet, nodeHandle, nextStateType, intensite)
 {
 }

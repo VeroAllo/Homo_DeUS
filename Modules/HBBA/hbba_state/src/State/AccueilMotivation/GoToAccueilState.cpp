@@ -8,7 +8,8 @@ GoToAccueilState::GoToAccueilState(
     StateManager& stateManager,
     shared_ptr<DesireSet> desireSet,
     ros::NodeHandle& nodeHandle,
-    std::int Intensite)
+    std::type_index nextStateType,
+    int Intensite)
     : GoToState(stateManager, desireSet, nodeHandle,  type_index(typeid(GreetingState)), Intensite)
 {
     ROS_INFO("state GoToAccueilState creer");

@@ -9,7 +9,7 @@ GoToState::GoToState(
     shared_ptr<DesireSet> desireSet,
     ros::NodeHandle& nodeHandle,
     type_index nextStateType,
-    std::int intensite)
+    int intensite)
     : State(stateManager, desireSet, nodeHandle, nextStateType, intensite),
       m_gotoDesireId(MAX_DESIRE_ID)
 {
@@ -39,7 +39,7 @@ void GoToState::enable(const string& parameter, const type_index& previousStageT
     auto gotoDesire = make_unique<GotoDesire>(generateGoal(parameter));
     
     m_gotoDesireId = gotoDesire->id();
-    gotoDesire.get()->setIntensite(m_Intensite);
+    gotoDesire.get()->setIntensity(m_Intensite);
 
     m_desireIds.emplace_back(gotoDesire->id());
 

@@ -10,7 +10,7 @@ DropState::DropState(
     shared_ptr<DesireSet> desireSet,
     ros::NodeHandle& nodeHandle,
     type_index nextStateType,
-    std::int intensite)
+    int intensite)
     : State(stateManager, desireSet, nodeHandle, nextStateType, intensite),
       m_dropDesireId(MAX_DESIRE_ID)
 {

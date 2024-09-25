@@ -8,7 +8,8 @@ public:
     GoToAccueilState(StateManager& stateManager,
         std::shared_ptr<DesireSet> desireSet,
         ros::NodeHandle& nodeHandle,
-        std::int Intensite);
+        std::type_index nextStateType,
+        int Intensite);
 
     ~GoToAccueilState() override;
 

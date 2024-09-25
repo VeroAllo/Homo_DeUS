@@ -34,7 +34,6 @@ protected:
     StateManager* m_StateManager;
     std::vector<bool> m_Tables{false, false, false, false};
     std::vector<ros::Timer> m_Timers{};
-    StateManager* m_StateManager;
 public:
     PrendreCommande(const std::map<std::string, bool>& subscriberTopicList, ros::NodeHandle& nodeHandle, std::vector<bool> PerceptionList, std::shared_ptr<DesireSet> desireSet, StateManager* stateManager);
     void TimerSubscriberCallBack(int table);

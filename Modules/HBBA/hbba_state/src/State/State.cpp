@@ -7,7 +7,7 @@ State::State(
     shared_ptr<DesireSet> desireSet,
     ros::NodeHandle& nodeHandle, 
     std::type_index nextStateType,
-    std::int Intensite)
+    int Intensite)
     : m_enabled(false),
       m_stateManager(stateManager),
       m_desireSet(move(desireSet)),

@@ -11,7 +11,7 @@ TalkState::TalkState(
     shared_ptr<DesireSet> desireSet,
     ros::NodeHandle& nodeHandle,
     type_index nextStateType,
-    std::int Intensite)
+    int Intensite)
     : State(stateManager, desireSet, nodeHandle, nextStateType, Intensite),
     m_talkDesireId(MAX_DESIRE_ID)
 {

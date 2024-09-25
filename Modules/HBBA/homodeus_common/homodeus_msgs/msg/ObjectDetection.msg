@@ -25,3 +25,4 @@ float32 angle           # Ne pas utiliser (herite)
 # Object pose (frame /map)
 #####################
 geometry_msgs/Pose pose
+homodeus_msgs/DesireID id
