@@ -1,6 +1,7 @@
 #ifndef ARMINTERFACENODE_H
 #define ARMINTERFACENODE_H
 
+#include <string>
 #include <homodeus_arm_interface/ArmInterface.h>
 
 #include <tf_conversions/tf_eigen.h>
@@ -68,7 +69,7 @@ class ArmInterfaceNode: ArmInterface
         bool gotoCarryPose();
 
         void gotoInitPose();
-
+        void changeVelFactor();
         void closeHand();
         void temp(const geometry_msgs::PoseStamped posestamped);
 };

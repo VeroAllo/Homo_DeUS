@@ -39,7 +39,6 @@ class ArmInterface
 {
     private:
         float _planningTime;
-        float max_vel_factor = 0.1;
         std::string _ref_frame;
         std::string _plannerId;
         std::vector<std::string> _jointsNames;
@@ -54,6 +53,7 @@ class ArmInterface
         ArmInterface();
         ArmInterface(std::string ref_frame);
 
+        float max_vel_factor = 0.2;
         void setPlanningTime(float value);
         void setPlannerId(std::string id);
         bool moveToCartesian(double x, double y, double z, double roll, double pitch, double yaw);

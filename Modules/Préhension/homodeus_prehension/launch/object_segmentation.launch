@@ -2,7 +2,7 @@
 <launch>
   <arg name="rate"                      default="1"                               />
   <arg name="cloud"                     default="/xtion/depth_registered/points"  />
-  <arg name="frame"                     default="base_footprint"                 />
+  <arg name="frame"                     default="base_link"                       />
   <arg name="passthrough_axis"          default="z"                               />
   <arg name="passthrough_min"           default="0.4"                             />
   <arg name="passthrough_max"           default="1.6"                             />
@@ -23,14 +23,9 @@
   <node name="object_detector" pkg="homodeus_prehension" type="object_detector" output="screen">
     <remap from="cloud" to="$(arg objs)"/>
     <param name="rate"  type="double" value="$(arg rate)"/>
+    <param name="frame" type="string" value="$(arg frame)"  />
   </node>
 
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find homodeus_prehension)/config/pcl_cylinder.rviz"/>
 
-
-  <!-- 
-  <group if="$(arg show_rviz)">
-    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find homodeus_prehension)/config/pcl_segment_table.rviz"/>
-  </group>
-  -->
 </launch>

@@ -73,7 +73,12 @@
 #include <pcl/common/transforms.h>
 #include <pcl/features/normal_3d.h>
 #include <pcl/segmentation/sac_segmentation.h>
+#include <cmath>
 
+#include <homodeus_msgs/BoundingBox.h>
+#include <homodeus_msgs/ObjectDetection.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2_ros/transform_listener.h>
 
 
 namespace pal {
@@ -137,6 +142,10 @@ protected:
 
   void segmentationObject(const sensor_msgs::PointCloud2ConstPtr& cloud);
 
+  void selectObject(geometry_msgs::Point pointBoundingBox, std::vector<geometry_msgs::Pose> pose_list);
+  void objectDetectionCallback(const homodeus_msgs::ObjectDetection& objectDetectionMsg);
+  double calculateDistance(const geometry_msgs::Point& p1, const geometry_msgs::Point& p2);
+ 
   void start();
   void stop();
 
@@ -148,11 +157,16 @@ protected:
 
   // ROS interfaces
   ros::Subscriber _cloudSub;
+  ros::Subscriber _objectDetectionSub;
+  
   ros::Publisher  _cylinderCloudPub;
   ros::Publisher  _objectPosePub;
   ros::Publisher  _cylinderMarkerPub;
   ros::Publisher  _objectVisualisationMarkerPub;
   ros::Publisher  _objectPub;
+
+
+  std::vector<geometry_msgs::Pose> _objets_pos_list;
 };
 
 
@@ -279,13 +293,6 @@ void ObjectDetector::cloudCallback(const sensor_msgs::PointCloud2ConstPtr& cloud
                                                            0.015, 0.08,
                                                            cylinderCoefficients);
   
-  std::cout << "values[]" << std::endl;
-  for (std::size_t i = 0; i < cylinderCoefficients->values.size (); ++i)
-  {
-    std::cout << "  values[" << i << "]: ";
-    std::cout << "  " << cylinderCoefficients->values[i] << std::endl;
-  }
-  
   //filter outliers in the cylinder cloud
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr pclFilteredCylinderCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
   if ( pclCylinderCloud->empty() )
@@ -346,7 +353,7 @@ void ObjectDetector::segmentationObject(const sensor_msgs::PointCloud2ConstPtr& 
   std::vector<pcl::PointIndices> cluster_indices;
   pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
   ec.setClusterTolerance (0.02); // 2cm
-  ec.setMinClusterSize (50);
+  ec.setMinClusterSize (10);
   ec.setMaxClusterSize (25000);
   ec.setSearchMethod (tree);
   ec.setInputCloud (pclCloud);
@@ -354,6 +361,7 @@ void ObjectDetector::segmentationObject(const sensor_msgs::PointCloud2ConstPtr& 
   
   visualization_msgs::MarkerArray marker_array;
   int taille = cluster_indices.size();
+
 
   int j = 0;
   for (const auto& cluster : cluster_indices)
@@ -401,22 +409,18 @@ void ObjectDetector::segmentationObject(const sensor_msgs::PointCloud2ConstPtr& 
     quaternion.z = 0;//quaternionff.z();
     quaternion.w = 1;//quaternionff.w();
 
-    std::cout << "rotational_matrix_OBB : " << rotational_matrix_OBB << std::endl;
-    std::cout << "quaternion : " << quaternion << std::endl;
+    // std::cout << "rotational_matrix_OBB : " << rotational_matrix_OBB << std::endl;
+    // std::cout << "quaternion : " << quaternion << std::endl;
     
 
     geometry_msgs::Pose pose;
     pose.position = point;
     pose.orientation = quaternion;
 
-    // Publication de la position de l'objet a prendre
-    // TODO : Changer la condition pour trouver lequel des objets il faut prendre
-    if (j == 0 ) {
-      publishPose(pose, cloud->header);
-    }
+    _objets_pos_list.push_back(pose);
 
-    
-    
+    std::string string_var;
+
     // Afficher la bounding box 3D 
 
     visualization_msgs::Marker marker;
@@ -492,36 +496,6 @@ void ObjectDetector::segmentationObject(const sensor_msgs::PointCloud2ConstPtr& 
     p.z = max_z;
 
     marker.points.push_back(p);
-
-    p.x = max_x - width;
-    p.y = max_y - length;
-    p.z = max_z;
-
-    marker.points.push_back(p);
-
-    // ===========================
-    p.x = max_x;
-    p.y = max_y;
-    p.z = max_z;
-
-    marker.points.push_back(p);
-
-    p.x = max_x;
-    p.y = max_y;
-    p.z = max_z - height;
-
-    marker.points.push_back(p);
-
-    // ===========================
-    p.x = max_x - width;
-    p.y = max_y;
-    p.z = max_z;
-
-    marker.points.push_back(p);
-
-    p.x = max_x - width;
-    p.y = max_y;
-    p.z = max_z - height;
 
     marker.points.push_back(p);
 
@@ -609,7 +583,12 @@ void ObjectDetector::segmentationObject(const sensor_msgs::PointCloud2ConstPtr& 
     marker_array.markers.push_back(marker);
     j = j + 1;
   }
-  std::cout << "Nombre dobjets : " << j << std::endl;
+
+  // Publication de la position de l'objet a prendre
+  // TODO : Changer la condition pour trouver lequel des objets il faut prendre
+
+  // publishPose(_objets_pos_list[0], cloud->header);
+
   std::cout << "Nombre dobjets taille: " << taille << std::endl;
   
   if ( _objectVisualisationMarkerPub.getNumSubscribers() > 0 )
@@ -622,14 +601,60 @@ void ObjectDetector::segmentationObject(const sensor_msgs::PointCloud2ConstPtr& 
 void ObjectDetector::publishPose(const geometry_msgs::Pose& pose,
                                    const std_msgs::Header& header)
 {
-  if ( _objectPosePub.getNumSubscribers() > 0 && _dispos)
+  if ( _objectPosePub.getNumSubscribers() > 0)
   {
-    _dispos = false;
     geometry_msgs::PoseStamped poseMsg;
     poseMsg.pose   = pose;
     poseMsg.header = header;
     _objectPosePub.publish(poseMsg);
   }
+}
+
+void ObjectDetector::selectObject(geometry_msgs::Point pointBoundingBox, std::vector<geometry_msgs::Pose> pose_list){
+  double small_dist = 999999999; 
+
+  geometry_msgs::Pose pose_to_grasp;
+  
+  for (geometry_msgs::Pose pose : pose_list){
+    double dist = calculateDistance(pose.position, pointBoundingBox);
+    if (dist < small_dist) {
+      small_dist = dist;
+      pose_to_grasp = pose;
+    }
+  }
+
+  std_msgs::Header header;
+  header.stamp = ros::Time::now();
+  header.frame_id = "base_link";
+  publishPose(pose_to_grasp, header);
+}
+
+void ObjectDetector::objectDetectionCallback(const homodeus_msgs::ObjectDetection& objectDetectionMsg) {
+
+  geometry_msgs::Pose pose = objectDetectionMsg.pose;
+  geometry_msgs::PointStamped point_in_map;
+  point_in_map.header = objectDetectionMsg.header;
+  point_in_map.point = pose.position;
+
+  tf2_ros::Buffer tfBuffer;
+  tf2_ros::TransformListener tfListener(tfBuffer);
+
+  geometry_msgs::TransformStamped transformStamped = tfBuffer.lookupTransform("base_link", "base_footprint", ros::Time(0), ros::Duration(1.0));
+
+  geometry_msgs::PointStamped point_in_base_link;
+  tf2::doTransform(point_in_map, point_in_base_link, transformStamped);
+
+  // Afficher le point dans le référentiel /base_link
+  ROS_INFO("Point in /base_link: [%.2f, %.2f, %.2f]", point_in_base_link.point.x, point_in_base_link.point.y, point_in_base_link.point.z);
+
+  selectObject(point_in_base_link.point, _objets_pos_list);
+}
+
+double ObjectDetector::calculateDistance(const geometry_msgs::Point& p1, const geometry_msgs::Point& p2) {
+  pcl::PointXYZ pcl_point1 = pcl::PointXYZ(p1.x, p1.y, p1.z);
+  pcl::PointXYZ pcl_point2 = pcl::PointXYZ(p2.x, p2.y, p2.z);
+
+  return pcl::euclideanDistance(pcl_point1, pcl_point2);
 }
 
 // Deprecated
@@ -689,12 +714,15 @@ void ObjectDetector::publish(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cylinderClo
 void ObjectDetector::start()
 {
   _cloudSub = _nh.subscribe("cloud", 1, &ObjectDetector::cloudCallback, this);
+
+  _objectDetectionSub = _nh.subscribe("/Homodeus/Perception/Detect", 1, &ObjectDetector::objectDetectionCallback, this);
   _enabled = true;
 }
 
 void ObjectDetector::stop()
 {
   _cloudSub.shutdown();
+  _objectDetectionSub.shutdown();
   _enabled = false;
 }
 
