@@ -15,6 +15,7 @@ class AudioHandler:
         self.producer = AudioProducer(self.audio_queue, self.is_playing, self.stop_event)
         self.consumer = AudioConsumer(self.audio_queue, self.is_playing, self.stop_event)
         self.selected_item = None
+        self.update_callback = None
 
     def start(self):
         self.producer.start()
@@ -24,6 +25,14 @@ class AudioHandler:
     def get_selected_item(self):
         return self.selected_item
     
+    def set_update_callback(self, callback):
+        self.update_callback = callback
+
+    def update_selected_item(self, item):
+        self.selected_item = item
+        if self.update_callback:
+            self.update_callback(item)
+
 class AudioProducer(threading.Thread):
     def __init__(self, audio_queue, is_playing, stop_event):
         threading.Thread.__init__(self)
@@ -54,7 +63,7 @@ class AudioConsumer(threading.Thread):
         self.message_history = [
             {"role": "system", "content": """
             You are a helpful assistant and restaurant server. Your job is to take orders, answer questions about the menu, and provide recommendations. 
-            You should be polite, friendly, and professional at all times. Here are some specific instructions:
+            You should be polite, friendly, and professional at all times. Always respond in english. Here are some specific instructions:
             0. the restaurant is the Tiagoh Bistro.
             1. Greet the customer warmly when they start speaking.
             2. If the customer asks for recommendations, suggest one of the item in the menu.
@@ -72,7 +81,7 @@ class AudioConsumer(threading.Thread):
             if text:
                 self.message_history.append({"role": "user", "content": text})
                 response = openai.ChatCompletion.create(
-                    model="gpt-3.5-turbo",
+                    model="gpt-4o",
                     messages=self.message_history
                 )
                 response_text = response['choices'][0]['message']['content']
@@ -98,6 +107,7 @@ class AudioConsumer(threading.Thread):
                     print("Fin de la conversation")
                     if self.selected_item:
                         print(f"Item sélectionné : {self.selected_item}")
+                        self.handler.update_selected_item(self.selected_item)
                     self.stop_event.set()
                     break
 

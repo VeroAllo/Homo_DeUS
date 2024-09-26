@@ -25,6 +25,9 @@ class AudioRosDiscuss():
         self.__discuss_status_pub: Publisher = Publisher(self._DISCUSS_STATUS_TOPIC, HDStatus, queue_size=1)
         self.__discuss_response_pub: Publisher = Publisher(self._DISCUSS_RESPONSE_TOPIC, HDResponse, queue_size=1)
 
+        # Set the callback for updates
+        self.__discusser.set_update_callback(self.__on_selected_item_update)
+        
         rospy.on_shutdown(self.__close_connection_node)
         rospy.loginfo("Behavior Discuss initialized")
     
@@ -35,16 +38,14 @@ class AudioRosDiscuss():
         self.__discusser.start()
         rospy.loginfo("Request to discuss finished")
         
-        # Récupérer l'item sélectionné
-        selected_item = self.__discusser.get_selected_item()
-        
-        # Publier l'item sélectionné sur le topic response
+ 
+    def __on_selected_item_update(self, item):
         response = HDResponse()
         response.id.desire_id = self.__desireID
         response.result = True
-        response.selected_item = selected_item  # Assurez-vous que HDResponse a un champ pour l'item sélectionné
+        response.selected_item = item  # Assurez-vous que HDResponse a un champ pour l'item sélectionné
         self.__discuss_response_pub.publish(response)
-        rospy.loginfo("Response to discuss sent with selected item: %s", selected_item)
+        rospy.loginfo("Response to discuss sent with selected item: %s", item)
     
     def __close_connection_node(self):
         self.__discuss_request_sub.unregister()
