@@ -7,6 +7,10 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   dynamic_reconfigure
   tf
+  tf2
+  tf2_ros
+  tf2_geometry_msgs 
+  homodeus_msgs
   sensor_msgs
   std_msgs
   geometry_msgs
@@ -47,10 +51,9 @@ generate_dynamic_reconfigure_options(
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME}
-  CATKIN_DEPENDS joint_state_publisher moveit_planners_ompl moveit_ros_move_group moveit_ros_visualization moveit_simple_controller_manager robot_state_publisher roscpp xacro dynamic_reconfigure sensor_msgs message_runtime
+  CATKIN_DEPENDS joint_state_publisher moveit_planners_ompl moveit_ros_move_group moveit_ros_visualization moveit_simple_controller_manager robot_state_publisher roscpp xacro dynamic_reconfigure tf2 tf2_ros tf2_geometry_msgs sensor_msgs message_runtime
   DEPENDS system_lib
 )
-
 
 include_directories(SYSTEM 
   include

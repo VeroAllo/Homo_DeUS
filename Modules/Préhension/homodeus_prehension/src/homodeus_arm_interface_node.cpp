@@ -8,7 +8,6 @@ hac("/head_controller/follow_joint_trajectory", true)
 {
     ROS_INFO("Node init strated");
 
-    std::cout << "2asdddddddd" << std::endl;
     pick_pose_sub = nh.subscribe("/object_detector/object_pose", 5, &ArmInterfaceNode::pickPoseCB, this);
     drop_pose_sub = nh.subscribe("/drop_point", 5, &ArmInterfaceNode::dropPoseCB, this);
     close_gripper_goal.trajectory = closedGripper();
@@ -205,15 +204,7 @@ void ArmInterfaceNode::pickPoseCB(const geometry_msgs::PoseStampedConstPtr poses
         //success = moveToCartesian(x-0.15, y, z-0.05, roll, pitch, yaw);
         success = moveToCartesian(x-0.15, y, z, roll, pitch, yaw);
     }
-    ROS_INFO("Waypoint 1 acheive doing it again to test");
-    if (success)
-    {
-        ROS_INFO("arm_interface_node: reached first wayp1oint");
-        //success = moveToCartesian(x-0.15, y, z-0.05, roll, pitch, yaw);
-        success = moveToCartesian(x-0.15, y, z, roll, pitch, yaw);
-    }
-    // Stop here for debug
-    success = false;
+
     if (success)
     {
         ROS_INFO("arm_interface_node: successfully moved to pick point, closing gripper...");
@@ -231,7 +222,7 @@ void ArmInterfaceNode::pickPoseCB(const geometry_msgs::PoseStampedConstPtr poses
     }
     else
         ROS_INFO("arm_interface_node: failed to go to pick point!");
-
+    success = false;
     
     if (success)
     {
@@ -246,8 +237,10 @@ void ArmInterfaceNode::pickPoseCB(const geometry_msgs::PoseStampedConstPtr poses
     pick_success_msg.data = success;
     bhvr_output_pick_result.publish(pick_success_msg);
 
-    //ROS_INFO("Drop object.");
-    //drop_pose_pub.publish(pick_point);
+    ROS_INFO("Good job, the object has been picked up.");
+    // ros::Duration(1).sleep();
+    // ROS_INFO("Now drop object.");
+    // drop_pose_pub.publish(pick_point);
 
 }
 
@@ -415,17 +408,42 @@ void ArmInterfaceNode::tempGraspPick(const geometry_msgs::PoseStampedConstPtr po
     // END_SUB_TUTORIAL
 }
 
+void ArmInterfaceNode::changeVelFactor(){
+    std::string changeVel; 
+    std::cout << "Current max_vel_factor : " << max_vel_factor << std::endl; 
+    std::cout << "Change factor ? (y/n)" << std::endl;  
+    std::cin >> changeVel; // Get user input from the keyboard
+    float newVelFactor;
+    
+    if (changeVel == "n") {
+        return;
+    } else if (changeVel == "y") {
+        std::cout << "Enter value between 0 and 1 : " << std::endl; 
+        std::cin >> newVelFactor;
+        if (newVelFactor > 0 && newVelFactor <= 1) {
+            max_vel_factor = newVelFactor;
+            return;
+        } else{
+            std::cout << "Wrong value" << std::endl; 
+        }
+    } else {
+        std::cout << "Please entre y (yes) or n (no) " << std::endl; 
+    }
+
+    std::cout << "Trying Again " << std::endl; 
+    std::cout << "" << std::endl; 
+    // Failed Try again
+    changeVelFactor();
+}
 
 // Code to use the arm interface
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "arm_interface_node");
     ros::NodeHandle n("~"); 
-    std::cout << "asdddddddd" << std::endl;
     
     ArmInterfaceNode arm_node(n);
-    std::cout << "asdddddddd" << std::endl;
-
+    arm_node.changeVelFactor();
     arm_node.gotoInitPose();
     
 
