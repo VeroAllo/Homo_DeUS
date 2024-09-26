@@ -34,6 +34,7 @@ public:
 template<class T>
 void StateManager::switchTo(int indexMotivation, const std::string& parameter)
 {
+    ROS_INFO("state list we switch to :  %i", indexMotivation);
     switchTo(m_listsStates[indexMotivation][std::type_index(typeid(T))].get(), std::type_index(typeid(T)), parameter);
 }
 

@@ -4,9 +4,10 @@
 #include <../../hbba_state/src/State/TakeState.h>
 #include <std_msgs/String.h>
 #include <std_msgs/Time.h>
-// #include <../hbba_state/src/State/commons/GoToTableState.h>
+#include <../../hbba_state/src/State/GoToKitchenState.h>
 
-#define TEMPSDATTENTE 10
+#define TEST true
+#define TEMPSDATTENTE 10.0f
 #define NBTABLES 4
 #define PROJECT "/Homodeus"
 #define BEHAVIOUR PROJECT "/Behaviour"
@@ -23,7 +24,7 @@ void AccueillirClient::VisionSubscriberCallBack(const homodeus_msgs::ObjectsDete
     bool Person = false;
     for (const homodeus_msgs::ObjectDetection& detected_object : detected.objects)
     {
-        if(detected_object.header.frame_id.find("person"))
+        if(detected_object.header.frame_id.find("person") != std::string::npos)
         {
             Person = true;
             if(TimeDelay > 2)
@@ -73,12 +74,12 @@ void AccueillirClient::StateMachine()
 
 PrendreCommande::PrendreCommande(const std::map<std::string, bool>& subscriberTopicList, ros::NodeHandle& nodeHandle, std::vector<bool> perceptionList, std::shared_ptr<DesireSet> desireSet, StateManager* stateManager) : Motivation(desireSet), m_StateManager(stateManager), m_PerceptionList(perceptionList), strategy_motivation_interface_(nodeHandle)
 {
-    ROS_INFO("PrendreCommande");
-    strategy_motivation_interface_.setCallback(std::bind(&PrendreCommande::StrategySubscriberCallBack, this, std::placeholders::_1));
-    m_Timers[0] = nodeHandle.createTimer(ros::Duration(TEMPSDATTENTE), [&](const ros::TimerEvent&) { TimerSubscriberCallBack(0); }, false, false);
-    m_Timers[1] = nodeHandle.createTimer(ros::Duration(TEMPSDATTENTE), [&](const ros::TimerEvent&) { TimerSubscriberCallBack(1); }, false, false);
-    m_Timers[2] = nodeHandle.createTimer(ros::Duration(TEMPSDATTENTE), [&](const ros::TimerEvent&) { TimerSubscriberCallBack(2); }, false, false);
-    m_Timers[3] = nodeHandle.createTimer(ros::Duration(TEMPSDATTENTE), [&](const ros::TimerEvent&) { TimerSubscriberCallBack(3); }, false, false);
+    m_Timers.reserve(10);
+    strategy_motivation_interface_.setCallback(std::bind(&PrendreCommande::StrategySubscriberCallBack, this, std::placeholders::_1));    
+    m_Timers[0] = nodeHandle.createTimer(ros::Duration(TEMPSDATTENTE), [this](const ros::TimerEvent&) { this->TimerSubscriberCallBack(0); }, false, false);
+    m_Timers[1] = nodeHandle.createTimer(ros::Duration(TEMPSDATTENTE), [this](const ros::TimerEvent&) { this->TimerSubscriberCallBack(1); }, false, false);
+    m_Timers[2] = nodeHandle.createTimer(ros::Duration(TEMPSDATTENTE), [this](const ros::TimerEvent&) { this->TimerSubscriberCallBack(2); }, false, false);
+    m_Timers[3] = nodeHandle.createTimer(ros::Duration(TEMPSDATTENTE), [this](const ros::TimerEvent&) { this->TimerSubscriberCallBack(3); }, false, false);
 }
 
 void PrendreCommande::StrategySubscriberCallBack(const std_msgs::String& msg)
@@ -103,7 +104,7 @@ void PrendreCommande::TimerSubscriberCallBack(int table)
 
 void PrendreCommande::VerifyCondition(int tb)
 {
-    if(m_Tables[tb] == true)
+    if(m_Tables[tb] == true || TEST)
     {
         StateMachine(tb);
     }
@@ -122,11 +123,16 @@ ChercherCommande::ChercherCommande(const std::map<std::string, bool>& subscriber
 void ChercherCommande::StrategySubscriberCallBack(const std_msgs::String& msg)
 {
     ROS_INFO_STREAM("Received message from Discuss: " << msg.data);
-    if (msg.data.find("Commande") != std::string::npos)
+    if (msg.data.find("Commande:") != std::string::npos)
     {
-        static_cast<TakeState*>(m_StateManager->m_listsStates[2][std::type_index(typeid(TakeState))].get())->GenerateObjectToTake(msg.data);
+        static_cast<TakeState*>(m_StateManager->m_listsStates[2][std::type_index(typeid(TakeState))].get())->GenerateObjectToTake(msg.data.substr(9));
+        StateMachine("test");
     }
 }
+
+void ChercherCommande::StateMachine(std::string commande){
+    m_StateManager->switchTo<GoToKitchenState>(2);
+} 
 
 std::unique_ptr<Motivation> createAccueillirMotivation(ros::NodeHandle& nodeHandle,std::shared_ptr<DesireSet> desireSet, StateManager* stateManager)
 {

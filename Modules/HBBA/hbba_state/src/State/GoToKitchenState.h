@@ -20,6 +20,8 @@ public:
 protected:
     std::type_index type() const override;
 
+    void enable(const std::string& parameter, const std::type_index& previousStageType) override;
+
     std::string generateGoal(const std::string& parameter = "") override;
    
 };

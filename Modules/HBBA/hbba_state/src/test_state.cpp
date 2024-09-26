@@ -71,7 +71,7 @@ void startNode(ros::NodeHandle& nodeHandle)
     stateManager.addState(0,
         make_unique<GoToTableState>(stateManager, desireSet, nodeHandle, idleStateType, 3)
     );
-    stateManager.addState(1,
+    stateManager.addListStates(1,
         make_unique<IdleState>(stateManager, desireSet, nodeHandle, gotoTableStateType, 0)
     );
     stateManager.addState(1,
@@ -80,7 +80,7 @@ void startNode(ros::NodeHandle& nodeHandle)
     stateManager.addState(1,
         make_unique<DiscussionState>(stateManager, desireSet, nodeHandle, idleStateType, 2)
     );
-    stateManager.addState(2,
+    stateManager.addListStates(2,
         make_unique<IdleState>(stateManager, desireSet, nodeHandle, kitchenStateType, 0)
     );
     stateManager.addState(2,
@@ -96,8 +96,8 @@ void startNode(ros::NodeHandle& nodeHandle)
 
     vector<unique_ptr<Motivation>> motivations;
 
-    //motivations.emplace_back(createAccueillirMotivation(nodeHandle,desireSet,&stateManager));
-    //motivations.emplace_back(createPrendreCommande(nodeHandle,desireSet,&stateManager));
+    motivations.emplace_back(createAccueillirMotivation(nodeHandle,desireSet,&stateManager));
+    motivations.emplace_back(createPrendreCommande(nodeHandle,desireSet,&stateManager));
     motivations.emplace_back(createChercherCommande(nodeHandle, desireSet, &stateManager));
 
 

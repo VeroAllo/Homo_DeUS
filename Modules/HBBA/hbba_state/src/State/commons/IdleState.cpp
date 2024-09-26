@@ -24,5 +24,6 @@ void IdleState::enable(const string& parameter, const type_index& previousStageT
 
 void IdleState::disable()
 {
+    ROS_INFO("End of idle state");
     State::disable();
 }

@@ -41,6 +41,7 @@ void StateManager::switchTo(State* state, type_index stateType, const std::strin
         {
             value[state->type()]->disable();
             value[stateType]->enable(parameter, stateType);
+            ROS_INFO("enabled the state : %s", stateType.name());
         }
     } 
 }

@@ -16,6 +16,12 @@ StateManager& stateManager,
 
 GoToKitchenState::~GoToKitchenState(){}
 
+void GoToKitchenState::enable(const std::string& parameter, const std::type_index& previousStageType) 
+{
+    ROS_INFO("Started GotoKitchenState");
+    GoToState::enable(parameter, previousStageType);
+}
+
 
 string GoToKitchenState::generateGoal(const std::string& parameter)
 {

@@ -14,7 +14,7 @@ public:
 private:
     ros::Publisher strategy_pub_;
     ros::Subscriber strategy_sub_;
-    std::function<void(std_msgs::String)> callback_;
+    std::function<void(std_msgs::String)> callback_{[](std_msgs::String){}};
 
     void subscriberCallback(std_msgs::String msg);
 };
