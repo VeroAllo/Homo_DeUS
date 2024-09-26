@@ -51,3 +51,11 @@ class AudioRosDiscuss():
         self.__discuss_status_pub.unregister()
         self.__discuss_response_pub.unregister()
         rospy.loginfo("Closing Behavior Discuss node")
+    
+    
+if __name__ == '__main__':
+    try:
+        audio_ros_discuss = AudioRosDiscuss()
+        rospy.spin()
+    except rospy.ROSInterruptException:
+        pass    
