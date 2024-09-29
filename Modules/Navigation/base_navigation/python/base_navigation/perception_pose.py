@@ -136,7 +136,7 @@ class RobotPose():
     ramp_amcl: int        = 1
 
     while not rospy.is_shutdown():
-      if self.__amcl_pose != None:
+      if self.__amcl_pose != None and self.__odom_pose != None:
         if self.__initial_pose_call:
           self.__initial_pose_call = False
           self.__offset_pose = self.__amcl_pose
