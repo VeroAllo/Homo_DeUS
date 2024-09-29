@@ -16,6 +16,8 @@ protected:
     std::vector<bool> m_PerceptionList{};
     std::vector<ros::Subscriber> m_SubscriberList{};
     StateManager* m_StateManager;
+    ros::NodeHandle& nodeHandle;
+    std::shared_ptr<DesireSet> desireSet;
     int TimeDelay = 0;
 public:
     AccueillirClient(const std::map<std::string, bool>& subscriberTopicList, ros::NodeHandle& nodeHandle, std::vector<bool> PerceptionList, std::shared_ptr<DesireSet> desireSet, StateManager* stateManager);
@@ -32,6 +34,8 @@ protected:
     std::vector<bool> m_PerceptionList{};
     std::vector<ros::Subscriber> m_SubscriberList{};
     StateManager* m_StateManager;
+    ros::NodeHandle nodeHandle;
+    std::shared_ptr<DesireSet> desireSet;
     std::vector<bool> m_Tables{false, false, false, false};
     std::vector<ros::Timer> m_Timers;
 public:
@@ -49,6 +53,8 @@ protected:
     std::vector<bool> m_PerceptionList{};
     std::vector<ros::Subscriber> m_SubscriberList{};
     StateManager* m_StateManager;
+    ros::NodeHandle& nodeHandle;
+    std::shared_ptr<DesireSet> desireSet;
 public:
     ChercherCommande(const std::map<std::string, bool>& subscriberTopicList, ros::NodeHandle& nodeHandle, std::vector<bool> PerceptionList, std::shared_ptr<DesireSet> desireSet, StateManager* stateManager);
     void StrategySubscriberCallBack(const std_msgs::String& msg);

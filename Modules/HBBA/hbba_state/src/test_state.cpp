@@ -47,7 +47,7 @@ void startNode(ros::NodeHandle& nodeHandle)
     HbbaLite hbba(desireSet, move(strategies), {/*ressource*/}, move(solver), move(strategyStateLogger));
     ROS_INFO("Allo HBBA lite");
     StateManager stateManager;
-
+/*
     type_index greetingStateType = type_index(typeid(GreetingState));
     type_index discussStateType = type_index(typeid(DiscussionState));
     type_index takeStateType = type_index(typeid(TakeState));
@@ -89,6 +89,7 @@ void startNode(ros::NodeHandle& nodeHandle)
     stateManager.addState(2,
         make_unique<TakeState>(stateManager, desireSet, nodeHandle, idleStateType, 2)
     );
+    */
 
     //stateManager.switchTo<IdleState>(0);
     //stateManager.switchTo<IdleState>(1); /*Help vero*/
