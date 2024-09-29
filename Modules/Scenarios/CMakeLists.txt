@@ -113,6 +113,7 @@ catkin_package(
 #  LIBRARIES scenarios
   CATKIN_DEPENDS
     cv_bridge
+    geometry_msgs
     homodeus_msgs
     image_geometry
     roscpp
