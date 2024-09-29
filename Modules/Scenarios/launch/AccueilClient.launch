@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+  <arg name="simulation"      default="false"/>
+
+  <arg name="namespace"       default="/"/>
+  <arg name="public_sim"      default="$(arg simulation)"/>
+
+  <!-- robot parameters -->
+  <arg name="arm"             default="true"/>
+  <arg name="base_type"       default="pmb2"/>
+  <arg name="camera_model"    default="orbbec-astra"/>
+  <arg name="end_effector"    default="pal-gripper"/>
+  <arg name="ft_sensor"       default="schunk-ft"/>
+  <arg name="laser_model"     default="sick-571"/>
+  <arg name="robot"           default="titanium"/>
+
+  <!-- gazebo parameters -->
+  <arg name="lost"            default="false"/>
+  <arg name="world"           default="simple_office_with_people"/>
+
+  <arg name="gzclient"        default="$(arg simulation)"/>
+  <arg name="gzpose"          default="-x 0.0  -y   0.0 -z  0.0   -R 0.0 -P 0.0 -Y  0.0" unless="$(arg lost)"/>
+  <arg name="gzpose"          default="-x 0.78 -y -11.1 -z -0.003 -R 0.0 -P 0.0 -Y 70.0" if="$(arg lost)"/>
+
+  <arg name="extra_gazebo_args" default=""/>
+
+  <!-- planif parameters -->
+  <arg name="planner"         default="base"/>
+  <arg name="global_planner"  default="global_planner"/>
+  <arg name="local_planner"   default="$(eval 'teb' if (arg('public_sim') or arg('base_type')=='omni_base') else 'pal')"/>
+  <arg name="localization"    default="amcl"/>
+  <arg name="map"             default="$(env HOME)/.pal/tiago_maps/configurations/$(arg world)"/>
+  
+  <arg name="recording"       default="false"/>
+  <arg name="rviz"            default="true"/>
+
+  <!-- scripts flags -->
+  <arg name="tuck_arm"        default="true"/>
+ 
+  <!-- <arg name="sim_sufix" value="_public_sim"     if="$(arg public_sim)"/>
+  <arg name="sim_sufix" value=""                unless="$(arg public_sim)"/> -->
+
+  <!-- <env name="PAL_HOST" value="tiago" /> -->
+
+  <group ns="$(arg namespace)">
+
+    <include file="$(find tiago_gazebo)/launch/tiago_gazebo.launch" if="$(arg public_sim)">
+      <arg name="world"             value="$(arg world)"/>
+      <arg name="arm"               value="$(arg arm)"/>
+      <arg name="base_type"         value="$(arg base_type)"/>
+      <arg name="camera_model"      value="$(arg camera_model)"/>
+      <arg name="end_effector"      value="$(arg end_effector)"/>
+      <arg name="ft_sensor"         value="$(arg ft_sensor)"/>
+      <arg name="gui"               value="$(arg gzclient)"/>
+      <arg name="gzpose"            value="$(arg gzpose)"/>
+      <arg name="laser_model"       value="$(arg laser_model)"/>
+      <arg name="public_sim"        value="$(arg public_sim)"/>
+      <arg name="recording"         value="$(arg recording)"/>
+      <arg name="tuck_arm"          value="$(arg tuck_arm)"/>
+      <arg name="extra_gazebo_args" value="$(arg extra_gazebo_args)"/>
+      <arg if="$(eval local_planner == 'teb')" name="use_dynamic_footprint" value="true"/>
+    </include>
+
+    <include file="$(find tiago_2dnav_gazebo)/launch/navigation.launch" if="$(arg public_sim)">
+      <arg name="state"             value="localization"/>
+      <arg name="planner"           value="$(arg planner)"/>
+      <arg name="global_planner"    value="$(arg global_planner)"/>
+      <arg name="local_planner"     value="$(arg local_planner)"/>
+      <arg name="localization"      value="$(arg localization)"/>
+      <arg name="map"               value="$(arg map)"/>
+      <arg name="public_sim"        value="$(arg public_sim)"/>
+      <arg name="rgbd_sensors"      value="false"/>
+      <arg name="laser_model"       value="$(arg laser_model)"/>
+      <arg name="base_type"         value="$(arg base_type)"/>
+    </include>
+
+    <node name="rviz" pkg="rviz" type="rviz" if="$(arg rviz)"
+      args="-d $(find tiago_2dnav)/config/rviz/navigation_public_sim.rviz"/>
+      <!-- args="-d $(find tiago_2dnav)/config/rviz/navigation$(arg sim_sufix).rviz"/> -->
+
+    <!-- https://wiki.ros.org/roslaunch/XML/node -->
+    <node name="filter_node" pkg="hbba_lite_main" type="filter_node.py"
+      respawn="false" output="screen" launch-prefix="gnome-terminal --command"/>
+
+    <node name="hbba_lite_main_node" pkg="hbba_lite_main" type="hbba_lite_main_node.py"
+      respawn="false" output="screen" launch-prefix="gnome-terminal --command"/>
+
+    <node name="main_navSelector" pkg="NavigationSelector" type="main_navSelector.py"
+      respawn="false" output="screen" launch-prefix="gnome-terminal --command"/>
+
+    <node name="talkInterface" pkg="HD_audio" type="talkInterface.py"
+      respawn="false" output="screen" launch-prefix="gnome-terminal --command"/>
+
+    <!-- <node name="pseudo_detection" pkg="pseudo_detection" type="pseudo_detection" if="$(arg approche_client)"
+      respawn="false" output="screen"/> -->
+
+    <node name="detect" pkg="pseudo_detection" type="detect.py"
+      respawn="false" output="screen" launch-prefix="gnome-terminal --command"/>
+  </group>
+
+</launch>
