@@ -11,6 +11,10 @@
 #include <actionlib/client/action_client.h>
 #include <control_msgs/FollowJointTrajectoryAction.h>
 
+#include <homodeus_msgs/HDResponse.h>
+#include <homodeus_msgs/DesireID.h>
+#include <homodeus_msgs/HDPose.h>
+
 
 class ArmInterfaceNode: ArmInterface
 {
@@ -37,41 +41,34 @@ class ArmInterfaceNode: ArmInterface
         control_msgs::FollowJointTrajectoryGoal go_up;
         control_msgs::FollowJointTrajectoryGoal look_down;
 
-        void pickPoseCB(const geometry_msgs::PoseStampedConstPtr posestamped);
-        void dropPoseCB(const geometry_msgs::PoseStampedConstPtr posestamped);
+        void pickPoseCB(const homodeus_msgs::HDPose& hd_pose_msg);
+        void dropPoseCB(const homodeus_msgs::HDPose& hd_pose_msg);
         trajectory_msgs::JointTrajectory openedGripper();
         trajectory_msgs::JointTrajectory closedGripper();
 
         trajectory_msgs::JointTrajectory openedSchunkGripper();
         trajectory_msgs::JointTrajectory closedSchunkGripper();
-        // UNUSED ATM
-        trajectory_msgs::JointTrajectory openedFingers();
-        trajectory_msgs::JointTrajectory closedFingers();
 
         trajectory_msgs::JointTrajectory goUp();
         trajectory_msgs::JointTrajectory lookDown();
 
-        // For observers
-        ros::Publisher bhvr_output_pick_result;
-        ros::Publisher bhvr_output_place_result;
-
-
+        
+        ros::Publisher hbba_take_response_pub;
+        ros::Publisher hbba_drop_response_pub;
+        // FOR TEST ONLY : Temp Drop pub to drop after pick
         ros::Publisher drop_pose_pub;
-
-        void tempGraspPick(const geometry_msgs::PoseStampedConstPtr posestamped);
 
     public:
         ArmInterfaceNode(ros::NodeHandle n);
 
         bool gotoGraspPrep();
-        bool gotoRetreat(const geometry_msgs::PoseStamped posestamped);
+        bool gotoRetreat(const geometry_msgs::Pose pose);
         bool goHome();
         bool gotoCarryPose();
 
         void gotoInitPose();
         void changeVelFactor();
         void closeHand();
-        void temp(const geometry_msgs::PoseStamped posestamped);
 };
 
 #endif

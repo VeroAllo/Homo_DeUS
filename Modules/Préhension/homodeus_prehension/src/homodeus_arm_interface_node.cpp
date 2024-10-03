@@ -8,8 +8,9 @@ hac("/head_controller/follow_joint_trajectory", true)
 {
     ROS_INFO("Node init strated");
 
-    pick_pose_sub = nh.subscribe("/object_detector/object_pose", 5, &ArmInterfaceNode::pickPoseCB, this);
-    drop_pose_sub = nh.subscribe("/drop_point", 5, &ArmInterfaceNode::dropPoseCB, this);
+    pick_pose_sub = nh.subscribe("/object_detector/object_pose", 1, &ArmInterfaceNode::pickPoseCB, this);
+    drop_pose_sub = nh.subscribe("/drop_point", 1, &ArmInterfaceNode::dropPoseCB, this);
+
     close_gripper_goal.trajectory = closedGripper();
     open_gripper_goal.trajectory = openedGripper();
 
@@ -34,45 +35,13 @@ hac("/head_controller/follow_joint_trajectory", true)
     ROS_INFO("Found  head joint controller server");
     
     // HBBA observer topics
-    bhvr_output_pick_result = nh.advertise<std_msgs::Bool>("/bhvr_output_pick_result", 5);
-    bhvr_output_place_result = nh.advertise<std_msgs::Bool>("/bhvr_output_place_result", 5);
+    hbba_take_response_pub = nh.advertise<homodeus_msgs::HDResponse>("/Homodeus/Behaviour/Take/Response", 1);
+    hbba_drop_response_pub = nh.advertise<homodeus_msgs::HDResponse>("/Homodeus/Behaviour/Drop/Response", 1);
 
-    drop_pose_pub = nh.advertise<geometry_msgs::PoseStamped>("/drop_point", 1);
+    // TEST ONLY: Temp drop pose
+    drop_pose_pub = nh.advertise<homodeus_msgs::HDPose>("/drop_point", 1);
 
     ROS_INFO("Node init done");
-}
-
-// UNUSED: Use these instead of the gripper ones for Hey5 hand
-trajectory_msgs::JointTrajectory closedFingers()
-{
-    trajectory_msgs::JointTrajectory close_fingers;
-    close_fingers.joint_names.resize(3);
-    close_fingers.joint_names[0] = "hand_index_joint";
-    close_fingers.joint_names[1] = "hand_mrl_joint";
-    close_fingers.joint_names[2] = "hand_thumb_joint"; 
-    close_fingers.points.resize(1);
-    close_fingers.points[0].positions.resize(3);
-    close_fingers.points[0].positions[0] = 0.80;
-    close_fingers.points[0].positions[1] = 1.60;
-    close_fingers.points[0].positions[2] = 0.85;
-    close_fingers.points[0].time_from_start = ros::Duration(0.5);
-    return close_fingers;
-}
-
-trajectory_msgs::JointTrajectory ArmInterfaceNode::openedFingers()
-{
-    trajectory_msgs::JointTrajectory close_fingers;
-    close_fingers.joint_names.resize(3);
-    close_fingers.joint_names[0] = "hand_index_joint";
-    close_fingers.joint_names[1] = "hand_mrl_joint";
-    close_fingers.joint_names[2] = "hand_thumb_joint"; 
-    close_fingers.points.resize(1);
-    close_fingers.points[0].positions.resize(3);
-    close_fingers.points[0].positions[0] = 0;
-    close_fingers.points[0].positions[1] = 0;
-    close_fingers.points[0].positions[2] = 0;
-    close_fingers.points[0].time_from_start = ros::Duration(0.5);
-    return close_fingers;
 }
 
 trajectory_msgs::JointTrajectory ArmInterfaceNode::closedGripper()
@@ -163,10 +132,9 @@ void ArmInterfaceNode::gotoInitPose()
 
 }
 
-void ArmInterfaceNode::pickPoseCB(const geometry_msgs::PoseStampedConstPtr posestamped)
+void ArmInterfaceNode::pickPoseCB(const homodeus_msgs::HDPose& hd_pose_msg)
 {
-    pick_point = *posestamped;
-    got_pick_pose = true;
+    geometry_msgs::Pose pose = hd_pose_msg.pose;
     bool success = false;
     
     ROS_INFO("Going to grasp preparation pose");
@@ -183,15 +151,13 @@ void ArmInterfaceNode::pickPoseCB(const geometry_msgs::PoseStampedConstPtr poses
     }
 
     tf::Quaternion quat;
-    tf::quaternionMsgToTF(posestamped->pose.orientation, quat);
+    tf::quaternionMsgToTF(pose.orientation, quat);
     double roll, pitch, yaw;
 
     tf::Matrix3x3(quat).getRPY(roll, pitch, yaw);
-    auto x  = posestamped->pose.position.x;
-    auto y  = posestamped->pose.position.y;
-    auto z  = posestamped->pose.position.z;
-    std::cout << "Pos : " << x << ", " << y <<", " << z << std::endl;
-    std::cout << "roll,pithc,yaw : " << roll << ", " << pitch <<", " << yaw << std::endl;
+    auto x  = pose.position.x;
+    auto y  = pose.position.y;
+    auto z  = pose.position.z;
 
     roll = roll +1.571;
     ROS_INFO("arm_interface_node: will attempt to move the arm in cartesian space.");
@@ -218,7 +184,7 @@ void ArmInterfaceNode::pickPoseCB(const geometry_msgs::PoseStampedConstPtr poses
         // TODO :
         ROS_INFO("Retreating");
  
-        gotoRetreat(pick_point);
+        gotoRetreat(pose);
     }
     else
         ROS_INFO("arm_interface_node: failed to go to pick point!");
@@ -233,21 +199,24 @@ void ArmInterfaceNode::pickPoseCB(const geometry_msgs::PoseStampedConstPtr poses
     else
         ROS_INFO("arm_interface_node: failed to retreat from pick point!");
 
-    std_msgs::Bool pick_success_msg;
-    pick_success_msg.data = success;
-    bhvr_output_pick_result.publish(pick_success_msg);
+    if (success) {
+        ROS_INFO("Good job, the object has been picked up.");
+    }
+    homodeus_msgs::HDResponse hd_response_msg;
+    hd_response_msg.id =  hd_pose_msg.id;
+    hd_response_msg.result = success; 
+    hbba_take_response_pub.publish(hd_response_msg);
+    
 
-    ROS_INFO("Good job, the object has been picked up.");
     // ros::Duration(1).sleep();
     // ROS_INFO("Now drop object.");
-    // drop_pose_pub.publish(pick_point);
+    // drop_pose_pub.publish(hd_pose_msg);
 
 }
 
-void ArmInterfaceNode::dropPoseCB(const geometry_msgs::PoseStampedConstPtr posestamped)
+void ArmInterfaceNode::dropPoseCB(const homodeus_msgs::HDPose& hd_pose_msg)
 {
-    drop_point = *posestamped;
-    got_drop_pose = true;
+    geometry_msgs::Pose pose = hd_pose_msg.pose;
     bool success = true;
 
     ROS_INFO("Going to drop preparation pose");
@@ -263,12 +232,12 @@ void ArmInterfaceNode::dropPoseCB(const geometry_msgs::PoseStampedConstPtr poses
     }
 
     tf::Quaternion quat;
-    tf::quaternionMsgToTF(posestamped->pose.orientation, quat);
+    tf::quaternionMsgToTF(pose.orientation, quat);
     double roll, pitch, yaw;
     tf::Matrix3x3(quat).getRPY(roll, pitch, yaw);
-    auto x  = posestamped->pose.position.x;
-    auto y  = posestamped->pose.position.y;
-    auto z  = posestamped->pose.position.z;
+    auto x  = pose.position.x;
+    auto y  = pose.position.y;
+    auto z  = pose.position.z;
     roll = roll +1.571;
     ROS_INFO("arm_interface_node: will attempt to move the arm in cartesian space.");
     success = moveToCartesian(x-0.4, y, z+0.05, roll, pitch, yaw);
@@ -289,7 +258,7 @@ void ArmInterfaceNode::dropPoseCB(const geometry_msgs::PoseStampedConstPtr poses
 
     if(success)
     {
-        success = gotoRetreat(drop_point);
+        success = gotoRetreat(pose);
     }
     
     if (success)
@@ -301,9 +270,10 @@ void ArmInterfaceNode::dropPoseCB(const geometry_msgs::PoseStampedConstPtr poses
     else
         ROS_INFO("arm_interface_node: failed to retreat from drop point!");
 
-    std_msgs::Bool drop_success_msg;
-    drop_success_msg.data = success; 
-    bhvr_output_place_result.publish(drop_success_msg);
+    homodeus_msgs::HDResponse hd_response_msg;
+    hd_response_msg.id = hd_pose_msg.id;
+    hd_response_msg.result = success; 
+    hbba_drop_response_pub.publish(hd_response_msg);
     
 }
 
@@ -339,73 +309,19 @@ bool ArmInterfaceNode::gotoGraspPrep()
     return success;
 }
 
-bool ArmInterfaceNode::gotoRetreat(const geometry_msgs::PoseStamped posestamped)
+bool ArmInterfaceNode::gotoRetreat(const geometry_msgs::Pose pose)
 {
     ROS_INFO("Attempting retreat");
 
     tf::Quaternion quat;
-    tf::quaternionMsgToTF(posestamped.pose.orientation, quat);
+    tf::quaternionMsgToTF(pose.orientation, quat);
     double roll, pitch, yaw;
     tf::Matrix3x3(quat).getRPY(roll, pitch, yaw);
-    auto x  = posestamped.pose.position.x;
-    auto y  = posestamped.pose.position.y;
-    auto z  = posestamped.pose.position.z;
+    auto x  = pose.position.x;
+    auto y  = pose.position.y;
+    auto z  = pose.position.z;
     return moveToCartesian(x-0.1, y, z+0.2, roll, pitch, yaw);
 
-}
-
-void ArmInterfaceNode::tempGraspPick(const geometry_msgs::PoseStampedConstPtr posestamped)
-{
-    // BEGIN_SUB_TUTORIAL pick1
-    // Create a vector of grasps to be attempted, currently only creating single grasp.
-    // This is essentially useful when using a grasp generator to generate and test multiple grasps.
-    std::vector<moveit_msgs::Grasp> grasps;
-    grasps.resize(1);
-
-
-    tf::Quaternion quat;
-    tf::quaternionMsgToTF(posestamped->pose.orientation, quat);
-    double roll, pitch, yaw;
-
-    tf::Matrix3x3(quat).getRPY(roll, pitch, yaw);
-    auto x  = posestamped->pose.position.x;
-    auto y  = posestamped->pose.position.y;
-    auto z  = posestamped->pose.position.z;
-    // Setting grasp pose
-    // ++++++++++++++++++++++
-    // This is the pose of panda_link8. |br|
-    // From panda_link8 to the palm of the eef the distance is 0.058, the cube starts 0.01 before 5.0 (half of the length
-    // of the cube). |br|
-    // Therefore, the position for panda_link8 = 5 - (length of cube/2 - distance b/w panda_link8 and palm of eef - some
-    // extra padding)
-    grasps[0].grasp_pose.header.frame_id = "panda_link0";
-    tf2::Quaternion orientation;
-    orientation.setRPY(roll, pitch, yaw);
-    grasps[0].grasp_pose.pose.orientation = tf2::toMsg(orientation);
-    grasps[0].grasp_pose.pose.position.x = x;
-    grasps[0].grasp_pose.pose.position.y = y;
-    grasps[0].grasp_pose.pose.position.z = z;
-
-    // Setting pre-grasp approach
-    // ++++++++++++++++++++++++++
-    /* Defined with respect to frame_id */
-    grasps[0].pre_grasp_approach.direction.header.frame_id = "panda_link0";
-    /* Direction is set as positive x axis */
-    grasps[0].pre_grasp_approach.direction.vector.x = 1.0;
-    grasps[0].pre_grasp_approach.min_distance = 0.095;
-    grasps[0].pre_grasp_approach.desired_distance = 0.115;
-
-    // Setting post-grasp retreat
-    // ++++++++++++++++++++++++++
-    /* Defined with respect to frame_id */
-    grasps[0].post_grasp_retreat.direction.header.frame_id = "panda_link0";
-    /* Direction is set as positive z axis */
-    grasps[0].post_grasp_retreat.direction.vector.z = 1.0;
-    grasps[0].post_grasp_retreat.min_distance = 0.1;
-    grasps[0].post_grasp_retreat.desired_distance = 0.25;
-
-    moveToGrasp(grasps);
-    // END_SUB_TUTORIAL
 }
 
 void ArmInterfaceNode::changeVelFactor(){
@@ -416,6 +332,7 @@ void ArmInterfaceNode::changeVelFactor(){
     float newVelFactor;
     
     if (changeVel == "n") {
+        std::cout << "Skipping " << std::endl; 
         return;
     } else if (changeVel == "y") {
         std::cout << "Enter value between 0 and 1 : " << std::endl; 
@@ -427,7 +344,8 @@ void ArmInterfaceNode::changeVelFactor(){
             std::cout << "Wrong value" << std::endl; 
         }
     } else {
-        std::cout << "Please entre y (yes) or n (no) " << std::endl; 
+        std::cout << "Skipping " << std::endl; 
+        return;
     }
 
     std::cout << "Trying Again " << std::endl; 
