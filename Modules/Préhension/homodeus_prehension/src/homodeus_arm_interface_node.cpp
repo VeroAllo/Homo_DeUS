@@ -8,7 +8,7 @@ hac("/head_controller/follow_joint_trajectory", true)
 {
     ROS_INFO("Node init strated");
 
-    pick_pose_sub = nh.subscribe("/object_detector/object_pose", 1, &ArmInterfaceNode::pickPoseCB, this);
+    pick_pose_sub = nh.subscribe("/object_detector/hd_pose", 1, &ArmInterfaceNode::pickPoseCB, this);
     drop_pose_sub = nh.subscribe("/drop_point", 1, &ArmInterfaceNode::dropPoseCB, this);
 
     close_gripper_goal.trajectory = closedGripper();
