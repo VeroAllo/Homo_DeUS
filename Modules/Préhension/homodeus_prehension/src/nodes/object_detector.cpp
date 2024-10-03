@@ -34,11 +34,6 @@
 
 /** \author Jordi Pages. */
 
-// PAL headers
-#include <homodeus_prehension/pcl_filters.hpp>
-#include <homodeus_prehension/geometry.h>
-#include <homodeus_prehension/tf_transforms.hpp>
-
 // PCL headers
 #include <pcl/filters/extract_indices.h>
 #include <pcl_conversions/pcl_conversions.h>
@@ -46,6 +41,7 @@
 #include <pcl/segmentation/sac_segmentation.h>
 #include <pcl/segmentation/extract_clusters.h>
 #include <pcl/features/moment_of_inertia_estimation.h>
+#include <pcl/common/distances.h>
 // Needed for clang linking
 // https://github.com/PointCloudLibrary/pcl/issues/2406
 #include <pcl/search/impl/search.hpp>
@@ -59,8 +55,6 @@
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <object_recognition_msgs/RecognizedObjectArray.h>
-
-#include <homodeus_prehension/ObjectPoseSize.h>
 
 // Eigen headers
 #include <Eigen/Core>
@@ -99,8 +93,11 @@ protected:
   
   void cloudCallback(const sensor_msgs::PointCloud2ConstPtr& cloud);
 
-  void publishPose(const geometry_msgs::Pose& pose,
-                   const homodeus_msgs::DesireID& desireID);
+  void publishHDPose(const geometry_msgs::Pose& pose,
+                      const homodeus_msgs::DesireID& desireID);
+
+  void publishPosestamped(const geometry_msgs::Pose& pose,
+                      const std_msgs::Header& header);
 
   void selectObject(geometry_msgs::Point pointBoundingBox, std::vector<geometry_msgs::Pose> pose_list);
   void objectDetectionCallback(const homodeus_msgs::ObjectDetection& objectDetectionMsg);
@@ -118,7 +115,8 @@ protected:
   ros::Subscriber _cloudSub;
   ros::Subscriber _objectDetectionSub;
   
-  ros::Publisher  _objectPosePub;
+  ros::Publisher  _HDPosePub;
+  ros::Publisher  _objectVisualisationPosePub;
   ros::Publisher  _objectVisualisationMarkerPub;
 
 
@@ -137,7 +135,8 @@ ObjectDetector::ObjectDetector(ros::NodeHandle& nh,
 
   pnh.param<double>("rate", _rate, _rate);
 
-  _objectPosePub   = _pnh.advertise<homodeus_msgs::HDPose>("object_pose", 1);
+  _HDPosePub   = _pnh.advertise<homodeus_msgs::HDPose>("hd_pose", 1);
+  _objectVisualisationPosePub   = _pnh.advertise< geometry_msgs::PoseStamped >("object_pose", 1);
   _objectVisualisationMarkerPub = _pnh.advertise<visualization_msgs::MarkerArray>("object_marker", 1);
 }
 
@@ -392,19 +391,26 @@ void ObjectDetector::cloudCallback(const sensor_msgs::PointCloud2ConstPtr& cloud
   {
     _objectVisualisationMarkerPub.publish(marker_array);
   }
-
 }
 
-void ObjectDetector::publishPose(const geometry_msgs::Pose& pose,
-                                   const homodeus_msgs::DesireID& desireID)
+void ObjectDetector::publishHDPose(const geometry_msgs::Pose& pose, const homodeus_msgs::DesireID& desireID)
 {
-  if ( _objectPosePub.getNumSubscribers() > 0)
+  if ( _HDPosePub.getNumSubscribers() > 0)
   {
     homodeus_msgs::HDPose hd_pos_msg;
     hd_pos_msg.id = desireID;
     hd_pos_msg.pose = pose;
-    _objectPosePub.publish(hd_pos_msg);
+    _HDPosePub.publish(hd_pos_msg);
   }
+}
+
+void ObjectDetector::publishPosestamped(const geometry_msgs::Pose& pose, const std_msgs::Header& header)
+{
+  geometry_msgs::PoseStamped posestamped;
+  posestamped.pose = pose;
+  posestamped.header = header;
+
+  _objectVisualisationPosePub.publish(posestamped); 
 }
 
 void ObjectDetector::objectDetectionCallback(const homodeus_msgs::ObjectDetection& objectDetectionMsg) {
@@ -439,14 +445,15 @@ void ObjectDetector::objectDetectionCallback(const homodeus_msgs::ObjectDetectio
   homodeus_msgs::DesireID desireID;
   desireID.desire_id = 0;
 
-  publishPose(pose_to_grasp, desireID);
+  publishHDPose(pose_to_grasp, desireID);
+  publishPosestamped(pose_to_grasp, objectDetectionMsg.header);
 }
 
 double ObjectDetector::calculateDistance(const geometry_msgs::Point& p1, const geometry_msgs::Point& p2) {
   pcl::PointXYZ pcl_point1 = pcl::PointXYZ(p1.x, p1.y, p1.z);
   pcl::PointXYZ pcl_point2 = pcl::PointXYZ(p2.x, p2.y, p2.z);
 
-  return pcl::euclideanDistance(pcl_point1, pcl_point2);
+  return euclideanDistance(pcl_point1, pcl_point2);
 }
 
 void ObjectDetector::start()
@@ -472,7 +479,8 @@ void ObjectDetector::run()
 
   while ( ros::ok() )
   {
-    bool anySubscriber = _objectPosePub.getNumSubscribers() > 0 ||
+    bool anySubscriber = _HDPosePub.getNumSubscribers() > 0 ||
+                         _objectVisualisationPosePub.getNumSubscribers() > 0 ||
                          _objectVisualisationMarkerPub.getNumSubscribers() > 0;
 
 
