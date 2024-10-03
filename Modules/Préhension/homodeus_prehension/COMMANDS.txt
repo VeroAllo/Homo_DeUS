@@ -1,51 +1,60 @@
-COMMANDS
-
-Pour lancer une simulation de prehension (prendre un objet)
-- Lancer la "world"
-- Positionner le robot devant un objet
-- Lancer le noeud "arm_interface_node"
-- Attendre que le robot se positionne
-- Lancer le noeud "object_segmentation"
-
 ====================
- === Compilation ===
+ === Compilation ROBOT ===
 ====================
 cd ~/tiago_public_ws
 source /home/totok/ws_moveit/devel/setup.bash
-catkin_make_isolated -DCATKIN_ENABLE_TESTING=0 -j $(expr `nproc` / 2)
+catkin_make_isolated
+
+====================
+ === Compilation SIM ===
+====================
+cd ~/tiago_public_ws
+source /opt/ros/noetic/setup.bash
+catkin build
 
 
 ====================
  === Tous ===
 ====================
 cd ~/tiago_public_ws
-source ./devel_isolated/setup.bash
+source ./devel/setup.bash
 
 
 
 ====================
- === world ===
-====================
-cd ~/tiago_public_ws
-source ./devel_isolated/setup.bash
-roslaunch tiago_gazebo tiago_gazebo.launch public_sim:=true end_effector:=pal-gripper world:=3it_introlab_P2-2007
-
-
-====================
- === arm_interface_node ===
+ === World ===
 ====================
 cd ~/tiago_public_ws
-source ./devel_isolated/setup.bash
-rosrun homodeus_prehension arm_interface_node
+source ./devel/setup.bash
+roslaunch tiago_gazebo tiago_gazebo.launch public_sim:=true end_effector:=pal-gripper world:=3it_P2_Closer
+
+
 
 ====================
- === object_segmentation ===
+ === ObjectDetection ===
 ====================
 cd ~/tiago_public_ws
-source ./devel_isolated/setup.bash
+source ./devel/setup.bash
 roslaunch homodeus_prehension object_segmentation.launch
 
 
+
+====================
+ === Prendre un objet ===
+====================
+cd ~/tiago_public_ws
+source ./devel/setup.bash
+rosrun homodeus_prehension arm_interface_node
+
+
+====================
+ === Peudo detection ===
+====================
+cd ~/tiago_public_ws
+source ./devel/setup.bash
+rosrun pseudo_detection pseudo_detection
+
+=================================================================================
 
 ====================
  === Joint controller ===
@@ -57,3 +66,41 @@ rosrun rqt_joint_trajectory_controller rqt_joint_trajectory_controller
 
 
 ====================
+ === Installer MoveIt ===
+====================
+
+source /opt/ros/noetic/setup.bash
+wstool init src
+wstool merge -t src moveit.rosinstall
+wstool update -t src
+rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO}
+catkin build -DCATKIN_ENABLE_TESTING=0 -j $(expr `nproc` / 2)
+
+
+====================
+ === Bonnes version ===
+====================
+Aller dans le dossier git de chacun 
+Faire un git checkout avec le bon hash
+
+moveit
+cd ~/ws_moveit/src/moveit
+git checkout b9a1e8e648b674e71e23c5f230467e98d70f24fa
+
+moveit_msgs
+cd ~/ws_moveit/src/moveit_msgs
+git checkout 3667e9dabc3a9b3da669743f968fe38c265b1953
+
+
+
+====================
+         === Autre ===
+====================
+cd ~/tiago_public_ws
+source ./devel/setup.bash
+
+export ROS_MASTER_RUI=http://10.60.0.1:11311
+export ROS_IP=10.68.0.129
+
+
+rosversion -a | grep moveit
