@@ -58,14 +58,15 @@ class NavSelector :
             self.SetCurrentGoal(self.GetGoalList()[index_goal])
 
     def AddGoalNav(self, goal : NavGoal) -> None :
-        # A titre informatif, pourrait-etre utilise comme info a retransmettre a HBBA
+        # Si but assigne est impossible d'atteindre, annuler le but et informer qui de droit
         if self.ImpossibleGoal(goal):
             print(f"Impossible go to goal ({goal.GetPoint()}) from robot's pose")
-
-        if self.__currentGoal is None :
-            self.__currentGoal = goal
-        else :
-            self.__goalList.append(goal)
+            self.__SendResponseToHBBA(self.__currentID, -1)
+        else:
+            if self.__currentGoal is None :
+                self.__currentGoal = goal
+            else :
+                self.__goalList.append(goal)
 
     def AddGoalPose(self, pose : HDPose) -> None :
         #peut-être, amener un status ici
@@ -160,6 +161,12 @@ class NavSelector :
         #self.__goalList.sort() #Need to sort with a key, which key, I don't know
         pass
 
+    def __SendResponseToHBBA(self, id: int, value: int) -> None:
+        response : HDResponse = HDResponse()
+        response.id.desire_id = id
+        response.result = value
+        self.__publisher.publish(response)
+    
     def HandleNodeTaskEnd(self, endState, _) -> None:
         success = False
         if endState == 0:
@@ -169,10 +176,9 @@ class NavSelector :
             self.__OnNavGoalSuccess()
         else :
             self.__OnNavGoalFail(NAVGOALFAILED,endState)
-        response : HDResponse = HDResponse()
-        response.id.desire_id = self.__currentID
-        response.result = success
-        self.__publisher.publish(response)
+
+        self.__SendResponseToHBBA(self.__currentID, success)
+        
         self.RemoveCurrentGoal()
         self.__goalSent = None
 
