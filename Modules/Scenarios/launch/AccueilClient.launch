@@ -36,6 +36,7 @@
 
   <!-- scripts flags -->
   <arg name="tuck_arm"        default="true"/>
+  <arg name="pseudo_detect"   default="false"/>
  
   <!-- <arg name="sim_sufix" value="_public_sim"     if="$(arg public_sim)"/>
   <arg name="sim_sufix" value=""                unless="$(arg public_sim)"/> -->
@@ -79,22 +80,31 @@
       <!-- args="-d $(find tiago_2dnav)/config/rviz/navigation$(arg sim_sufix).rviz"/> -->
 
     <!-- https://wiki.ros.org/roslaunch/XML/node -->
+    <!-- HBBA's Node -->
     <node name="filter_node" pkg="hbba_lite_main" type="filter_node.py"
       respawn="false" output="screen" launch-prefix="gnome-terminal --command"/>
 
     <node name="hbba_lite_main_node" pkg="hbba_lite_main" type="hbba_lite_main_node.py"
       respawn="false" output="screen" launch-prefix="gnome-terminal --command"/>
 
+    <!-- Perception's Node -->
+    <node name="perception_pose" pkg="base_navigation" type="perception_pose.py" 
+      respawn="false" output="screen" launch-prefix="gnome-terminal --command"/>
+
+    <node name="pseudo_detection" pkg="pseudo_detection" type="pseudo_detection" unless="$(arg pseudo_detect)"
+      respawn="false" output="screen" launch-prefix="gnome-terminal --command"/>
+
+    <node name="detect" pkg="pseudo_detection" type="detect.py" if="$(arg pseudo_detect)"
+      respawn="false" output="screen" launch-prefix="gnome-terminal --command"/>
+
+    <!-- Behavior's Node -->
+    <node name="BaseRotate" pkg="BaseRotate" type="main_baseRotate.py"
+      respawn="false" output="screen" launch-prefix="gnome-terminal --command"/>
+
     <node name="main_navSelector" pkg="NavigationSelector" type="main_navSelector.py"
       respawn="false" output="screen" launch-prefix="gnome-terminal --command"/>
 
     <node name="talkInterface" pkg="HD_audio" type="talkInterface.py"
-      respawn="false" output="screen" launch-prefix="gnome-terminal --command"/>
-
-    <!-- <node name="pseudo_detection" pkg="pseudo_detection" type="pseudo_detection" if="$(arg approche_client)"
-      respawn="false" output="screen"/> -->
-
-    <node name="detect" pkg="pseudo_detection" type="detect.py"
       respawn="false" output="screen" launch-prefix="gnome-terminal --command"/>
   </group>
 
