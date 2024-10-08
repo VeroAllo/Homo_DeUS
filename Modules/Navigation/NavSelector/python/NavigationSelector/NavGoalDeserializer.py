@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 
+
 from homodeus_library.homodeus_precomp import *
 from NavigationSelector.NavGoal import NavGoal
 import json
 
+
 # TODO Must be rename class
 class NavGoalDeserializer :
-    __fileName : str = "/home/pal/tiago_public_ws/src/pmb2_simulation/pmb2_2dnav_gazebo/script/NavSelector/predefNavGoal.json"
+    __fileName : str = "~/predefNavGoal.json"
     __keyPosX : str = "PosX"
     __keyPosY : str = "PosY"
     __keyPosZ : str = "PosZ"
@@ -19,15 +21,26 @@ class NavGoalDeserializer :
     #Will read the json and call the callback function with the newly read items (like add the items to an array) 
     def Read(self, callback) -> None :
         resList : List[NavGoal] = []
-        with open(self.__fileName,"r") as file :
-            jsonData = json.load(file)
-        for name in jsonData :
-            resList.append(self.__DeserializeNavGoal(jsonData, name))
-        callback(resList)
+        try:
+            with open(self.__fileName,"r") as file :
+                jsonData = json.load(file)
+            for name in jsonData :
+                resList.append(self.__DeserializeNavGoal(jsonData, name))
+        except Exception as e:
+            print(f"Caught unexpected exception: {e}")            
+        except:
+            print(f"Caught unexpected exception")            
+        finally:
+            callback(resList)
 
     def Write(self, navGoals : List[NavGoal] = []) -> None :
-        with open(self.__fileName,"w+") as file :
-            json.dump(self.__SerializeNavGoal(navGoals), file, indent=4)
+        try:
+            with open(self.__fileName,"w+") as file :
+                json.dump(self.__SerializeNavGoal(navGoals), file, indent=4)
+        except Exception as e:
+            print(f"Caught unexpected exception: {e}")            
+        except:
+            print(f"Caught unexpected exception")            
             
     #Deserializes the Json data for a name and returns a new NavGoal
     def __DeserializeNavGoal(self, jsonData, name : str) -> NavGoal:
