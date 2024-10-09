@@ -34,6 +34,7 @@ void DiscussionState::onDesireSetChanged(const vector<unique_ptr<Desire>>& _)
 
 void DiscussionState::enable(const string& parameter, const type_index& previousStageType)
 {
+    ROS_INFO("Discussion started");
     State::enable(parameter, previousStageType);
 
     auto discussDesire = make_unique<DiscussDesire>(/* generateDiscussion() */);

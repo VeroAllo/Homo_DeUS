@@ -30,14 +30,9 @@ void StateManager::addState(int indexList, unique_ptr<State> state)
 
 void StateManager::switchTo(State* state, type_index stateType, const std::string& parameter)
 {
-    std::type_index nextStageType(typeid(State));
-
-    nextStageType = stateType;
-    State* tmp_state;
     for(auto& [key, value]: m_listsStates)
     {
-        ROS_INFO("cherche right state %s in %i", state->type().name(), key);
-        if(value.find(state->type()) != value.end())
+        if(value.find(state->type()) != value.end() && value.find(state->type())->second->nextStateType() == state->nextStateType())
         {
             value[state->type()]->disable();
             value[stateType]->enable(parameter, stateType);

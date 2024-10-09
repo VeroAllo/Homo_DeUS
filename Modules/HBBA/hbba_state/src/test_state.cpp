@@ -92,7 +92,7 @@ void startNode(ros::NodeHandle& nodeHandle)
 
     //stateManager.switchTo<IdleState>(0);
     //stateManager.switchTo<IdleState>(1); /*Help vero*/
-    stateManager.switchTo<IdleState>(2);
+    stateManager.switchTo<IdleState>(1);
 
     vector<unique_ptr<Motivation>> motivations;
 
