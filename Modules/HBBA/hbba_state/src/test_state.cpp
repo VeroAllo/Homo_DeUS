@@ -78,7 +78,7 @@ void startNode(ros::NodeHandle& nodeHandle)
         make_unique<GoToTableState>(stateManager, desireSet, nodeHandle, discussStateType, 1)
     );
     stateManager.addState(1,
-        make_unique<DiscussionState>(stateManager, desireSet, nodeHandle, idleStateType, 2)
+        make_unique<DiscussionState>(stateManager, desireSet, nodeHandle, idleStateType, 2, "serveur")
     );
     stateManager.addListStates(2,
         make_unique<IdleState>(stateManager, desireSet, nodeHandle, kitchenStateType, 0)

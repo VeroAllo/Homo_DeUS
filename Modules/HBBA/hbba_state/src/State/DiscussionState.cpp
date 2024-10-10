@@ -9,9 +9,10 @@ DiscussionState::DiscussionState(
     std::shared_ptr<DesireSet> desireSet,
     ros::NodeHandle& nodeHandle,
     std::type_index nextStateType,
-    int Intensite)
+    int Intensite, std::string discussionContext)
     : State(stateManager, desireSet, nodeHandle, nextStateType, Intensite),
-      m_discussDesireId(MAX_DESIRE_ID)
+      m_discussDesireId(MAX_DESIRE_ID),
+      m_discussionContext(discussionContext)
 {
     ROS_INFO("state DiscussionState creer");
     m_desireSet->addObserver(this);
@@ -37,8 +38,9 @@ void DiscussionState::enable(const string& parameter, const type_index& previous
     ROS_INFO("Discussion started");
     State::enable(parameter, previousStageType);
 
-    auto discussDesire = make_unique<DiscussDesire>(/* generateDiscussion() */);
+    auto discussDesire = make_unique<DiscussDesire>(generateDiscussion(), m_Intensite);
     m_discussDesireId = discussDesire->id();
+    // discussDesire.get()->setIntensity(m_Intensite);
 
     m_desireIds.emplace_back(discussDesire->id());
 
@@ -54,5 +56,5 @@ void DiscussionState::disable()
 
 string DiscussionState::generateDiscussion()
 {
-    return "command1";
+    return m_discussionContext;
 }

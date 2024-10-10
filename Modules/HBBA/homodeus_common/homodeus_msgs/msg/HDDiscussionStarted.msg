@@ -1,4 +1,4 @@
 
 homodeus_msgs/DesireID id
-string fistMessage
+std_msgs/String fistMessage
 bool running
