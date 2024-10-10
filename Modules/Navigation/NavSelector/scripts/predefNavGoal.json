@@ -12,8 +12,8 @@
         "ObjOri" : 2.3562
     },
     "Table 1": {
-        "PosX" : 8.25,
-        "PosY" : 4.00,
+        "PosX" : 8.50,
+        "PosY" : 3.00,
         "PosZ" : 0.00,
         "ObjOri" : 3.1416
     },
@@ -24,8 +24,8 @@
         "ObjOri" : -1.5708
     },
     "Cuisine": {
-        "PosX" : 9.75,
-        "PosY" : 6.00,
+        "PosX" : 9.70,
+        "PosY" : 5.75,
         "PosZ" : 0.00,
         "ObjOri" : 1.5708
     }
