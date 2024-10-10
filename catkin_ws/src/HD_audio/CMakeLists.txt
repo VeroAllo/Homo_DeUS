@@ -162,6 +162,8 @@ include_directories(
   catkin_install_python(PROGRAMS
    src/talk.py
    src/talkInterface.py
+   src/discuss.py
+   src/oneDiscuss.py
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
  )
 

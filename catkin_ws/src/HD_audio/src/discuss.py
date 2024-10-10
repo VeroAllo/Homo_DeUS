@@ -42,7 +42,7 @@ class AudioProducer(threading.Thread):
         self.p = pyaudio.PyAudio()
         self.stream = self.p.open(format=pyaudio.paInt16, channels=1, rate=16000, input=True, frames_per_buffer=8000)
         self.stream.start_stream()
-        self.vosk_model = vosk.Model('catkin_ws/src/audio_package/src/vosk-model-small-en-us-0.15')
+        self.vosk_model = vosk.Model('catkin_ws/src/HD_audio/vosk-model-small-en-us-0.15')
         self.vosk_recognizer = vosk.KaldiRecognizer(self.vosk_model, 16000)
 
     def run(self):

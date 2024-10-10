@@ -1,0 +1,5 @@
+rostopic pub /Homodeus/Behaviour/Discuss/Request homodeus_msgs/HDDiscussionStarted "{id: {desire_id: 1}, message: {data: 'I would like to order a Coke, please.'}}"
+
+rostopic echo /Homodeus/Behaviour/Discuss/Response
+
+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
