@@ -9,6 +9,7 @@ project(HD_audio)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   rospy
+  pal_interaction_msgs  
   homodeus_msgs
   std_msgs
 )
@@ -105,7 +106,11 @@ catkin_python_setup()
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES my_audio_package
-#  CATKIN_DEPENDS rospy homodeus_msgs std_msgs
+  CATKIN_DEPENDS 
+    rospy
+    homodeus_msgs
+    std_msgs
+    pal_interaction_msgs
 #  DEPENDS system_lib
 )
 
