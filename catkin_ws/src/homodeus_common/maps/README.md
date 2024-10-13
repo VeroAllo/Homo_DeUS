@@ -28,3 +28,15 @@ Pour le moment, vous devez copier tous les sous-dossier de ce dossier dans le r�
   rosservice call /pal_navigation_sm "input: 'LOC'" <br>
 9. Retablir carte originale <br>
   rosservice call /pal_map_manager/change_map "input: 'NAME_CURRENT_MAP'" <br>
+
+### Basculer sur carte spécifique avec le vrai robot (En ligne)
+1. Se connecter en ssh au robot <br>
+   ssh pal@10.68.0.1 <br>
+2. Annoter la carte d'occupation en cours d'utilisation <br>
+   Vous trouverez le nom de la carte en cours d'utilisation avec le lien symbolique du dossier $HOME/.pal/tiago_maps/config <br>
+3. Changer la carte d'occupation à partir du terminal ssh <br>
+   rosservice call /pal_map_manager/change_map "input: 'NAME_MAP'" <br>
+   ex: rosservice call /pal_map_manager/change_map "input: 'cafe_caus'" <br>
+4. Effectuer vos tests (ou essais) <br>
+5. Rétablir la carte d'occupation originale <br>
+   rosservice call /pal_map_manager/change_map "input: 'NAME_PREVIOUS_MAP'" <br>
