@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+  <arg name="public_sim"    default="true"/>
+
+  <!-- audio parameters -->
+  <arg name="format"        default="mp3"/>
+  <arg name="tts"           default="gTTS"/>
+
+  <!-- TODO tiblond -->
+  <!-- Ajoute tes autres scripts Python que tu dois lancer avant oneDiscuss ici -->
+
+  <node name="one_discuss" pkg="HD_audio" type="oneDiscuss.py" if="true" args="--tts $(arg tts) "
+    respawn="false" output="screen" launch-prefix="gnome-terminal -- "/>
+</launch>
