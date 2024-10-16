@@ -34,6 +34,11 @@
 
 /** \author Jordi Pages. */
 
+// PAL headers
+// #include <homodeus_prehension/pcl_filters.hpp>
+// #include <homodeus_prehension/geometry.h>
+// #include <homodeus_prehension/tf_transforms.hpp>
+
 // PCL headers
 #include <pcl/filters/extract_indices.h>
 #include <pcl_conversions/pcl_conversions.h>
@@ -96,8 +101,7 @@ protected:
   void publishHDPose(const geometry_msgs::Pose& pose,
                       const homodeus_msgs::DesireID& desireID);
 
-  void publishPosestamped(const geometry_msgs::Pose& pose,
-                      const std_msgs::Header& header);
+  void publishPosestamped(const geometry_msgs::Pose& pose);
 
   void selectObject(geometry_msgs::Point pointBoundingBox, std::vector<geometry_msgs::Pose> pose_list);
   void objectDetectionCallback(const homodeus_msgs::ObjectDetection& objectDetectionMsg);
@@ -147,6 +151,8 @@ ObjectDetector::~ObjectDetector()
 
 void ObjectDetector::cloudCallback(const sensor_msgs::PointCloud2ConstPtr& cloud)
 {
+  _objets_pos_list.clear();
+
   pcl::PointCloud<pcl::PointXYZ>::Ptr pclCloud(new pcl::PointCloud<pcl::PointXYZ>);
   pcl::fromROSMsg(*cloud, *pclCloud);
   
@@ -190,13 +196,7 @@ void ObjectDetector::cloudCallback(const sensor_msgs::PointCloud2ConstPtr& cloud
     float Longueur = max_point_OBB.y - min_point_OBB.y;
     float Hauteur = max_point_OBB.z - min_point_OBB.y;
 
-    std::cout << "Largeur : " << max_point_OBB.x - min_point_OBB.x << std::endl;
-    std::cout << "Longueur : " << max_point_OBB.y - min_point_OBB.y << std::endl;
-    std::cout << "Hauteur : " << max_point_OBB.z - min_point_OBB.z << std::endl;
-
     //Eigen::Vector3f position_world = transform_matrix.block<3, 3>(0, 0) * position_OBB.getVector3fMap() + centroid.head<3>();
-    std::cout << "Position dans le monde : " << position_OBB.x << ", " << position_OBB.y << ", " << position_OBB.z << std::endl;
-
     // TODO : VERIFIER quaternions
     Eigen::Quaternionf quaternionff;
     quaternionff = Eigen::Quaternionf(rotational_matrix_OBB);
@@ -224,6 +224,11 @@ void ObjectDetector::cloudCallback(const sensor_msgs::PointCloud2ConstPtr& cloud
 
     // Afficher la bounding box 3D 
 
+
+    // visualization_msgs::Marker clear_marker;
+    // clear_marker.action = visualization_msgs::Marker::DELETEALL;
+    // _objectVisualisationMarkerPub.publish(clear_marker);
+
     visualization_msgs::Marker marker;
     //marker.action = visualization_msgs::Marker::ADD;
 
@@ -236,7 +241,7 @@ void ObjectDetector::cloudCallback(const sensor_msgs::PointCloud2ConstPtr& cloud
     marker.color.g = 1.0f;
     marker.color.b = 1.0f;
     marker.color.a = 1.0;
-    marker.lifetime = ros::Duration();
+    marker.lifetime = ros::Duration(3);
 
 
     float max_x = max_point_OBB.z;
@@ -386,7 +391,7 @@ void ObjectDetector::cloudCallback(const sensor_msgs::PointCloud2ConstPtr& cloud
   }
 
   std::cout << "Nombre dobjets taille: " << taille << std::endl;
-  
+
   if ( _objectVisualisationMarkerPub.getNumSubscribers() > 0 )
   {
     _objectVisualisationMarkerPub.publish(marker_array);
@@ -397,6 +402,8 @@ void ObjectDetector::publishHDPose(const geometry_msgs::Pose& pose, const homode
 {
   if ( _HDPosePub.getNumSubscribers() > 0)
   {
+    
+
     homodeus_msgs::HDPose hd_pos_msg;
     hd_pos_msg.id = desireID;
     hd_pos_msg.pose = pose;
@@ -404,12 +411,16 @@ void ObjectDetector::publishHDPose(const geometry_msgs::Pose& pose, const homode
   }
 }
 
-void ObjectDetector::publishPosestamped(const geometry_msgs::Pose& pose, const std_msgs::Header& header)
+void ObjectDetector::publishPosestamped(const geometry_msgs::Pose& pose)
 {
+  std_msgs::Header headerA;
+  headerA.stamp = ros::Time::now();
+  headerA.frame_id = "base_link";
+  headerA.seq = 1; 
+
   geometry_msgs::PoseStamped posestamped;
   posestamped.pose = pose;
-  posestamped.header = header;
-
+  posestamped.header = headerA;
   _objectVisualisationPosePub.publish(posestamped); 
 }
 
@@ -433,11 +444,11 @@ void ObjectDetector::objectDetectionCallback(const homodeus_msgs::ObjectDetectio
 
   geometry_msgs::Pose pose_to_grasp;
   
-  for (geometry_msgs::Pose pose : _objets_pos_list){
-    double dist = calculateDistance(pose.position, point_in_base_link.point);
+  for (geometry_msgs::Pose poseTemp : _objets_pos_list){
+    double dist = calculateDistance(poseTemp.position, point_in_base_link.point);
     if (dist < small_dist) {
       small_dist = dist;
-      pose_to_grasp = pose;
+      pose_to_grasp = poseTemp;
     }
   }
 
@@ -445,8 +456,8 @@ void ObjectDetector::objectDetectionCallback(const homodeus_msgs::ObjectDetectio
   homodeus_msgs::DesireID desireID;
   desireID.desire_id = 0;
 
-  publishHDPose(pose_to_grasp, desireID);
-  publishPosestamped(pose_to_grasp, objectDetectionMsg.header);
+  publishHDPose(pose_to_grasp, desireID);  
+  publishPosestamped(pose_to_grasp);
 }
 
 double ObjectDetector::calculateDistance(const geometry_msgs::Point& p1, const geometry_msgs::Point& p2) {
