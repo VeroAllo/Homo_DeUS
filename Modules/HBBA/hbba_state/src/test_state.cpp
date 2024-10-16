@@ -87,7 +87,10 @@ void startNode(ros::NodeHandle& nodeHandle)
         make_unique<GoToKitchenState>(stateManager, desireSet, nodeHandle, takeStateType, 1)
     );
     stateManager.addState(2,
-        make_unique<TakeState>(stateManager, desireSet, nodeHandle, idleStateType, 2)
+        make_unique<TakeState>(stateManager, desireSet, nodeHandle, gotoTableStateType, 2)
+    );
+    stateManager.addState(2,
+        make_unique<GoToTableState>(stateManager, desireSet, nodeHandle, idleStateType, 3)
     );
 
     //stateManager.switchTo<IdleState>(0);

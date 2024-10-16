@@ -97,10 +97,13 @@ private:
 class DiscussDesire : public Desire
 {
 public:
-    explicit DiscussDesire(uint16_t intensity = 1);
+    explicit DiscussDesire(std::string discussContext, uint16_t intensity = 1);
     ~DiscussDesire() = default;
 
     uint64_t id() const { return Desire::id(); }
+    std::string getMessage() const { return m_discussContext;}
 
     DECLARE_DESIRE_METHODS(DiscussDesire); 
+private:
+    std::string m_discussContext{};
 };

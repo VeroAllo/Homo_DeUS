@@ -87,9 +87,10 @@ void PrendreCommande::StrategySubscriberCallBack(const std_msgs::String& msg)
     ROS_INFO_STREAM("Received message from GotoStrategy: " << msg.data);
     if (msg.data.find("Table") != std::string::npos)
     {
-        int table = std::stoi(msg.data.substr(5,6));
-        if (m_Tables[table] = false)
+        int table = std::stoi(msg.data.substr(5,6));  
+        if (m_Tables[table] == false)
         {
+            ROS_INFO_STREAM("TImer starter" << table);
             m_Tables[table] = true;
             m_Timers[table].start();
         }

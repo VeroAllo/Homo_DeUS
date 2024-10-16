@@ -1,24 +1,34 @@
+#!/usr/bin/env python
+
+
+import argparse
 import json
 import vosk
-import rospy
-from std_msgs.msg import String
 import openai
 import pyaudio
 import threading
 import queue
 import os
 from gtts import gTTS
+
+import rospy
+from std_msgs.msg import String
+from hdTTS import hdTTS
 from homodeus_msgs.msg import HDResponse, HDDiscussionStarted, HDStatus
 
 class AudioRosDiscuss:
-    def __init__(self):
+    def __init__(self, tts_type:str):
+        self.tts_type = tts_type
+
         self.audio_queue = queue.Queue()
         self.is_playing = threading.Event()
         self.stop_event = threading.Event()
         self.setup_audio()
         self.setup_ros()
-        
-
+        if self.tts_type == 'hdTTS':
+            self.__tts = hdTTS()
+        else:
+            self.__sound_file:str = "response.mp3"
         
         self.message_history = [
             {"role": "system", "content": """
@@ -31,10 +41,29 @@ class AudioRosDiscuss:
             5. Thank the customer and wish them a pleasant meal.
             """}
         ]
-        openai.api_key = ''  # Assurez-vous que l'API key est définie ici
+        openai.api_key = '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'  # Assurez-vous que l'API key est définie ici
+
+    def __tts_prepare(self, text, lang):
+        if self.tts_type == 'hdTTS':
+            self.__tts.set_goal(text=text, lang=lang)
+        else:
+            tts = gTTS(text=text, lang="en")
+            tts.save(self.__sound_file)
+
+    def __talk(self):
+        if self.tts_type == 'hdTTS':
+            self.__tts.talk_blocking()
+        else:
+            os.system("mpg321 response.mp3") # response.mp3"
+
+    def __tts_talk(self, text, lang):
+        self.__tts_prepare(text, lang)
+        self.is_playing.set()
+        self.__talk()
+        self.is_playing.clear()
 
     def setup_audio(self):
-        self.vosk_model = vosk.Model('vosk-model-small-en-us-0.15')  # Spécifiez le chemin correct ici
+        self.vosk_model = vosk.Model('/home/vero2/catkin_ws/src/Homodeus_main/HD_audio/src/vosk-model-small-en-us-0.15')  # Spécifiez le chemin correct ici
         self.recognizer = vosk.KaldiRecognizer(self.vosk_model, 16000)
         self.audio = pyaudio.PyAudio()
         self.stream = self.audio.open(format=pyaudio.paInt16, channels=1, rate=16000, input=True, frames_per_buffer=4096)
@@ -65,6 +94,7 @@ class AudioRosDiscuss:
                 text = result['text']
                 if text:
                     self.audio_queue.put(text)
+                    print(text)
 
     def consume_audio(self, initial_message):
         self.message_history.append({"role": "user", "content": initial_message})
@@ -89,12 +119,8 @@ class AudioRosDiscuss:
                     # Extraire l'item sélectionné
                     selected_item = self.extract_order_item(response_text)
 
-
-                tts = gTTS(text=response_text, lang='en')
-                tts.save("response.mp3")
-                self.is_playing.set()
-                os.system("mpg321 response.mp3")
-                self.is_playing.clear()
+                # TODO, A valider si 'en_US' existe pour gTTS, car TtsAction est base sur RFC 3006
+                self.__tts_talk(response_text, 'en_US')
 
                 # Vérification de la fin de la conversation
                 if "thank you" in response_text.lower() or "have a pleasant meal" in response_text.lower():
@@ -102,7 +128,7 @@ class AudioRosDiscuss:
                         print(f"Commande confirmée : {selected_item}")
                         response_msg = HDResponse()
                         response_msg.id.desire_id = 0
-                        response_msg.message.data = selected_item
+                        response_msg.message.data = "Commande:" + selected_item
                         self.response_pub.publish(response_msg)
                     print("Fin de la conversation")
                     self.stop_event.set()
@@ -116,6 +142,20 @@ class AudioRosDiscuss:
                 return item
         return None
 
+def add_parser():
+  parser = argparse.ArgumentParser(description='OneDiscuss')
+  parser.add_argument(
+    '--tts',
+    help='Set tts type',
+    default='hdTTS',
+    type=str,
+    choices=['gTTS', 'hdTTS'],
+  )
+  args, unknown = parser.parse_known_args()
+  # unknown:=[__name, __log]
+  return args
+
 if __name__ == "__main__":
-    audio_ros_discuss = AudioRosDiscuss()
+    args = add_parser()
+    audio_ros_discuss = AudioRosDiscuss(args.tts)
     rospy.spin()

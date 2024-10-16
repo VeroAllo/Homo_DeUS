@@ -14,4 +14,4 @@ ListenDesire::ListenDesire(uint16_t intensity) : Desire(intensity) {}
 
 TalkDesire::TalkDesire(std::string textToTalk, uint16_t intensity) : Desire(intensity), m_TextToTalk(textToTalk) {}
 
-DiscussDesire::DiscussDesire(uint16_t intensity) : Desire(intensity) {}
+DiscussDesire::DiscussDesire(std::string discussContext, uint16_t intensity) : Desire(intensity), m_discussContext(discussContext) {}

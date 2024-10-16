@@ -28,9 +28,13 @@ geometry_msgs::Pose mapStringToPose(std::string name)
     }
     else if (name == "Table")
     {        
-        poseToReturn.position.x = 0.21f;
-        poseToReturn.orientation.z = -0.79f;
-
+        poseToReturn.position.x = 8.50f;
+        poseToReturn.orientation.z = 3.1416f;
+        poseToReturn.position.y = 3.00f;
+        // "PosX" : 8.50,
+        // "PosY" : 3.00,
+        // "PosZ" : 0.00,
+        // "ObjOri" : 3.1416
         // For now, let the default values
     }
     else if (name == "Kitchen")
@@ -157,9 +161,10 @@ void DiscussStrategy::onEnabling(const DiscussDesire& desire)
 {
     ROS_INFO("DiscussDesire started for DesireID : %ld", desire.id());
     m_desireID = desire.id();
-    homodeus_msgs::HDDiscussionStarted discussionStarted{};
+    homodeus_msgs::HDDiscussionStarted discussionStarted;
     discussionStarted.id.desire_id = m_desireID;
-    discussionStarted.fistMessage = "Welcome to Billy Bob Buger";
+    discussionStarted.fistMessage.data = desire.getMessage();
+    ROS_INFO_STREAM("discussionStarted " << discussionStarted.fistMessage.data);
 
     for(ros::Publisher pub : m_PublisherList)
     {
