@@ -41,7 +41,7 @@ class AudioRosDiscuss:
             5. Thank the customer and wish them a pleasant meal.
             """}
         ]
-        openai.api_key = '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'  # Assurez-vous que l'API key est définie ici
+        openai.api_key = ''  # Assurez-vous que l'API key est définie ici
 
     def __tts_prepare(self, text, lang):
         if self.tts_type == 'hdTTS':
@@ -63,7 +63,7 @@ class AudioRosDiscuss:
         self.is_playing.clear()
 
     def setup_audio(self):
-        self.vosk_model = vosk.Model('/home/vero2/catkin_ws/src/Homodeus_main/HD_audio/src/vosk-model-small-en-us-0.15')  # Spécifiez le chemin correct ici
+        self.vosk_model = vosk.Model('vosk-model-small-en-us-0.15')  # Spécifiez le chemin correct ici
         self.recognizer = vosk.KaldiRecognizer(self.vosk_model, 16000)
         self.audio = pyaudio.PyAudio()
         self.stream = self.audio.open(format=pyaudio.paInt16, channels=1, rate=16000, input=True, frames_per_buffer=4096)
