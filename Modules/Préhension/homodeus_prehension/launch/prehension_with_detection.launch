@@ -68,18 +68,18 @@
 
     <!-- Commentaire, car la carte du monde "3iT_P2_Closer" n'existe propablement pas -->
     <!-- Cependant, en l'activant, cela réglerait le problème du référentiel /map inexistant -->
-    <!-- <include file="$(find tiago_2dnav_gazebo)/launch/navigation.launch" if="$(arg public_sim)"> -->
-      <!-- <arg name="state"             value="localization"/> -->
-      <!-- <arg name="planner"           value="$(arg planner)"/> -->
-      <!-- <arg name="global_planner"    value="$(arg global_planner)"/> -->
-      <!-- <arg name="local_planner"     value="$(arg local_planner)"/> -->
-      <!-- <arg name="localization"      value="$(arg localization)"/> -->
-      <!-- <arg name="map"               value="$(arg map)"/> -->
-      <!-- <arg name="public_sim"        value="$(arg public_sim)"/> -->
-      <!-- <arg name="rgbd_sensors"      value="false"/> -->
-      <!-- <arg name="laser_model"       value="$(arg laser_model)"/> -->
-      <!-- <arg name="base_type"         value="$(arg base_type)"/> -->
-    <!-- </include> -->
+    <!-- <include file="$(find tiago_2dnav_gazebo)/launch/navigation.launch" if="$(arg public_sim)">
+      <arg name="state"             value="localization"/>
+      <arg name="planner"           value="$(arg planner)"/>
+      <arg name="global_planner"    value="$(arg global_planner)"/>
+      <arg name="local_planner"     value="$(arg local_planner)"/>
+      <arg name="localization"      value="$(arg localization)"/>
+      <arg name="map"               value="$(arg map)"/>
+      <arg name="public_sim"        value="$(arg public_sim)"/>
+      <arg name="rgbd_sensors"      value="false"/>
+      <arg name="laser_model"       value="$(arg laser_model)"/>
+      <arg name="base_type"         value="$(arg base_type)"/>
+    </include> -->
 
     <include file="$(find homodeus_prehension)/launch/object_segmentation.launch">
       <arg name="rate"                   value="$(arg rate)"/>
