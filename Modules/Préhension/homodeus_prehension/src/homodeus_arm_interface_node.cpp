@@ -136,7 +136,6 @@ void ArmInterfaceNode::pickPoseCB(const homodeus_msgs::HDPose& hd_pose_msg)
 {
     geometry_msgs::Pose pose = hd_pose_msg.pose;
     bool success = false;
-    
     ROS_INFO("Going to grasp preparation pose");
     success = gotoGraspPrep();
     if (success)
@@ -184,7 +183,6 @@ void ArmInterfaceNode::pickPoseCB(const homodeus_msgs::HDPose& hd_pose_msg)
         // TODO :
         ROS_INFO("Retreating");
  
-        gotoRetreat(pose);
     }
     else
         ROS_INFO("arm_interface_node: failed to go to pick point!");
@@ -195,6 +193,8 @@ void ArmInterfaceNode::pickPoseCB(const homodeus_msgs::HDPose& hd_pose_msg)
         ROS_INFO("arm_interface_node: successfully retreated from pick point.");
         ROS_INFO("Going to carrying pose");
         success  = goHome();
+
+        ROS_INFO("arm_interface_node: SKIP GO HOME");
     }
     else
         ROS_INFO("arm_interface_node: failed to retreat from pick point!");
@@ -281,8 +281,8 @@ void ArmInterfaceNode::dropPoseCB(const homodeus_msgs::HDPose& hd_pose_msg)
 bool ArmInterfaceNode::goHome()
 {
     bool success = false;
-    // success = moveToJoint(0.34, 0.20, 0.79, -1.50, 1.60, -1.20, 0.14, 0.0);
-    // success = moveToJoint(0.34, 0.20, 0.79, -1.50, 1.60, -1.20, 1.37, 0.0);
+    success = moveToJoint(0.34, 0.20, 0.79, -1.50, 1.60, -1.20, 0.14, 0.0);
+    success = moveToJoint(0.34, 0.20, 0.79, -1.50, 1.60, -1.20, 1.37, 0.0);
     // success = moveToJoint(0.34, 0.20, 0.79, 0.01, 2.10, -1.5, 1.37, 0.0);
     // success = moveToJoint(0.25, 0.20, -1.34, -0.20, 1.94, -1.57, 1.37, 0.0);
     return success;
@@ -320,7 +320,7 @@ bool ArmInterfaceNode::gotoRetreat(const geometry_msgs::Pose pose)
     auto x  = pose.position.x;
     auto y  = pose.position.y;
     auto z  = pose.position.z;
-    return moveToCartesian(x-0.1, y, z+0.2, roll, pitch, yaw);
+    return moveToCartesian(x-0.1, y, z+0.3, roll, pitch, yaw);
 
 }
 
@@ -361,7 +361,7 @@ int main(int argc, char **argv)
     ros::NodeHandle n("~"); 
     
     ArmInterfaceNode arm_node(n);
-    arm_node.changeVelFactor();
+    // arm_node.changeVelFactor();
     arm_node.gotoInitPose();
     
 

@@ -12,6 +12,9 @@ cd ~/tiago_public_ws
 source /opt/ros/noetic/setup.bash
 catkin build
 
+cd ~/tiago_public_ws/src/HomoDeUS/homodeus_prehension
+source /opt/ros/noetic/setup.bash
+catkin build --this
 
 ====================
  === Tous ===
@@ -19,6 +22,15 @@ catkin build
 cd ~/tiago_public_ws
 source ./devel/setup.bash
 
+
+
+
+====================
+ === CompleteLaunch ===
+====================
+cd ~/tiago_public_ws
+source ./devel/setup.bash
+roslaunch homodeus_prehension prehension_with_detection.launch
 
 
 ====================
@@ -97,9 +109,15 @@ git checkout 3667e9dabc3a9b3da669743f968fe38c265b1953
          === Autre ===
 ====================
 cd ~/tiago_public_ws
-source ./devel/setup.bash
+source ./devel_isolated/setup.bash
 
-export ROS_MASTER_RUI=http://10.60.0.1:11311
+
+http://control:8080/
+
+export ROS_MASTER_URI=http://10.60.0.1:11311
+export ROS_IP=10.68.0.129
+
+export ROS_MASTER_URI=http://10.68.0.1:11311
 export ROS_IP=10.68.0.129
 
 
