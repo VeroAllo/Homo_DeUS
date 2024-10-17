@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 
+from control_msgs.msg import FollowJointTrajectoryAction, FollowJointTrajectoryGoal
+from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 
 from homodeus_library.homodeus_precomp import *
-# from NavGoalDeserializer import NavGoalDeserializer
 from NavigationSelector.NavGoalDeserializer import NavGoalDeserializer
-# from NavGoal import NavGoal
 from NavigationSelector.NavGoal import NavGoal
 from homodeus_msgs.msg import *
-
 
 class NavSelector :
     __instance = None
@@ -74,7 +73,7 @@ class NavSelector :
         print("Goal was received sending back a response")
         p, q = pose.pose.position, pose.pose.orientation        
         x, y, z = p.x, p.y, p.z
-        w = quarternion2euler(q).z
+        w = q.z # quarternion2euler(q).z
         self.AddGoalNav(NavGoal(x, y, z, w, "NoName"))
         print(f"Nombre de goal dans la liste : {len(self.__goalList) + 1}")
 
@@ -169,10 +168,13 @@ class NavSelector :
             self.__OnNavGoalSuccess()
         else :
             self.__OnNavGoalFail(NAVGOALFAILED,endState)
+        self.__controlHead(-0.5236)
+        
         response : HDResponse = HDResponse()
         response.id.desire_id = self.__currentID
         response.result = success
         self.__publisher.publish(response)
+
         self.RemoveCurrentGoal()
         self.__goalSent = None
 
@@ -242,6 +244,25 @@ class NavSelector :
         except rospy.ServiceException as src_exc:
             print(f"Service {srv_name_get_plan} ne repond pas pcq {src_exc}")
 
+    def __controlHead(self, pitch:float=0, yaw:float=0) -> None:
+        """
+            pitch : orientation pour dire 'oui'
+            yaw : orientation pour dire 'non'
+        """
+
+        head_trajectory_point = JointTrajectoryPoint()
+        head_trajectory_point.positions = [yaw, pitch]
+        head_trajectory_point.time_from_start = ros::Duration(1);
+        
+        head_trajectory = JointTrajectory()
+        head_trajectory.joint_names = ["head_1_joint", "head_2_joint")
+        head_trajectory.points = [head_trajectory_point]
+
+        head_follow_trajectory_goal = FollowJointTrajectoryGoal()
+        head_follow_trajectory_goal.trajectory = head_trajectory
+
+        self.head_action_client.send_goal_and_wait(head_follow_trajectory_goal, ros::Duration(3))
+
     def initConnectionToNode(self) -> None :
         self.__publisher = rospy.Publisher(self.__topic+"/Response", HDResponse, queue_size = 10,  latch = False)
         self.__subscriber = rospy.Subscriber(self.__topic+"/Request", HDPose, callback = self.AddGoalPose, queue_size = 10)
@@ -250,6 +271,11 @@ class NavSelector :
         self.client = actionlib.SimpleActionClient("move_base", MoveBaseAction)
         if not self.client.wait_for_server(timeout=rospy.Duration(5)):
             print("MoveBaseAction isn't available !")
+        
+        action_name = "/head_controller/follow_joint_trajectory"
+        self.head_action_client = actionlib.SimpleActionClient(action_name, FollowJointTrajectoryAction)
+        if not self.head_action_client.wait_for_server(timeout=rospy.Duration(5)):
+            print("FollowJointTrajectoryAction isn't available !")
 
         self.initSrvGetPlan()
 
