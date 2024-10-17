@@ -1,0 +1,12 @@
+argparse
+json
+vosk
+openai
+pyaudio
+threading
+queue
+os
+gtts
+rospy
+std_msgs
+homodeus_msgs

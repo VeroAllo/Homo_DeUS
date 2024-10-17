@@ -40,7 +40,7 @@ class hdTTS():
     # Send the goal and wait
     self.__tts_client.send_goal_and_wait(self.__goal, 
                                          execute_timeout=rospy.Duration(TIMEOUT_EXECUTE_GOAL),
-                                         preempt_timeout=rospy.Duration(1))
+                                         preempt_timeout=rospy.Duration(5))
 
 
   def talk_unblocking(self):
