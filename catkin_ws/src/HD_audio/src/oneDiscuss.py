@@ -158,7 +158,7 @@ class AudioRosDiscuss:
 
     def extract_order_item(self, response_text):
         # Extraire l'item de la commande à partir de la réponse de ChatGPT
-        items = ["Dr. Pepper", "Coke", "Sprite"]
+        items = ["Pepsi", "Coke", "Soda"]
         for item in items:
             if item.lower() in response_text.lower():
                 return item
