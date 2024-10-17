@@ -246,6 +246,9 @@ class NavSelector :
 
     def __controlHead(self, pitch:float=0, yaw:float=0) -> None:
         """
+            https://docs.ros.org/en/api/control_msgs/html/index-msg.html
+            https://docs.ros.org/en/api/trajectory_msgs/html/msg/JointTrajectory.html
+            
             pitch : orientation pour dire 'oui'
             yaw : orientation pour dire 'non'
         """
