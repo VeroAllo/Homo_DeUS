@@ -255,16 +255,16 @@ class NavSelector :
 
         head_trajectory_point = JointTrajectoryPoint()
         head_trajectory_point.positions = [yaw, pitch]
-        head_trajectory_point.time_from_start = ros::Duration(1);
+        head_trajectory_point.time_from_start = rospy.Duration(1)
         
         head_trajectory = JointTrajectory()
-        head_trajectory.joint_names = ["head_1_joint", "head_2_joint")
+        head_trajectory.joint_names = ["head_1_joint", "head_2_joint"]
         head_trajectory.points = [head_trajectory_point]
 
         head_follow_trajectory_goal = FollowJointTrajectoryGoal()
         head_follow_trajectory_goal.trajectory = head_trajectory
 
-        self.head_action_client.send_goal_and_wait(head_follow_trajectory_goal, ros::Duration(3))
+        self.head_action_client.send_goal_and_wait(head_follow_trajectory_goal, rospy.Duration(3))
 
     def initConnectionToNode(self) -> None :
         self.__publisher = rospy.Publisher(self.__topic+"/Response", HDResponse, queue_size = 10,  latch = False)
