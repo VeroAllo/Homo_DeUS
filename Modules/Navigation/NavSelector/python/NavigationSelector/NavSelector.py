@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 
 
+from control_msgs.msg import FollowJointTrajectoryAction, FollowJointTrajectoryGoal
+from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
+
 from homodeus_library.homodeus_precomp import *
 from NavigationSelector.NavGoalDeserializer import NavGoalDeserializer
 from NavigationSelector.NavGoal import NavGoal
@@ -12,14 +15,15 @@ PERCEPTION_ROBOT_POSE_TOPIC = "/Homodeus/Perception/RobotPose"
 
 class NavSelector :
     __instance = None
-    __fileName : String = ""
+    __filename : str = ""
 
     def __new__(cls):
         if cls.__instance is None :
             cls.__instance = super(NavSelector, cls).__new__(cls)
         return cls.__instance
 
-    def __init__(self, goalList : List[NavGoal] = [], currentGoal : NavGoal = None, topic : String = BEHAVIOR_GOTO_SUBTOPIC, filename : String = None) -> None:
+    def __init__(self, goalList : List[NavGoal] = [], currentGoal : NavGoal = None, 
+                 topic : str = BEHAVIOR_GOTO_SUBTOPIC, filename : str = None) -> None:
         self.__currentGoal : NavGoal = currentGoal
         self.__currentLocation : Tuple[Point,Quaternion] = getPose() #remove if not working
         self.__goalList : List[NavGoal] = goalList
@@ -34,7 +38,7 @@ class NavSelector :
         self.__callSubBehavior_BaseRotate = False
 
         self.__hz = rospy.get_param('~hz', 10)
-        self.__topic : String = topic
+        self.__topic : str = topic
         self.__initConnectionToNode()
         rospy.on_shutdown(self.__closeConnectionToNode)
 
@@ -73,10 +77,9 @@ class NavSelector :
 
     def AddGoalPose(self, pose : HDPose) -> None :
         self.__currentID = pose.id.desire_id
-
         p, q = pose.pose.position, pose.pose.orientation        
         x, y, z = p.x, p.y, p.z
-        w = quarternion2euler(q).z
+        w = q.z # quarternion2euler(q).z
 
         self.AddGoalNav(NavGoal(x, y, z, w, "GoalPose"))
 
@@ -143,7 +146,7 @@ class NavSelector :
 
     # Private Functions Events
     def __OnEvent(self, eventContent) -> None :
-        if eventContent is not None and (self.GetCurrentGoal() is not None  or self.__goalSent is not None):
+        if eventContent is not None and (self.GetCurrentGoal() is not None or self.__goalSent is not None):
             hdInfo(f"Navigation Selector - Event triggered by the current Navigation Goal (NavGoalID = {self.__goalSent.GetNavGoalID()})")
             self.__callBack(eventContent)
 
@@ -172,8 +175,11 @@ class NavSelector :
         else :
             self.__OnNavGoalFail(NAVGOALFAILED,endState)
 
+        self.__controlHead(-0.5236)
+
+        # Informe HBBA
         self.__SendResponseToHBBA(self.__currentID, success)
-        
+
         self.RemoveCurrentGoal()
         self.__goalSent = None
 
@@ -200,7 +206,24 @@ class NavSelector :
                 hdInfo("Navigation Selector - No tasks left to select, throwing event to the controller")
                 self.__OnEvent(NONAVGOALREMAINING)
 
-    # Private Functions Topic ROS
+    # Send Goal To Head
+    def __controlHead(self, pitch:float=0, yaw:float=0) -> None:
+        """
+            pitch : orientation pour dire 'oui'
+            yaw : orientation pour dire 'non'
+        """
+        head_trajectory_point = JointTrajectoryPoint()
+        head_trajectory_point.positions = [yaw, pitch]
+        head_trajectory_point.time_from_start = rospy.Duration(1)
+        
+        head_trajectory = JointTrajectory()
+        head_trajectory.joint_names = ["head_1_joint", "head_2_joint"]
+        head_trajectory.points = [head_trajectory_point]
+        head_follow_trajectory_goal = FollowJointTrajectoryGoal()
+        head_follow_trajectory_goal.trajectory = head_trajectory
+        self.head_action_client.send_goal_and_wait(head_follow_trajectory_goal, rospy.Duration(3))
+        
+    # Private Functions Topics ROS
     def __SendResponseToHBBA(self, id: int, value: int) -> None:
         response : HDResponse = HDResponse()
         response.id.desire_id = id
@@ -234,6 +257,17 @@ class NavSelector :
         except rospy.ServiceException as src_exc:
             print(f"Service {ACTION_NAME} ne repond pas pcq {src_exc}")
 
+    def __initSrvFollowJointTrajectory(self) -> None:
+        ACTION_NAME = "/head_controller/follow_joint_trajectory"
+        TIMEOUT_SRV = 5
+
+        try:
+            self.head_action_client = actionlib.SimpleActionClient(ACTION_NAME, FollowJointTrajectoryAction)
+            if not self.head_action_client.wait_for_server(timeout=rospy.Duration(TIMEOUT_SRV)):
+                print("FollowJointTrajectoryAction hit timeout ... isn't available !")
+        except rospy.ServiceException as src_exc:
+            print(f"Service {ACTION_NAME} ne repond pas pcq {src_exc}")
+
     def __initSrvGetPlan(self) -> None:
         """
         Service make_plan (/move_base/make_plan) donne le chemin du point A au point B
@@ -263,7 +297,7 @@ class NavSelector :
             # arreter le but en cours
             if self.client.get_state() in [GoalStatus.PENDING]:
                 self.client.cancel_goal()
-
+            
             if self.__goalSent is not None:
                 self.__goalList.insert(0, self.__goalSent)
                 self.__goalSent = None
@@ -278,12 +312,10 @@ class NavSelector :
                 self.__callSubBehavior_BaseRotate = False
                 # envoyer un but impossible pour avoir le 'rotate_recovery'
                 recovery_goal = NavGoal(float('inf'), float('inf'), 0, 0, 'rotate_recovery')
-                # self.__goalList.insert(0, recovery_goal)
                 self.SetCurrentGoal(recovery_goal)
-                # self.SendGoal()
             else:
-                self.__callSubBehavior_BaseRotate = True
                 # utiliser le comportement implemente par homodeus
+                self.__callSubBehavior_BaseRotate = True
 
                 rotate_goal = Float32Stamped()
                 rotate_goal.header.stamp = rospy.Time.now()
@@ -341,11 +373,11 @@ class NavSelector :
 
         self.__base_rotate_goal_pub = rospy.Publisher(BEHAVIOR_ROTATE_SUBTOPIC + "/Request", Float32Stamped, queue_size=1)
         self.__turn_around_sub = rospy.Subscriber(BEHAVIOR_ROTATE_SUBTOPIC+"/Response", Int8Stamped, self.__turn_around_subscriber)
-
         self.__robot_pose_sub = rospy.Subscriber(PERCEPTION_ROBOT_POSE_TOPIC, RobotPoseStamped, self.__robot_pose_subscriber)
         # self.__robot_pose_sub = rospy.Subscriber("/robot_pose", PoseWithCovarianceStamped, self.__robot_pose_subscriber)
 
         self.__initSrvMoveBase()
+        self.__initSrvFollowJointTrajectory()
         self.__initSrvGetPlan()
         self.ClearMap()
 
@@ -356,6 +388,8 @@ class NavSelector :
         if self.client is not None and self.client.get_state() == GoalStatus.ACTIVE :
             self.client.cancel_goal()
         self.__currentGoal = None
+        if self.head_action_client is not None and self.head_action_client.get_state() == GoalStatus.ACTIVE :
+            self.head_action_client.cancel_goal()
 
         if hasattr(self, '__goto_response_pub'): self.__goto_response_pub.unregister()
         if hasattr(self, '__goto_status_pub'): self.__goto_status_pub.unregister()
@@ -397,6 +431,9 @@ class NavSelector :
         print('(10) Set new goal')
         print('(11) Dump the goals list in json')
         print('(12) Print the nav goal list')
+        print('(13) Lost')
+        print('(14) Clear map')
+        print('(15) There is a new goal')
         if debug :
             print(f'Nombre de Navigation goal ici présent dans le pays du québec \n Nb = {len(self.GetGoalList())}')
             print(f'Nombre de unblocked task = {self.NbUnblockedTask()}')
@@ -404,10 +441,8 @@ class NavSelector :
                 print(f'Current goal id : {self.GetCurrentGoal().GetNavGoalID()}')
 
     def run(self) -> None: #Will only manually control the class for now, once the HBBA controller works, will be automatic
-        # self.__initConnectionToNode()     # Move to __init__()
-
         if (not DEBUG_NAV_SELECTOR) :
-            print("starting the navSelector in automatic mode")
+            print("Starting the navSelector in automatic mode")
             while not rospy.is_shutdown() :
                 self.Behave()
                 self.__rate.sleep()
@@ -441,7 +476,7 @@ class NavSelector :
                 pass
             elif choice == 10:
                 goalName : str = input("Please enter your goal name: ")
-                strGoal : str = input("Please enter your coor (x y w) without (): ")
+                strGoal : str = input("Please enter your coord (x y w) without (): ")
                 coords = [float(x) for x in strGoal.split()]
                 if len(coords) == 3:
                     self.AddGoal(coords[0], coords[1], 0.0, coords[2], goalName)
