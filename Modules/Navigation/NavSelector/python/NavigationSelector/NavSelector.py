@@ -38,6 +38,7 @@ class NavSelector :
         self.__rate =rospy.Rate(self.__hz)
         self.counter = 0
         self.__currentID = 0
+       self.__currentName = ""
         rospy.on_shutdown(self.closeConnectionToNode)
 
     def ConnectCallBack(self,callBackFunction) -> None :
@@ -79,11 +80,12 @@ class NavSelector :
         #peut-être, amener un status ici
 
         self.__currentID = pose.id.desire_id
+        self.__currentName = pose.name
         print("Goal was received sending back a response")
         p, q = pose.pose.position, pose.pose.orientation        
         x, y, z = p.x, p.y, p.z
         w = q.z # quarternion2euler(q).z
-        self.AddGoalNav(NavGoal(x, y, z, w, "NoName"))
+        self.AddGoalNav(NavGoal(x, y, z, w, self.__currentName))
 
     def AddGoal(self, goalX : float, goalY : float, goalZ : float, goalOri : float, name : str) -> None :
         nav_goal = NavGoal(goalX, goalY, goalZ, goalOri, name)
@@ -176,7 +178,9 @@ class NavSelector :
             self.__OnNavGoalSuccess()
         else :
             self.__OnNavGoalFail(NAVGOALFAILED,endState)
-        self.__controlHead(-0.5236)
+
+        pitch, yaw = self.__defineOrientationHead(self.GetCurrentGoal().GetName())
+        self.__controlHead(pitch, yaw)
         
         # Informe HBBA
         self.__SendResponseToHBBA(self.__currentID, success)
@@ -249,6 +253,25 @@ class NavSelector :
                 self.__srv_get_plan = rospy.ServiceProxy(srv_name_get_plan, GetPlan)
         except rospy.ServiceException as src_exc:
             print(f"Service {srv_name_get_plan} ne repond pas pcq {src_exc}")
+
+    def __defineOrientationHead(self, name:str="") -> float, float:
+        """
+            return pitch:float, yaw:float
+        """
+        pitch:float =0.
+        yaw:float   =0.
+                    
+        if(name == "Accueil"):
+            pitch   =0.
+            yaw     =0.
+        elif(name == "Table"):
+            pitch   =-0.2618
+            yaw     =-0.2618
+        elif(name == "Kitchen"):
+            pitch   =-0.5236
+            yaw     =-0.0
+
+        return pitch, yaw
 
     def __controlHead(self, pitch:float=0, yaw:float=0) -> None:
         """
