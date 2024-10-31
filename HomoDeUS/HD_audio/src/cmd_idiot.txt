@@ -1,0 +1,4 @@
+rostopic pub /Homodeus/Behaviour/Discuss/Request homodeus_msgs/HDDiscussionStarted "{id: {desire_id: 1}, message: {data: 'Bonjour'}}"
+
+rostopic echo /Homodeus/Behaviour/Discuss/Response
+
