@@ -28,14 +28,23 @@ void AccueillirClient::VisionSubscriberCallBack(const homodeus_msgs::ObjectsDete
     {
         if(detected_object.header.frame_id.find("person") != std::string::npos)
         {
-            Person = true;
-            if(TimeDelay > 2)
-            {
-                TimeDelay = 0;
-                m_PerceptionList[0] = true;
-                VerifyCondition();
-                hasDone = true;
-                return;
+            geometry_msgs::Point point = detected_object.pose.position;
+            float min_x = 7.50f;
+            float max_x = 8.00f;
+            float min_y = 6.75f;
+            float max_y = 7.25f;
+
+
+            if (min_x < point.x < max_x && min_y < point.y < max_y) {
+                Person = true;
+                if(TimeDelay > 2)
+                {
+                    TimeDelay = 0;
+                    m_PerceptionList[0] = true;
+                    VerifyCondition();
+                    hasDone = true;
+                    return;
+                }
             }
         }
     }
