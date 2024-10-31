@@ -22,7 +22,6 @@ AccueillirClient::AccueillirClient(const std::map<std::string, bool>& subscriber
 void AccueillirClient::VisionSubscriberCallBack(const homodeus_msgs::ObjectsDetection& detected)
 {
     bool Person = false;
-    static bool hasDone = false;
     if (hasDone) return;
     for (const homodeus_msgs::ObjectDetection& detected_object : detected.objects)
     {
@@ -80,6 +79,7 @@ void AccueillirClient::StateMachine()
     {
         ROS_INFO_STREAM("Perception was : " << m_PerceptionList[0]);
         perception = false;
+        hasDone = false;
         ROS_INFO_STREAM("Perception now is  : " << m_PerceptionList[0]);
     }
 }
