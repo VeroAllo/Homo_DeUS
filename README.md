@@ -4,7 +4,7 @@ Preuve de conception de l'architecture HBBA sur un robot TIAGo
 ## Auteurs
 |  Prénom et Nom   |    Alias   |
 |------------------|----------|
-| - | tiblond |
+| Alexandre Bernier | tiblond |
 | - | PhilV3 |
 | - | jeromegagne |
 | - | TKeita07 |
