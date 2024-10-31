@@ -24,6 +24,8 @@ public:
     void VerifyCondition();
     void StateMachine();
     HDStrategyMotivationInterface strategy_motivation_interface_;
+private:
+    bool hasDone = false;
 };
 
 class PrendreCommande : public Motivation
