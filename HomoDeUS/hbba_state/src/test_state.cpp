@@ -94,11 +94,8 @@ void startNode(ros::NodeHandle& nodeHandle)
     );
    */
     vector<unique_ptr<Motivation>> motivations;
-
-    motivations.emplace_back(createAccueillirMotivation(nodeHandle,desireSet,&stateManager));
-    motivations.emplace_back(createPrendreCommande(nodeHandle,desireSet,&stateManager));
+    motivations.emplace_back(createPrendreCommande(nodeHandle, desireSet, &stateManager));
     motivations.emplace_back(createChercherCommande(nodeHandle, desireSet, &stateManager));
-    stateManager.switchTo<IdleState>(0);
 
     ros::spin();
 }

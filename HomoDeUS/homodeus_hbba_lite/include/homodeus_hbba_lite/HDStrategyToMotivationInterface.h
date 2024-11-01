@@ -6,6 +6,7 @@
 
 class HDStrategyMotivationInterface {
 public:
+    HDStrategyMotivationInterface(){};
     HDStrategyMotivationInterface(ros::NodeHandle& nodeHandle);
 
     void publishMessage(const std::string& data);

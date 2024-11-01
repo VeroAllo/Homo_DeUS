@@ -7,8 +7,10 @@
 #include <homodeus_msgs/ObjectDetection.h>
 #include <homodeus_msgs/ObjectsDetection.h>
 #include <std_msgs/Time.h>
-#include "HDStrategyToMotivationInterface.h"
+#include <homodeus_hbba_lite/HDStrategyToMotivationInterface.h>
 #include <ros/timer.h>
+#include <typeindex>
+#include <homodeus_hbba_lite/HDStateIndexManager.h>
 
 class AccueillirClient : public Motivation
 {
@@ -16,7 +18,7 @@ protected:
     std::vector<bool> m_PerceptionList{};
     std::vector<ros::Subscriber> m_SubscriberList{};
     StateManager* m_StateManager;
-    ros::NodeHandle& nodeHandle;
+    ros::NodeHandle nodeHandle;
     std::shared_ptr<DesireSet> desireSet;
     int TimeDelay = 0;
 public:
@@ -26,6 +28,7 @@ public:
     void VerifyCondition();
     void StateMachine();
     HDStrategyMotivationInterface strategy_motivation_interface_;
+    HDStateIndexManager instance();
 private:
     bool hasDone = false;
 };
@@ -47,6 +50,7 @@ public:
     void VerifyCondition(int table);
     void StateMachine(int tb);
     HDStrategyMotivationInterface strategy_motivation_interface_;
+    HDStateIndexManager instance();
 };
 
 class ChercherCommande : public Motivation
@@ -55,7 +59,7 @@ protected:
     std::vector<bool> m_PerceptionList{};
     std::vector<ros::Subscriber> m_SubscriberList{};
     StateManager* m_StateManager;
-    ros::NodeHandle& nodeHandle;
+    ros::NodeHandle nodeHandle;
     std::shared_ptr<DesireSet> desireSet;
 public:
     ChercherCommande(const std::map<std::string, bool>& subscriberTopicList, ros::NodeHandle& nodeHandle, std::vector<bool> PerceptionList, std::shared_ptr<DesireSet> desireSet, StateManager* stateManager);
@@ -63,6 +67,7 @@ public:
     void VerifyCondition(std::string commande);
     void StateMachine(std::string commande);
     HDStrategyMotivationInterface strategy_motivation_interface_;
+    HDStateIndexManager instance();
 };
 
 std::unique_ptr<Motivation> createAccueillirMotivation(ros::NodeHandle& nodeHandle, std::shared_ptr<DesireSet> desireSet, StateManager* stateManager);
