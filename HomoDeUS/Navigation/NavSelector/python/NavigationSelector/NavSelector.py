@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+# pal_navigation_cfg_public/pal_navigation_cfg_tiago/config/base/teb/local_planner.yaml
+#  pour la precision de l'orientation (yaw_goal_tolerance)
+
+from time import sleep
 
 from control_msgs.msg import FollowJointTrajectoryAction, FollowJointTrajectoryGoal
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
@@ -7,7 +11,10 @@ from homodeus_library.homodeus_precomp import *
 from NavigationSelector.NavGoalDeserializer import NavGoalDeserializer
 from NavigationSelector.NavGoal import NavGoal
 from homodeus_msgs.msg import *
-from time import sleep
+
+BEHAVIOR_GOTO_SUBTOPIC = "/Homodeus/Behaviour/Goto"
+BEHAVIOR_ROTATE_SUBTOPIC = "/Homodeus/Behaviour/TurnAround"
+PERCEPTION_ROBOT_POSE_TOPIC = "/Homodeus/Perception/RobotPose"
 
 class NavSelector :
     __instance = None
@@ -18,7 +25,8 @@ class NavSelector :
             cls.__instance = super(NavSelector, cls).__new__(cls)
         return cls.__instance
 
-    def __init__(self, goalList : List[NavGoal] = [], currentGoal : NavGoal = None, topic : String = "Homodeus/Behaviour/Goto", filename : String = None) -> None:
+    def __init__(self, goalList : List[NavGoal] = [], currentGoal : NavGoal = None, 
+                 topic : String = BEHAVIOR_GOTO_SUBTOPIC, filename : String = None) -> None:
         self.__currentGoal : NavGoal = currentGoal
         self.__goalSent : NavGoal  = None
         self.__goalList : List[NavGoal] = goalList
@@ -32,6 +40,7 @@ class NavSelector :
         self.__rate =rospy.Rate(self.__hz)
         self.counter = 0
         self.__currentID = 0
+       self.__currentName = ""
         rospy.on_shutdown(self.closeConnectionToNode)
 
     def ConnectCallBack(self,callBackFunction) -> None :
@@ -58,25 +67,27 @@ class NavSelector :
             self.SetCurrentGoal(self.GetGoalList()[index_goal])
 
     def AddGoalNav(self, goal : NavGoal) -> None :
-        # A titre informatif, pourrait-etre utilise comme info a retransmettre a HBBA
+        # Si but assigne est impossible d'atteindre, annuler le but et informer qui de droit
         if self.ImpossibleGoal(goal):
             print(f"Impossible go to goal ({goal.GetPoint()}) from robot's pose")
-
-        if self.__currentGoal is None :
-            self.__currentGoal = goal
-        else :
-            self.__goalList.append(goal)
+            # self.__SendResponseToHBBA(self.__currentID, GoalStatus.REJECTED)
+        else:
+            if self.__currentGoal is None :
+                self.__currentGoal = goal
+            else :
+                self.__goalList.append(goal)
+                print(f"Nombre de goal dans la liste : {len(self.__goalList)}")
 
     def AddGoalPose(self, pose : HDPose) -> None :
         #peut-être, amener un status ici
 
         self.__currentID = pose.id.desire_id
+        self.__currentName = pose.name
         print("Goal was received sending back a response")
         p, q = pose.pose.position, pose.pose.orientation        
         x, y, z = p.x, p.y, p.z
         w = q.z # quarternion2euler(q).z
-        self.AddGoalNav(NavGoal(x, y, z, w, "NoName"))
-        print(f"Nombre de goal dans la liste : {len(self.__goalList) + 1}")
+        self.AddGoalNav(NavGoal(x, y, z, w, self.__currentName))
 
     def AddGoal(self, goalX : float, goalY : float, goalZ : float, goalOri : float, name : str) -> None :
         nav_goal = NavGoal(goalX, goalY, goalZ, goalOri, name)
@@ -169,12 +180,12 @@ class NavSelector :
             self.__OnNavGoalSuccess()
         else :
             self.__OnNavGoalFail(NAVGOALFAILED,endState)
-        self.__controlHead(-0.5236)
+
+        pitch, yaw = self.__defineOrientationHead(self.GetCurrentGoal().GetName())
+        self.__controlHead(pitch, yaw)
         
-        response : HDResponse = HDResponse()
-        response.id.desire_id = self.__currentID
-        response.result = success
-        self.__publisher.publish(response)
+        # Informe HBBA
+        self.__SendResponseToHBBA(self.__currentID, success)
 
         self.RemoveCurrentGoal()
         self.__goalSent = None
@@ -196,10 +207,10 @@ class NavSelector :
                 hdInfo("Navigation Selector - No unblocked task left to select, throwing event to the controller")
                 self.__OnEvent(NOUNBLOCKEDNAVGOAL)
             elif self.GetCurrentGoal() is None and len(self.GetGoalList()) > 0 :
+                self.RemoveCurrentGoal()
+            elif self.GetCurrentGoal() is None and len(self.GetGoalList()) == 0 :
                 hdInfo("Navigation Selector - No tasks left to select, throwing event to the controller")
                 self.__OnEvent(NONAVGOALREMAINING)
-            elif self.GetCurrentGoal() is None and len(self.GetGoalList()) == 0 :
-                self.RemoveCurrentGoal()
 
     def __display_menu(self) -> None:
         #system("clear")
@@ -245,6 +256,25 @@ class NavSelector :
         except rospy.ServiceException as src_exc:
             print(f"Service {srv_name_get_plan} ne repond pas pcq {src_exc}")
 
+    def __defineOrientationHead(self, name:str="") -> float, float:
+        """
+            return pitch:float, yaw:float
+        """
+        pitch:float =0.
+        yaw:float   =0.
+                    
+        if(name == "Accueil"):
+            pitch   =0.
+            yaw     =0.
+        elif(name == "Table"):
+            pitch   =-0.2618
+            yaw     =-0.2618
+        elif(name == "Kitchen"):
+            pitch   =-0.5236
+            yaw     =-0.0
+
+        return pitch, yaw
+
     def __controlHead(self, pitch:float=0, yaw:float=0) -> None:
         """
             https://docs.ros.org/en/api/control_msgs/html/index-msg.html
@@ -266,7 +296,20 @@ class NavSelector :
         head_follow_trajectory_goal.trajectory = head_trajectory
 
         self.head_action_client.send_goal_and_wait(head_follow_trajectory_goal, rospy.Duration(3))
-        sleep(3)
+        sleep(1)
+
+    # Private Functions Topics ROS
+    def __SendResponseToHBBA(self, id: int, value: int) -> None:
+        response : HDResponse = HDResponse()
+        response.id.desire_id = id
+        response.result = value
+        self.__goto_response_pub.publish(response)
+
+    def __SendStatusToHBBA(self, id: int, value: int) -> None:
+        status : HDStatus = HDStatus()
+        status.id.desire_id = id
+        status.status = value
+        self.__goto_status_pub.publish(status)
 
     def initConnectionToNode(self) -> None :
         self.__publisher = rospy.Publisher(self.__topic+"/Response", HDResponse, queue_size = 10,  latch = False)
@@ -290,6 +333,8 @@ class NavSelector :
         self.__goalList.clear()
         if self.client.get_state() == GoalStatus.ACTIVE :
             self.client.cancel_goal()
+        if self.head_action_client.get_state() == GoalStatus.ACTIVE :
+            self.head_action_client.cancel_goal()
         self.__currentGoal = None
         self.__publisher.unregister()
         self.__subscriber.unregister()
@@ -345,8 +390,8 @@ class NavSelector :
         # Perimetre autour ou le robot peut aller (zone tampon)
         request_plan.tolerance = 0.0254
 
-        # response = self.__srv_get_plan(request_plan.start, request_plan.goal, request_plan.tolerance)
-        return False#len(response.plan.poses) == 0
+        response = self.__srv_get_plan(request_plan.start, request_plan.goal, request_plan.tolerance)
+        return len(response.plan.poses) == 0
 
     def __pose_cb(self, poseWCS) -> None:
         pose: Pose = poseWCS.pose.pose
