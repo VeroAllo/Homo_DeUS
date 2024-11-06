@@ -40,7 +40,7 @@ class NavSelector :
         self.__rate =rospy.Rate(self.__hz)
         self.counter = 0
         self.__currentID = 0
-       self.__currentName = ""
+        self.__currentName = ""
         rospy.on_shutdown(self.closeConnectionToNode)
 
     def ConnectCallBack(self,callBackFunction) -> None :
