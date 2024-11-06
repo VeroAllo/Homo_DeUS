@@ -186,11 +186,11 @@ void sendObjectDetection(ros::Time timestamp, std::string what_is,
   geometry_msgs::PoseStamped poseRelative;
   poseRelative.header.seq         = 0;
   poseRelative.header.stamp       = latestImageStamp;
-  poseRelative.header.frame_id    = "/head_1_link";
+  poseRelative.header.frame_id    = "/head_2_link";    // "/head_1_link";
 
-  poseRelative.pose.position.x    =  point_3d.z;   // distance objet-camera
-  poseRelative.pose.position.y    = -point_3d.x;   // offset x
-  poseRelative.pose.position.z    = -point_3d.y;   // offset y
+  poseRelative.pose.position.x    =  point_3d.z;       // distance objet-camera
+  poseRelative.pose.position.y    = -point_3d.y;       // -point_3d.x;       // offset x
+  poseRelative.pose.position.z    =  point_3d.x;       // -point_3d.y;       // offset y
   poseRelative.pose.orientation.x = q.getX();
   poseRelative.pose.orientation.y = q.getY();
   poseRelative.pose.orientation.z = q.getZ();
