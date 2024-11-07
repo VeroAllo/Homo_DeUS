@@ -48,7 +48,7 @@ void startNode(ros::NodeHandle& nodeHandle)
     ROS_INFO("Allo HBBA lite");
     StateManager stateManager;
 
-   /* type_index greetingStateType = type_index(typeid(GreetingState));
+    type_index greetingStateType = type_index(typeid(GreetingState));
     type_index discussStateType = type_index(typeid(DiscussionState));
     type_index takeStateType = type_index(typeid(TakeState));
     type_index kitchenStateType = type_index(typeid(GoToKitchenState));
@@ -92,7 +92,10 @@ void startNode(ros::NodeHandle& nodeHandle)
     stateManager.addState(2,
         make_unique<GoToTableState>(stateManager, desireSet, nodeHandle, idleStateType, 3)
     );
-   */
+
+    //stateManager.switchTo<IdleState>(0);
+    //stateManager.switchTo<IdleState>(1); /*Help vero*/
+
     vector<unique_ptr<Motivation>> motivations;
     motivations.emplace_back(createAccueillirMotivation(nodeHandle, desireSet, &stateManager));
     motivations.emplace_back(createPrendreCommande(nodeHandle, desireSet, &stateManager));
