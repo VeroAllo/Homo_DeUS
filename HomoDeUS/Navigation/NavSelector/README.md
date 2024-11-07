@@ -9,23 +9,39 @@ Exemple d'utilisation du module en simulation :
 4. Lancer la simulation
 5. Lancer le module en utilisant rosrun
 
-# NavSelector
+# NavSelector (singleton)
 
 # Class Variables
 
 ## Not currently used
 
-- staticTopic = "navigationTopic"
-- staticInterruptTopic = "navigationInterrupt"
+- BEHAVIOR_ROTATE_SUBTOPIC : str
+- PERCEPTION_ROBOT_POSE_TOPIC : str
+
+- __navGoalSerializer : NavGoalDeserializer
 
 ## Used at the moment
 
+### Public
+
+- counter : int
+
 ### Private
 
-- __goalList : List[NavGoal]
-- __currentGoal : NavGoal
+- __filename : str
+- __instance : NavSelector
+
 - __callBack = None (Supposed to be a Function)
+- __currentGoal : NavGoal
+- __currentID : int
 - __currentLocation : Tuple[Point,Quaternion]
+- __currentName : str
+- __goalList : List[NavGoal]
+- __goalSent : NavGoal
+- __hz : int
+- __isActive : bool
+- __rate : Rate
+- __topic : String
 
 # Class Methods
 
@@ -49,6 +65,7 @@ __init__(self, goalList : List[NavGoal] = [], currentGoal : NavGoal = None, topi
 | goalList | List[NavGoal] | [] | List of goal that were created before the class |
 | currentGoal | Navgoal | None | First goal that we want to force |
 | topic | String | None | The topic that we want to use [UNUSED FOR THE MOMENT] |
+| filename  | String | None | The filename of the json |
 
  
 
@@ -73,6 +90,16 @@ ConnectCallBack(self,callBackFunction) -> None
 | --- | --- | --- | --- |
 | callBackFunction | Function [Not enforced as I was not sure how to type it] | No default param | A CallBack function taking any function taking a parameter |
 
+### GetFilename
+
+```python
+GetFilename(self) -> str
+```
+
+### Function Explanation
+
+- Returns a copy of the filename
+
 ### GetGoalList
 
 ```python
@@ -93,6 +120,23 @@ GetCurrentGoal(self) -> NavGoal
 
 - Return the goal that will be processed
 
+### SetFilename
+
+```python
+SetFilename(self, filename : str) -> str
+```
+
+### Function Explanation
+
+- Sets the filename (json)
+- Returns a copy of filename
+
+### Parameters explanation
+
+| Parameter | Type | Default Value | Note |
+| --- | --- | --- | --- |
+| filename | str | No default value | The filename of the json |
+
 ### SetCurrentGoal
 
 ```python
@@ -102,7 +146,6 @@ SetCurrentGoal(self, goal : NavGoal) -> None
 ### Function Explanation
 
 - Sets the current goal to another one
-- Discards the current goal
 - Returns Nothing
 - [Maybe should add a boolean param to see if we want to keep the goal that we currently discard]
 
@@ -112,15 +155,33 @@ SetCurrentGoal(self, goal : NavGoal) -> None
 | --- | --- | --- | --- |
 | goal | NavGoal | No default value | The goal we wish to apply |
 
-### AddGoal
+### SetIndexCurrentGoal
 
 ```python
-AddGoal(self, goal : NavGoal) -> None
+SetIndexCurrentGoal(self, index_goal : int) -> None
 ```
 
 ### Function Explanation
 
-- Adds a goal to the goal list
+- Sets the current goal to another specific goal in the goalList
+- The specific goal is choice with a valid index
+- Returns Nothing
+
+### Parameters explanation
+
+| Parameter | Type | Default Value | Note |
+| --- | --- | --- | --- |
+| index_goal | int | No default value | The index goal we wish to apply |
+
+### AddGoalNav
+
+```python
+AddGoalNav(self, goal : NavGoal) -> None
+```
+
+### Function Explanation
+
+- Adds a goal to the goal list if it is reachable goal and currentGoal is empty
 - No special insertion, so the list is currently unsorted
 - Returns nothing
 
@@ -130,6 +191,25 @@ AddGoal(self, goal : NavGoal) -> None
 | --- | --- | --- | --- |
 | goal | NavGoal | No default value | The goal we wish to append to the goal list |
 
+### AddGoalPose
+
+```python
+AddGoalPose(self, pose : HDPose) -> None
+```
+
+### Function Explanation
+
+- Receive a goal from specific topic
+- ReConstructor the goal in format NavGoal
+- Pass the goal AddGoalNav function
+- Returns nothing
+
+### Parameters explanation
+
+| Parameter | Type | Default Value | Note |
+| --- | --- | --- | --- |
+| pose | HDPose | No default value | The goal receive of specific topic and we wish to append to the goal list |
+
 ### AddGoal
 
 ```python
@@ -138,9 +218,10 @@ AddGoal(self, goalX : float, goalY : float, goalZ : float, goalOri : float, name
 
 ### Function Explanation
 
-- Creates and adds a goal to the goalList
+- Creates a goal to the goalList
 - Create the goal using the parameters passed
-- For more precisions on the constructor, see [NavSelector](https://www.notion.so/NavSelector-cf58eced786747e793e5cd1ef96abaea?pvs=21)
+- - Pass the goal AddGoalNav function
+- For more precisions on the constructor, see [NavGoal](https://www.notion.so/NavSelector-cf58eced786747e793e5cd1ef96abaea?pvs=21)
 
 ### Parameters explanation
 
@@ -150,7 +231,7 @@ AddGoal(self, goalX : float, goalY : float, goalZ : float, goalOri : float, name
 | goalY | Float | No default value | The Y position of the goal |
 | goalZ  | Float | No default value | The Z position of the goal |
 | goalOri  | Float | No default value | The orientation of the goal |
-| name | Float | No default value | The name of the goal |
+| name | str | No default value | The name of the goal |
 
 ### ExtendGoals
 
@@ -169,6 +250,17 @@ ExtendGoals(self, goals : List[NavGoal]) -> None
 | --- | --- | --- | --- |
 | goals | List[NavGoal] | No default values | The list of goal we wish to add to the goal list |
 
+### CancelAllGoals
+
+```python
+CancelAllGoals(self) -> None
+```
+
+### Function Explanation
+
+- Cancel all goal send to actionClient _move_base_
+- Returns nothing
+
 ### RemoveGoal
 
 ```python
@@ -186,6 +278,17 @@ RemoveGoal(self, index : int) -> None
 | Parameter | Type | Default Value | Note |
 | --- | --- | --- | --- |
 | index | int | No default value | Index is currently not checked |
+
+### GetState
+
+```python
+GetState(self) -> GoalStatus
+```
+
+### Function Explanation
+
+- The values' state are in homodeus_precomp.py
+- Returns the state of actionClient _move_base_
 
 ### RemoveCurrentGoal
 
@@ -282,10 +385,9 @@ run(self) -> None
 
 ### Function Explanation
 
-- Initalize the actionlib Client
-- Waits for the server to be ready
-- Sets class variables to be valid (if available)
-- Display menu and calls functions upon selection
+- Initalize the connection to node (call `initConnectionToNode`)
+- Run in automatic mode (wait goal from HBBA) if `DEBUG_NAV_SELECTOR` is False
+- Display menu and calls functions upon selection else
 - Returns nothing
 
 ### Private Methods
@@ -346,10 +448,33 @@ Sort(self) -> None
 ### Function Explanation
 
 - Unimplemented for now
+- Should be private function
 - Should sort the goal list by key(s)
 - Returns nothing
 
-### __sendGoal
+### HandleNodeTaskEnd
+
+```python
+HandleNodeTaskEnd(self, endState, _) -> None
+```
+
+### Function Explanation
+
+- Call at the task end
+- Select the good __OnNavGoal depending on goal status
+- Set the head position after navigate
+- Send a response to applicant (in this case: HBBA)
+- Remove the current goal
+- Should be private function
+- Returns nothing
+
+### Parameters explanation
+
+| Parameter | Type | Default Value | Note |
+| --- | --- | --- | --- |
+| endState | Any | No default value | The value of end state |
+
+### SendGoal
 
 ```python
 __sendGoal(self) -> None
@@ -361,6 +486,7 @@ __sendGoal(self) -> None
     - Checks for coherence of the current goal then : updates the goal in the `MoveBaseGoal`, on completion of the goal we send events to the controller whether or not the goal has succeeded
     - If there are no current goal and unblocked task, will warn the controller
     - If there are no current goal and no goal in the goal list, will warn the controller
+- Should be private function
 - Returns nothing
 
 ### __display_menu
@@ -373,38 +499,171 @@ __display_menu(self) -> None:
 
 - Show the debug menu with options to select
 
-### __OnEvent
+### initSrvGetPlan
 
 ```python
-__OnEvent(self, eventContent) -> None
+initSrvGetPlan(self) -> None
 ```
 
 ### Function Explanation
 
-- Sends an event to the controller using the callBack that is connected, prints that an event was sent
-- Won’t do anything if the eventContent is None and if we don’t have a current goal [Should still be the same as this function is called *before* the goal is changed]
+- Initialize the connection with service `make_plan`
+- Should be a private function
+- Returns nothing
+
+### __defineOrientationHead
+
+```python
+__defineOrientationHead(self, name:str="") -> float, float
+```
+
+### Function Explanation
+
+- Select pitch and yaw for orientation head
+- Selection is make with name's goal receive
+- Returns pitch and yaw
+
+### Parameters explanation
+
+| Parameter | Type | Default Value | Note |
+| --- | --- | --- | --- |
+| name | str | Empty string | The goal name receive from sender |
+
+### __controlHead
+
+```python
+__controlHead(self, pitch:float=0, yaw:float=0) -> None
+```
+
+### Function Explanation
+
+- Construct the head trajectory
+- Send the trajectory and wait
 - Returns nothing
 
 ### Parameters explanation
 
 | Parameter | Type | Default Value | Note |
 | --- | --- | --- | --- |
-| eventContent | Any | No default value | The content that we want to transmit to the controller |
+| pitch | float | 0 | Lateral axis [-0.5, 0.0] |
+| yaw | float | 0 | Vertical axis [-0.5, 0.5] |
 
-### __OnEvent
+### __SendResponseToHBBA
 
 ```python
-__OnEvent(self, eventContent) -> None
+__SendResponseToHBBA(self, id: int, value: int) -> None
 ```
 
 ### Function Explanation
 
-- Sends an event to the controller using the callBack that is connected, prints that an event was sent
-- Won’t do anything if the eventContent is None and if we don’t have a current goal [Should still be the same as this function is called *before* the goal is changed]
+- Publish response to HBBA at the end execution goal
 - Returns nothing
 
 ### Parameters explanation
 
 | Parameter | Type | Default Value | Note |
 | --- | --- | --- | --- |
-| eventContent | Any | No default value | The content that we want to transmit to the controller |
+| id | int | No default value | Id receive in the resquest goal |
+| value | int | No default | End statut from resquet goal |
+
+### __SendStatusToHBBA
+
+```python
+__SendStatusToHBBA(self, id: int, value: int) -> None
+```
+
+### Function Explanation
+
+- Publish status to HBBA during execution goal
+- Returns nothing
+
+### Parameters explanation
+
+| Parameter | Type | Default Value | Note |
+| --- | --- | --- | --- |
+| id | int | No default value | Id receive in the resquest goal |
+| value | int | No default | Current statut from resquet goal |
+
+### initConnectionToNode
+
+```python
+initConnectionToNode(self) -> None
+```
+
+### Function Explanation
+
+- Initialize the ROS Node (publish, subscrib topic, action_clients)
+- Should be a private function
+- Returns nothing
+
+### closeConnectionToNode
+
+```python
+closeConnectionToNode(self) -> None
+```
+
+### Function Explanation
+
+- Clear the goat list
+- Cancel the current goals
+- Release the ROS resources (publish, subscrib topic, action_clients)
+- Should be a private function
+- Returns nothing
+
+### RelocateItselfInMap
+
+```python
+RelocateItselfInMap(self) -> None
+```
+
+### ClearMap
+
+```python
+ClearMap(self) -> None
+```
+
+### ImpossibleGoal
+
+```python
+ImpossibleGoal(self, nav_goal: NavGoal) -> bool
+```
+
+### Function Explanation
+
+- Valid the resquet goal is reachable
+- Should be a private function
+- Returns True if it is not, False it is
+
+| Parameter | Type | Default Value | Note |
+| --- | --- | --- | --- |
+| nav_goal | NavGoal | No default value | The resquest goal to valid |
+
+### IThinkIKnowWhereIAm
+
+```python
+IThinkIKnowWhereIAm(self) -> bool
+```
+
+### LoadPreDefNavGoal
+
+```python
+LoadPreDefNavGoal(self) -> None
+```
+
+### Function Explanation
+
+- Load predefined NavGoal from filename json
+- Should be a private function
+- Returns nothing
+
+### Behave
+
+```python
+Behave(self)
+```
+
+### Function Explanation
+
+- Call `SendGoal` if currentGoal is not empty and `goalSent` is empty 
+- Should be a private function
+- Returns nothing
