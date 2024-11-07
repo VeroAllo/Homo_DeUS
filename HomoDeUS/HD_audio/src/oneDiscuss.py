@@ -17,8 +17,11 @@ from hdTTS import hdTTS
 from homodeus_msgs.msg import HDResponse, HDDiscussionStarted, HDStatus
 
 class AudioRosDiscuss:
-    def __init__(self, tts_type:str):
+    def __init__(self, tts_type:str, lang:str):
         self.tts_type = tts_type
+        self.desire_id = 1
+        self.lang = lang
+        self.message_history = self.get_message_history(lang)
 
 
         self.audio_queue = queue.Queue()
@@ -31,18 +34,32 @@ class AudioRosDiscuss:
         else:
             self.__sound_file:str = "response.mp3"
         
-        self.message_history = [
-            {"role": "system", "content": """
-            You are a helpful assistant and restaurant server. Your job is to take orders, answer questions about the menu, and provide recommendations. 
-            You should be polite, friendly, and professional at all times. It is very important to ask the user to confirm his choice. Always respond in english. Here are some specific instructions:
-            0. the restaurant is the Tiagoh Bistro.
-            2. If the customer asks for recommendations, suggest one of the item in the menu.
-            3. The menu only have 3 items Dr. Pepper, Coke, and Sprite
-            4. Confirm the order before ending the conversation.
-            5. Thank the customer and wish them a pleasant meal.
-            """}
-        ]
-        openai.api_key = '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'  # Assurez-vous que l'API key est définie ici
+        def get_message_history(self, lang):
+            if lang == 'fr':
+                return [
+                    {"role": "system", "content": """
+                    Vous êtes un assistant serviable et serveur de restaurant. Votre travail consiste à prendre des commandes, répondre aux questions sur le menu et fournir des recommandations.
+                    Vous devez être poli, amical et professionnel en tout temps. Il est très important de demander à l'utilisateur de confirmer son choix. Répondez toujours en français. Voici quelques instructions spécifiques :
+                    0. Le restaurant est le Tiagoh Bistro.
+                    1. Si le client demande des recommandations, suggérez un des articles du menu.
+                    2. Le menu ne comporte que 3 articles : Pepsi, Coke et Soda.
+                    3. Confirmez la commande avant de terminer la conversation.
+                    4. Remerciez le client.
+                    """}
+                ]
+            else:
+                return [
+                    {"role": "system", "content": """
+                    You are a helpful assistant and restaurant server. Your job is to take orders, answer questions about the menu, and provide recommendations.
+                    You should be polite, friendly, and professional at all times. It is very important to ask the user to confirm his choice. Always respond in English. Here are some specific instructions:
+                    0. The restaurant is the Tiagoh Bistro.
+                    1. If the customer asks for recommendations, suggest one of the items on the menu.
+                    2. The menu only has 3 items: Pepsi, Coke, and Soda.
+                    3. Confirm the order before ending the conversation.
+                    4. Thank the customer.
+                    """}
+                ]
+        openai.api_key = ''  # Assurez-vous que l'API key est définie ici
 
     def __tts_prepare(self, text, lang):
         if self.tts_type == 'hdTTS':
@@ -58,16 +75,17 @@ class AudioRosDiscuss:
             os.system("mpg321 {self.__sound_file}".format(self=self))
 
     def __tts_talk(self, text, lang):
-        print("prepare")
         self.__tts_prepare(text, lang)
         self.is_playing.set()
-        print("playing set")
         self.__talk()
         self.is_playing.clear()
-        print("playing clear")
 
     def setup_audio(self):
-        self.vosk_model = vosk.Model('vosk-model-small-en-us-0.15')  # Spécifiez le chemin correct ici
+        if self.lang == 'fr':
+            self.vosk_model = vosk.Model('vosk-model-small-fr-0.22')  # Spécifiez le chemin correct ici
+        else:
+            self.vosk_model = vosk.Model('vosk-model-small-en-us-0.15') 
+          # Spécifiez le chemin correct ici
         self.recognizer = vosk.KaldiRecognizer(self.vosk_model, 16000)
         self.audio = pyaudio.PyAudio()
         self.stream = self.audio.open(format=pyaudio.paInt16, channels=1, rate=16000, input=True, frames_per_buffer=4096)
@@ -81,37 +99,29 @@ class AudioRosDiscuss:
 
     def handle_request(self, msg):
         print(f"Message reçu sur le topic /Homodeus/Behaviour/Discuss/Request : {msg.fistMessage.data}")
+        self.desire_id = msg.id.desire_id
         self.start_discussion(msg.fistMessage.data)
 
     def start_discussion(self, initial_message):
         self.stop_event.clear()
-        print("create producer")
         self.producer = threading.Thread(target=self.produce_audio)
-        print("create conso")
         self.consumer = threading.Thread(target=self.consume_audio, args=(initial_message,))
-        print("start producer")
         self.producer.start()
-        print("start conso")
         self.consumer.start()
 
     def produce_audio(self):
         while not self.stop_event.is_set():
             data = self.stream.read(4000, exception_on_overflow=False)
-            print("recording")
             if not self.is_playing.is_set() and self.recognizer.AcceptWaveform(data):
                 result = json.loads(self.recognizer.Result())
                 text = result['text']
-                print("text:", text)
                 if text:
-                    print("In queue")
                     self.audio_queue.put(text)
 
     def consume_audio(self, initial_message):
         self.message_history.append({"role": "user", "content": initial_message})
         while not self.stop_event.is_set():
-            print("pass the stop")
             try:
-                print("try to audio Q")
                 text = self.audio_queue.get(timeout=1)
             except queue.Empty:
                 continue
@@ -124,10 +134,10 @@ class AudioRosDiscuss:
                 )
                 response_text = response['choices'][0]['message']['content']
                 self.message_history.append({"role": "assistant", "content": response_text})
-                print("Retour de chat", response_text)
+
                 # Vérification de la confirmation de la commande dans la réponse de ChatGPT
                 print(f"Réponse de l'agent : {response_text}")  # Debugging line
-                if "confirm" in response_text.lower() or "your order of" in response_text.lower():
+                if self.check_confirmation(response_text.lower(), args.lang):
                     # Extraire l'item sélectionné
                     selected_item = self.extract_order_item(response_text)
 
@@ -135,20 +145,42 @@ class AudioRosDiscuss:
                 self.__tts_talk(response_text, 'en_US')
 
                 # Vérification de la fin de la conversation
-                if "thank you" in response_text.lower() or "have a pleasant meal" in response_text.lower():
+                if self.check_thank_you(response_text.lower(), args.lang):
                     if selected_item:
                         print(f"Commande confirmée : {selected_item}")
                         response_msg = HDResponse()
-                        response_msg.id.desire_id = 1
+                        response_msg.id.desire_id = 0
                         response_msg.message.data = "Commande :" + selected_item
                         self.response_pub.publish(response_msg)
                     print("Fin de la conversation")
                     self.stop_event.set()
                     break
 
+    def check_confirmation(response_text, lang):
+        if lang == 'fr':
+            phrases = ["confirmer", "votre commande de"]
+        else:
+            phrases = ["confirm", "your order of"]
+
+        for phrase in phrases:
+            if phrase in response_text.lower():
+                return True
+        return False
+
+    def check_thank_you(response_text, lang):
+        if lang == 'fr':
+            phrases = ["merci", "bon appétit"]
+        else:
+            phrases = ["thank you", "have a pleasant meal"]
+
+        for phrase in phrases:
+            if phrase in response_text.lower():
+                return True
+        return False
+
     def extract_order_item(self, response_text):
         # Extraire l'item de la commande à partir de la réponse de ChatGPT
-        items = ["Dr. Pepper", "Coke", "Sprite"]
+        items = ["Pepsi", "Coke", "Soda"]
         for item in items:
             if item.lower() in response_text.lower():
                 return item
@@ -159,15 +191,22 @@ def add_parser():
   parser.add_argument(
     '--tts',
     help='Set tts type',
-    default='hdTTS',
+    default='gTTS',
     type=str,
     choices=['gTTS', 'hdTTS'],
   )
+  parser.add_argument(
+        '--lang',
+        help='Set language',
+        default='fr',
+        type=str,
+        choices=['en', 'fr'],
+    )
   args, unknown = parser.parse_known_args()
   # unknown:=[__name, __log]
   return args
 
 if __name__ == "__main__":
     args = add_parser()
-    audio_ros_discuss = AudioRosDiscuss(args.tts)
+    audio_ros_discuss = AudioRosDiscuss(args.tts, args.lang)
     rospy.spin()
