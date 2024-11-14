@@ -319,6 +319,7 @@ class NavSelector :
         self.client = actionlib.SimpleActionClient("move_base", MoveBaseAction)
         if not self.client.wait_for_server(timeout=rospy.Duration(5)):
             print("MoveBaseAction isn't available !")
+        # ~<name>/obstacle_range
         
         action_name = "/head_controller/follow_joint_trajectory"
         self.head_action_client = actionlib.SimpleActionClient(action_name, FollowJointTrajectoryAction)
@@ -363,7 +364,7 @@ class NavSelector :
 
     def ClearMap(self) -> None:
         try:
-            srv_name_clear = '/move_base/clear_costmaps'
+            srv_name_clear = '/move_base/clear_costmaps' # Or /move_base/clear_unknown_space
             rospy.wait_for_service(srv_name_clear, timeout=rospy.Duration(5))
             if not hasattr(self, '__srv_clear'):
                 self.__srv_clear = rospy.ServiceProxy(srv_name_clear, Empty)
@@ -420,8 +421,9 @@ class NavSelector :
         #     print(goal)
 
     def Behave(self):
-        if self.counter % 10 == 0 :
-            ...#print("currently behaving")
+        if self.counter % (10 * self.__hz) == 0 :
+            if self.client.get_state() != GoalStatus.ACTIVE:
+                self.ClearMap()
 
         self.counter += 1
 
