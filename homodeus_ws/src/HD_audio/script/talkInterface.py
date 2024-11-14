@@ -5,7 +5,7 @@ import rospy
 from rospy import Publisher, Subscriber
 from homodeus_msgs.msg import HDResponse, HDTextToTalk, HDStatus
 from HD_audio.talk import AudioTalk
-
+import os
 
 class AudioRos():
     _TALK_REQUEST_TOPIC = "/Homodeus/Behaviour/Talk/Request"
@@ -14,23 +14,27 @@ class AudioRos():
     
 
     def __init__(self, tts, node_name: str = 'base_rotate') -> None:
-        print('1bateau')
+
+        base_path = os.path.dirname(os.path.abspath(__file__))
+
+        self.__sound_file = os.path.join(base_path,"../python/HD_audio/",'response.mp3')
         # Initialise the node
         rospy.init_node(node_name, anonymous=True)
-        print('2bateau')
+
         # Initialise parameters
         self.__talker: AudioTalk = AudioTalk(tts)
         self.__desireID: int        = 0
-        print('3bateau')
+
         # Subscriber
         self.__talk_request_sub: Subscriber = Subscriber(self._TALK_REQUEST_TOPIC, HDTextToTalk, self.__talk_request_subscriber_callback)
-        print('4bateau')
+
         # Publisher
         self.__talk_status_pub: Publisher = Publisher(self._TALK_STATUS_TOPIC, HDStatus, queue_size=1)
         self.__talk_response_pub: Publisher = Publisher(self._TALK_RESPONSE_TOPIC, HDResponse, queue_size=1)
 
+
         rospy.on_shutdown(self.__close_connection_node)
-        rospy.loginfo("Behavior Talk initialized")
+        rospy.loginfo("Behavior Talk node started and most likely executed")
     
 
     def __talk_request_subscriber_callback(self, msg: HDTextToTalk):
@@ -41,6 +45,11 @@ class AudioRos():
         rospy.loginfo("Request to talk received")
         self.__talker.talk(msg.message.data)
         rospy.loginfo("Request to talk finished")
+        if os.path.exists(self.__sound_file):
+            os.remove(self.__sound_file)
+            print(f"{self.__sound_file} has been deleted.")
+        else:
+            print(f"{self.__sound_file} does not exist.")
         response = HDResponse()
         response.id.desire_id = self.__desireID
         response.result = True

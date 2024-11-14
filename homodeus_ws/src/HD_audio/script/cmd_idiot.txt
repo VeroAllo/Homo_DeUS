@@ -1,4 +1,13 @@
-rostopic pub /Homodeus/Behaviour/Discuss/Request homodeus_msgs/HDDiscussionStarted "{id: {desire_id: 1}, message: {data: 'Bonjour'}}"
+rostopic pub /Homodeus/Behaviour/Talk/Request homodeus_msgs/HDTextToTalk "id:
+  desire_id: 0
+message:
+  data: 'Bonjour je suis Tiago, vous etes tous les bienvenu dans mon petit bistro'"
+
+rostopic pub /Homodeus/Behaviour/Discuss/Request homodeus_msgs/HDDiscussionStarted "id:
+  desire_id: 1
+fistMessage:
+  data: 'Ou suis je'
+running: false" 
+
 
 rostopic echo /Homodeus/Behaviour/Discuss/Response
-
