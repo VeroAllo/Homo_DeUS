@@ -1,16 +1,14 @@
-#!/usr/bin/env python
+import os
+import openai
 import argparse
 import json
 import vosk
-import openai
 import pyaudio
 import threading
 import queue
-import os
-from gtts import gTTS
-
 import rospy
 from std_msgs.msg import String
+from gtts import gTTS
 from HD_audio.hdTTS import hdTTS
 from homodeus_msgs.msg import HDResponse, HDDiscussionStarted, HDStatus
 
@@ -21,28 +19,32 @@ class AudioRosDiscuss:
         self.lang = lang
         self.message_history = self.get_message_history(lang)
 
-
         self.audio_queue = queue.Queue()
         self.is_playing = threading.Event()
         self.stop_event = threading.Event()
         self.setup_audio()
         self.setup_ros()
+        self.load_api_key()
+        base_path = os.path.dirname(os.path.abspath(__file__))
+        self.__sound_file = os.path.join(base_path,'response.mp3')
+        print("Le pathL", self.__sound_file)
         if self.tts_type == 'hdTTS':
             self.__tts = hdTTS()
-        else:
-            self.__sound_file:str = "/home/tiblond/Homo_DeUS/homodeus_ws/src/HD_audio/utils/response.mp3"
-        
+
+
     def get_message_history(self, lang):
         if lang == 'fr':
             return [
                 {"role": "system", "content": """
                 Vous êtes un assistant serviable et serveur de restaurant. Votre travail consiste à prendre des commandes, répondre aux questions sur le menu et fournir des recommandations.
-                Vous devez être poli, amical et professionnel en tout temps. Il est très important de demander à l'utilisateur de confirmer son choix. Répondez toujours en français. Voici quelques instructions spécifiques :
+                Vous devez être poli, amical et professionnel en tout temps. Il est primordial de demander à l'utilisateur de confirmer son choix. Répondez toujours en français et de manière concise. Voici quelques instructions spécifiques :
                 0. Le restaurant est le Tiagoh Bistro.
                 1. Si le client demande des recommandations, suggérez un des articles du menu.
                 2. Le menu ne comporte que 3 articles : Pepsi, Coke et Canada dry. Si tu enumere le menu il ne faut pas mettre de nombre devant les items.
                 3. Confirmez la commande avant de terminer la conversation.
                 4. Remerciez le client.
+                5. Le client ne peut commande qu'un seul item et n'a besoin de rien d'autre. 
+                6. Les réponses de l'assistant doivent être courtes et précises.
                 """}
             ]
         else:
@@ -57,7 +59,12 @@ class AudioRosDiscuss:
                 4. Thank the customer.
                 """}
             ]
-    openai.api_key = ''  # Assurez-vous que l'API key est définie ici
+
+    def load_api_key(self):
+        base_path = os.path.dirname(os.path.abspath(__file__))
+        secret_file_path = os.path.join(base_path, 'secret.txt')
+        with open(secret_file_path, 'r') as file:
+            openai.api_key = file.read().strip()
 
     def __tts_prepare(self, text, lang):
         if self.tts_type == 'hdTTS':
@@ -70,14 +77,15 @@ class AudioRosDiscuss:
         if self.tts_type == 'hdTTS':
             self.__tts.talk_blocking()
         else:
-            os.system("mpg321 /home/tiblond/Homo_DeUS/homodeus_ws/src/HD_audio/utils/response.mp3".format(self=self))
+            print(f"mpg321 {self.__sound_file}")
+
+            os.system(f"mpg321 {self.__sound_file}")
 
     def __tts_talk(self, text, lang):
         self.__tts_prepare(text, lang)
         self.is_playing.set()
         self.__talk()
         self.is_playing.clear()
-
 
     def setup_audio(self):
         base_path = os.path.dirname(os.path.abspath(__file__))
@@ -121,6 +129,21 @@ class AudioRosDiscuss:
 
     def consume_audio(self, initial_message):
         self.message_history.append({"role": "user", "content": initial_message})
+        print(f"Message de l'utilisateur init: {initial_message}")
+        
+        # Démarrer immédiatement la conversation avec ChatGPT
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=self.message_history
+        )
+        response_text = response['choices'][0]['message']['content']
+        self.message_history.append({"role": "assistant", "content": response_text})
+
+        if self.lang == 'fr':
+            self.__tts_talk(response_text, 'fr-CA')
+        else:
+            self.__tts_talk(response_text, 'en-US')
+
         while not self.stop_event.is_set():
             try:
                 text = self.audio_queue.get(timeout=1)
@@ -139,17 +162,17 @@ class AudioRosDiscuss:
 
                 # Vérification de la confirmation de la commande dans la réponse de ChatGPT
                 print(f"Réponse de l'agent : {response_text}")  # Debugging line
-                if self.check_confirmation(response_text.lower(), args.lang):
+                if self.check_confirmation(response_text.lower(), self.lang):
                     # Extraire l'item sélectionné
                     selected_item = self.extract_order_item(response_text)
 
-                # TODO, A valider si 'en_US' existe pour gTTS, car TtsAction est base sur RFC 3006
-                if self.lang== 'fr' :
+                if self.lang == 'fr':
                     self.__tts_talk(response_text, 'fr-CA')
-                else : 
+                else:
                     self.__tts_talk(response_text, 'en-US')
+
                 # Vérification de la fin de la conversation
-                if self.check_thank_you(response_text.lower(), args.lang):
+                if self.check_thank_you(response_text.lower(), self.lang):
                     if selected_item:
                         print(f"Commande confirmée : {selected_item}")
                         response_msg = HDResponse()
@@ -184,31 +207,31 @@ class AudioRosDiscuss:
 
     def extract_order_item(self, response_text):
         # Extraire l'item de la commande à partir de la réponse de ChatGPT
-        items = ["Pepsi", "Coke", "Soda"]
+        items = ["Pepsi", "Coke", "Canada dry"]
         for item in items:
             if item.lower() in response_text.lower():
                 return item
         return None
 
 def add_parser():
-  parser = argparse.ArgumentParser(description='OneDiscuss')
-  parser.add_argument(
-    '--tts',
-    help='Set tts type',
-    default='gTTS',
-    type=str,
-    choices=['gTTS', 'hdTTS'],
-  )
-  parser.add_argument(
+    parser = argparse.ArgumentParser(description='OneDiscuss')
+    parser.add_argument(
+        '--tts',
+        help='Set tts type',
+        default='gTTS',
+        type=str,
+        choices=['gTTS', 'hdTTS'],
+    )
+    parser.add_argument(
         '--lang',
         help='Set language',
         default='fr',
         type=str,
         choices=['en', 'fr'],
     )
-  args, unknown = parser.parse_known_args()
-  # unknown:=[__name, __log]
-  return args
+    args, unknown = parser.parse_known_args()
+    # unknown:=[__name, __log]
+    return args
 
 if __name__ == "__main__":
     args = add_parser()
