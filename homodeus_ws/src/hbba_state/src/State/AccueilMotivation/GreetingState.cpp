@@ -9,8 +9,8 @@ GreetingState::GreetingState(
     shared_ptr<DesireSet> desireSet,
     ros::NodeHandle& nodeHandle,
     std::type_index nextStateType,
-    int Intensite)
-    : TalkState(stateManager, desireSet, nodeHandle, type_index(typeid(GoToTableState)), Intensite)
+    int Intensite, std::string language)
+    : TalkState(stateManager, desireSet, nodeHandle, type_index(typeid(GoToTableState)), Intensite, language)
 {
 
 }
@@ -20,7 +20,13 @@ GreetingState::~GreetingState(){
 }
 
 string GreetingState::generateText(const string& parameter){
-    return "Greeting, would you please follow me.";
+    if (m_language == "en"){
+        return "Greeting, would you please follow me.";
+    }
+    else {
+        return "Bonjour, veuillez me suivre s'il vous plait.";
+    }
+    
 }
     
 

@@ -7,6 +7,8 @@
 #include "State/DropState.h"
 #include "State/GoToKitchenState.h"
 #include "State/commons/IdleState.h"
+#include "State/GoodbyeState.h"
+#include "State/GoToHomeState.h"
 
 #include <ros/ros.h>
 
@@ -56,8 +58,9 @@ void startNode(ros::NodeHandle& nodeHandle)
     type_index idleStateType = type_index(typeid(IdleState));
     type_index gotoAccueilStateType = type_index(typeid(GoToAccueilState));
     type_index gotoTableStateType = type_index(typeid(GoToTableState));
+    type_index gotoHomeStateType = type_index(typeid(GoToHomeState));
+    type_index goodbyeStateType = type_index(typeid(GoodbyeState));
     
-
 
     stateManager.addListStates(0,
         make_unique<IdleState>(stateManager, desireSet, nodeHandle, gotoAccueilStateType, 0)
@@ -66,7 +69,7 @@ void startNode(ros::NodeHandle& nodeHandle)
         make_unique<GoToAccueilState>(stateManager, desireSet, nodeHandle, greetingStateType, 1)
     );
     stateManager.addState(0,
-        make_unique<GreetingState>(stateManager, desireSet, nodeHandle, gotoTableStateType, 2)
+        make_unique<GreetingState>(stateManager, desireSet, nodeHandle, gotoTableStateType, 2, "en")
     );
     stateManager.addState(0,
         make_unique<GoToTableState>(stateManager, desireSet, nodeHandle, idleStateType, 3)
@@ -91,6 +94,15 @@ void startNode(ros::NodeHandle& nodeHandle)
     );
     stateManager.addState(2,
         make_unique<GoToTableState>(stateManager, desireSet, nodeHandle, idleStateType, 3)
+    );
+    stateManager.addState(2, 
+        make_unique<DropState>(stateManager, desireSet, nodeHandle, gotoHomeStateType, 4)
+    );
+    stateManager.addState(2, 
+        make_unique<GoToHomeState>(stateManager, desireSet, nodeHandle, goodbyeStateType, 5)
+    );
+    stateManager.addState(2, 
+        make_unique<GoodbyeState>(stateManager, desireSet, nodeHandle, idleStateType, 5, "en")
     );
 
     //stateManager.switchTo<IdleState>(0);

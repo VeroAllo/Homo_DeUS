@@ -13,13 +13,14 @@ public:
         std::shared_ptr<DesireSet> desireSet,
         ros::NodeHandle& nodeHandle,
         std::type_index nextStateType,
-        int Intensite);
+        int Intensite, std::string language);
     ~TalkState() override;
 
     DECLARE_NOT_COPYABLE(TalkState);
     DECLARE_NOT_MOVABLE(TalkState);
 
     void onDesireSetChanged(const std::vector<std::unique_ptr<Desire>>& _) override;
+    std::string m_language;
 
 protected:
     void enable(const std::string& parameter, const std::type_index& previousStageType) override;

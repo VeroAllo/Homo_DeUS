@@ -135,6 +135,8 @@ src/State/GoToState.cpp
 src/State/AccueilMotivation/GoToAccueilState.cpp
 src/State/GoToKitchenState.cpp
 src/State/commons/GoToTableState.cpp
+src/State/GoodbyeState.cpp
+src/State/GoToHomeState.cpp
 )
 
 ## Add cmake target dependencies of the library
@@ -160,7 +162,8 @@ add_executable(${PROJECT_NAME}_node
   src/State/TalkState.cpp
   src/StringUtils.cpp
   src/State/DropState.cpp
-  
+  src/State/GoodbyeState.cpp
+  src/State/GoToHomeState.cpp
 )
 
 ## Rename C++ executable without prefix
