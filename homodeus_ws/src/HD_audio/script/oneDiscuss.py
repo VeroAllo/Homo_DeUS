@@ -57,7 +57,7 @@ class AudioRosDiscuss:
                 4. Thank the customer.
                 """}
             ]
-    openai.api_key = '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'  # Assurez-vous que l'API key est définie ici
+    openai.api_key = ''  # Assurez-vous que l'API key est définie ici
 
     def __tts_prepare(self, text, lang):
         if self.tts_type == 'hdTTS':
