@@ -11,11 +11,12 @@ TalkState::TalkState(
     shared_ptr<DesireSet> desireSet,
     ros::NodeHandle& nodeHandle,
     type_index nextStateType,
-    int Intensite)
+    int Intensite, std::string language)
     : State(stateManager, desireSet, nodeHandle, nextStateType, Intensite),
     m_talkDesireId(MAX_DESIRE_ID)
 {
     m_desireSet->addObserver(this);
+    m_language = language;
 }
 
 TalkState::~TalkState()

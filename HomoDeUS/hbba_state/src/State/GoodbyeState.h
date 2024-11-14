@@ -1,21 +1,21 @@
-#ifndef HD_GREETING_STATE_H
-#define HD_GREETING_STATE_H
+#ifndef HD_GOODBYE_STATE_H
+#define HD_GOODBYE_STATE_H
 
-#include "../TalkState.h"
+#include "TalkState.h"
 
-class GreetingState : public TalkState
+class GoodbyeState : public TalkState
 {
 public :
-    GreetingState(
+    GoodbyeState(
         StateManager& stateManager,
         std::shared_ptr<DesireSet> desireSet,
         ros::NodeHandle& nodeHandle,
         std::type_index nextStateType,
         int Intensite, std::string language);
-    ~GreetingState() override;
+    ~GoodbyeState() override;
 
-    DECLARE_NOT_COPYABLE(GreetingState);
-    DECLARE_NOT_MOVABLE(GreetingState);
+    DECLARE_NOT_COPYABLE(GoodbyeState);
+    DECLARE_NOT_MOVABLE(GoodbyeState);
 
 protected:
     std::type_index type() const override;
@@ -24,9 +24,9 @@ protected:
    
 };
 
-inline std::type_index GreetingState::type() const
+inline std::type_index GoodbyeState::type() const
 {
-    return std::type_index(typeid(GreetingState));
+    return std::type_index(typeid(GoodbyeState));
 }
 
 #endif
