@@ -9,10 +9,11 @@
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 
 #include <moveit/move_group_interface/move_group_interface.h>
-// #include <moveit/planning_scene_interface/planning_scene_interface.h>
+#include <moveit/planning_scene_interface/planning_scene_interface.h>
 
 #include <tf/transform_broadcaster.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <moveit_msgs/CollisionObject.h>
 
 
 
@@ -43,11 +44,10 @@ class ArmInterface
         std::string _plannerId;
         std::vector<std::string> _jointsNames;
         moveit::planning_interface::MoveGroupInterface _moveGroup;
-        // moveit::planning_interface::PlanningSceneInterface _planningScene;
+        moveit::planning_interface::PlanningSceneInterface _planningScene;
 
         bool planTrajectory(moveit::planning_interface::MoveGroupInterface::Plan &plan);
         bool planTrajectoryJ(moveit::planning_interface::MoveGroupInterface::Plan &plan);
-        robot_state::RobotState getCurrentRobotState(planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_);
 
     public:
         ArmInterface();
@@ -59,6 +59,8 @@ class ArmInterface
         bool moveToCartesian(double x, double y, double z, double roll, double pitch, double yaw);
         bool moveToJoint(double torso, double j1, double j2, double j3, double j4, double j5, double j6, double j7);
         bool moveToGrasp(std::vector<moveit_msgs::Grasp> grasps);
+        void addObstacles(std::vector<moveit_msgs::CollisionObject> obstacles_list);
+        void cleanObstacles();
 };
 
 #endif

@@ -129,10 +129,6 @@ Outputs:        plan (type, moveit::planning_interface::MoveGroupInterface::Plan
 */
 bool ArmInterface::planTrajectory(moveit::planning_interface::MoveGroupInterface::Plan &plan)
 {
-    // planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_ = 
-    // std::make_shared<planning_scene_monitor::PlanningSceneMonitor>("robot_description"/*, tf_listener_*/);
-    // _moveGroup.setStartState(getCurrentRobotState(planning_scene_monitor_));
-
     ros::Duration(1.5).sleep();
     _moveGroup.setStartStateToCurrentState();
     _moveGroup.setPlanningTime(_planningTime);
@@ -342,14 +338,12 @@ bool ArmInterface::moveToJoint(double torso, double j1, double j2, double j3, do
     return true;
 }
 
+void ArmInterface::addObstacles(std::vector<moveit_msgs::CollisionObject> obstacles_list){
+    cleanObstacles();
+    _planningScene.applyCollisionObjects(obstacles_list);
+}
 
-const std::string PLANNING_SCENE_SERVICE = "get_planning_scene";
-robot_state::RobotState ArmInterface::getCurrentRobotState(planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_)
-{
-        // each time the current state is needed
-        planning_scene_monitor_->requestPlanningSceneState(PLANNING_SCENE_SERVICE);
-        planning_scene_monitor::LockedPlanningSceneRW ps(planning_scene_monitor_);
-        ps->getCurrentStateNonConst().update();
-        robot_state::RobotState current_state = ps->getCurrentState();
-        return current_state;
+void ArmInterface::cleanObstacles(){
+    std::vector<std::string> object_ids;
+    _planningScene.removeCollisionObjects(object_ids);
 }

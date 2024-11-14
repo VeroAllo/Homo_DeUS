@@ -74,9 +74,10 @@
 #include <pcl/segmentation/sac_segmentation.h>
 #include <cmath>
 
+#include <moveit_msgs/CollisionObject.h>
 #include <homodeus_msgs/BoundingBox.h>
 #include <homodeus_msgs/ObjectDetection.h>
-#include <homodeus_msgs/HDPose.h>
+#include <homodeus_msgs/PrehensionPos.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2_ros/transform_listener.h>
 
@@ -97,16 +98,24 @@ public:
 protected:
   
   void cloudCallback(const sensor_msgs::PointCloud2ConstPtr& cloud);
+  void planeCloudCallback(const sensor_msgs::PointCloud2ConstPtr& cloud);
 
-  void publishHDPose(const geometry_msgs::Pose& pose,
-                      const homodeus_msgs::DesireID& desireID);
+  void publishPose(const geometry_msgs::Pose& pose,
+                      const homodeus_msgs::DesireID& desireID,
+                      std::vector<moveit_msgs::CollisionObject> obstacles_list);
 
+  void publishDropPose(const homodeus_msgs::DesireID& desireID,
+                      std::vector<moveit_msgs::CollisionObject> obstacles_list);
   void publishPosestamped(const geometry_msgs::Pose& pose);
 
   void selectObject(geometry_msgs::Point pointBoundingBox, std::vector<geometry_msgs::Pose> pose_list);
   void objectDetectionCallback(const homodeus_msgs::ObjectDetection& objectDetectionMsg);
+  void dropObjectCallback(const homodeus_msgs::ObjectDetection& objectDetectionMsg);
   double calculateDistance(const geometry_msgs::Point& p1, const geometry_msgs::Point& p2);
- 
+  
+  moveit_msgs::CollisionObject createObstacles(float Longueur, float largeur, float Hauteur, pcl::PointXYZ position_OBB, geometry_msgs::Quaternion quaternion, int id);
+
+
   void start();
   void stop();
 
@@ -117,14 +126,21 @@ protected:
 
   // ROS interfaces
   ros::Subscriber _cloudSub;
+  ros::Subscriber _planCloudSub;
   ros::Subscriber _objectDetectionSub;
+  ros::Subscriber _objectDropSub;
   
-  ros::Publisher  _HDPosePub;
+  ros::Publisher  _prehension_pose;
+  ros::Publisher _prehension_drop_pose;
   ros::Publisher  _objectVisualisationPosePub;
   ros::Publisher  _objectVisualisationMarkerPub;
 
 
   std::vector<geometry_msgs::Pose> _objets_pos_list;
+  std::vector<moveit_msgs::CollisionObject> _obstacle_list;
+  std::vector<moveit_msgs::CollisionObject> _plan_list;
+  std::mutex obstacle_list_mutex;
+  
 };
 
 
@@ -139,7 +155,8 @@ ObjectDetector::ObjectDetector(ros::NodeHandle& nh,
 
   pnh.param<double>("rate", _rate, _rate);
 
-  _HDPosePub   = _pnh.advertise<homodeus_msgs::HDPose>("hd_pose", 1);
+  _prehension_pose   = _pnh.advertise<homodeus_msgs::PrehensionPos>("prehension_pose", 1);
+  _prehension_drop_pose = _pnh.advertise<homodeus_msgs::PrehensionPos>("prehension_drop_pose", 1);
   _objectVisualisationPosePub   = _pnh.advertise< geometry_msgs::PoseStamped >("object_pose", 1);
   _objectVisualisationMarkerPub = _pnh.advertise<visualization_msgs::MarkerArray>("object_marker", 1);
 }
@@ -149,9 +166,9 @@ ObjectDetector::~ObjectDetector()
 
 }
 
+
 void ObjectDetector::cloudCallback(const sensor_msgs::PointCloud2ConstPtr& cloud)
 {
-  _objets_pos_list.clear();
 
   pcl::PointCloud<pcl::PointXYZ>::Ptr pclCloud(new pcl::PointCloud<pcl::PointXYZ>);
   pcl::fromROSMsg(*cloud, *pclCloud);
@@ -173,7 +190,12 @@ void ObjectDetector::cloudCallback(const sensor_msgs::PointCloud2ConstPtr& cloud
   int taille = cluster_indices.size();
 
 
+  int id = 0;
   int j = 0;
+  std::lock_guard<std::mutex> lock(obstacle_list_mutex);
+
+  _objets_pos_list.clear();
+  _obstacle_list.clear();
   for (const auto& cluster : cluster_indices)
   {
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>);
@@ -219,15 +241,9 @@ void ObjectDetector::cloudCallback(const sensor_msgs::PointCloud2ConstPtr& cloud
     pose.orientation = quaternion;
 
     _objets_pos_list.push_back(pose);
+    _obstacle_list.push_back(createObstacles(Longueur, largeur, Hauteur, position_OBB, quaternion, id++));
 
     std::string string_var;
-
-    // Afficher la bounding box 3D 
-
-
-    // visualization_msgs::Marker clear_marker;
-    // clear_marker.action = visualization_msgs::Marker::DELETEALL;
-    // _objectVisualisationMarkerPub.publish(clear_marker);
 
     visualization_msgs::Marker marker;
     //marker.action = visualization_msgs::Marker::ADD;
@@ -398,18 +414,75 @@ void ObjectDetector::cloudCallback(const sensor_msgs::PointCloud2ConstPtr& cloud
   }
 }
 
-void ObjectDetector::publishHDPose(const geometry_msgs::Pose& pose, const homodeus_msgs::DesireID& desireID)
+void ObjectDetector::planeCloudCallback(const sensor_msgs::PointCloud2ConstPtr& cloud)
 {
-  if ( _HDPosePub.getNumSubscribers() > 0)
-  {
+  // On obtiens la table et le mur ensemble
+  // Faudrait juste la table
+}
 
+moveit_msgs::CollisionObject ObjectDetector::createObstacles(float Longueur, float largeur, float Hauteur, pcl::PointXYZ position_OBB, geometry_msgs::Quaternion quaternion, int id){
+
+  moveit_msgs::CollisionObject collision_object;
+  collision_object.header.frame_id = "base_link"; // or the relevant frame
+  collision_object.id = "object_" + std::to_string(id);
+
+  shape_msgs::SolidPrimitive primitive;
+  primitive.type = shape_msgs::SolidPrimitive::BOX;
+  primitive.dimensions.resize(3);
+  primitive.dimensions[0] = Longueur;
+  primitive.dimensions[1] = largeur;
+  primitive.dimensions[2] = Hauteur;
+
+  geometry_msgs::Pose box_pose;
+  box_pose.position.x = position_OBB.x;
+  box_pose.position.y = position_OBB.y;
+  box_pose.position.z = position_OBB.z;
+
+  box_pose.orientation.x = quaternion.x;
+  box_pose.orientation.y = quaternion.y;
+  box_pose.orientation.z = quaternion.z;
+  box_pose.orientation.w = quaternion.w;
+
+  collision_object.primitives.push_back(primitive);
+  collision_object.primitive_poses.push_back(box_pose);
+  collision_object.operation = collision_object.ADD;
+  return collision_object;
+}
+
+void ObjectDetector::publishPose(const geometry_msgs::Pose& pose, const homodeus_msgs::DesireID& desireID, std::vector<moveit_msgs::CollisionObject> obstacles_list)
+{
+  if ( _prehension_pose.getNumSubscribers() > 0)
+  {
     homodeus_msgs::HDPose hd_pos_msg;
     hd_pos_msg.id = desireID;
     hd_pos_msg.pose = pose;
     ROS_INFO_STREAM("HD POSE :" << hd_pos_msg);
-    _HDPosePub.publish(hd_pos_msg);
+
+    homodeus_msgs::PrehensionPos prehension_pos_msg;
+    prehension_pos_msg.hdpose = hd_pos_msg;
+    prehension_pos_msg.obstacles = obstacles_list;
+
+    _prehension_pose.publish(prehension_pos_msg);
   }
 }
+
+void ObjectDetector::publishDropPose(const homodeus_msgs::DesireID& desireID, std::vector<moveit_msgs::CollisionObject> obstacles_list)
+{
+  if ( _prehension_drop_pose.getNumSubscribers() > 0)
+  {
+    ROS_INFO_STREAM("DROP :");
+    homodeus_msgs::HDPose hd_pos_msg;
+    hd_pos_msg.id = desireID;
+
+    homodeus_msgs::PrehensionPos prehension_pos_msg;
+    prehension_pos_msg.hdpose = hd_pos_msg;
+    prehension_pos_msg.obstacles = obstacles_list;
+
+    _prehension_drop_pose.publish(prehension_pos_msg);
+  }
+}
+
+
 
 void ObjectDetector::publishPosestamped(const geometry_msgs::Pose& pose)
 {
@@ -426,7 +499,8 @@ void ObjectDetector::publishPosestamped(const geometry_msgs::Pose& pose)
 
 void ObjectDetector::objectDetectionCallback(const homodeus_msgs::ObjectDetection& objectDetectionMsg) {
 
-  ROS_INFO_STREAM("ObjectDetectionMSG :" << objectDetectionMsg);
+  // ROS_INFO_STREAM("ObjectDetectionMSG :" << objectDetectionMsg);
+  ROS_INFO_STREAM("ObjectDetectionMSG RECEIVED");
   geometry_msgs::Pose pose = objectDetectionMsg.pose;
   geometry_msgs::PointStamped point_in_map;
   point_in_map.header = objectDetectionMsg.header;
@@ -441,27 +515,45 @@ void ObjectDetector::objectDetectionCallback(const homodeus_msgs::ObjectDetectio
   geometry_msgs::PointStamped point_in_base_link;
   tf2::doTransform(point_in_map, point_in_base_link, transformStamped);
 
+  std::lock_guard<std::mutex> lock(obstacle_list_mutex);
+
+  ROS_INFO_STREAM("TRANSFORMED DONE");
   // Select Object
   double small_dist = 999999999; 
 
   geometry_msgs::Pose pose_to_grasp;
-  // pose_to_grasp.position =  point_in_base_link.point;
-  // pose_to_grasp.orientation.x = 0;
-  // pose_to_grasp.orientation.y = 0;
-  // pose_to_grasp.orientation.z = 0;
-  // pose_to_grasp.orientation.w = 1;
+
+  int idx = 0;
+  int i = 0;
   for (geometry_msgs::Pose poseTemp : _objets_pos_list){
     double dist = calculateDistance(poseTemp.position, point_in_base_link.point);
     if (dist < small_dist) {
       small_dist = dist;
       pose_to_grasp = poseTemp;
+      idx = i;
     }
+    i++;
   }
   // pose_to_grasp.position.z -= 0.022;
   pose_to_grasp.position.z += 0.04;
+  
+  std::vector<moveit_msgs::CollisionObject> obstacles_copy = _obstacle_list;
+  obstacles_copy.erase(obstacles_copy.begin() + idx);
 
-  publishHDPose(pose_to_grasp, objectDetectionMsg.id);  
+  ROS_INFO_STREAM("GOTO PUB");
+  publishPose(pose_to_grasp, objectDetectionMsg.id, obstacles_copy);  
   publishPosestamped(pose_to_grasp);
+  // publishDropPose(objectDetectionMsg.id, obstacles_copy);
+}
+void ObjectDetector::dropObjectCallback(const homodeus_msgs::ObjectDetection& objectDetectionMsg) {
+  ROS_INFO_STREAM("ObjectDeopMSG RECEIVED");
+
+  std::lock_guard<std::mutex> lock(obstacle_list_mutex);
+
+  std::vector<moveit_msgs::CollisionObject> obstacles_copy = _obstacle_list;
+
+  ROS_INFO_STREAM("DROP PUB");
+  publishDropPose(objectDetectionMsg.id, obstacles_copy);
 }
 
 double ObjectDetector::calculateDistance(const geometry_msgs::Point& p1, const geometry_msgs::Point& p2) {
@@ -474,16 +566,22 @@ double ObjectDetector::calculateDistance(const geometry_msgs::Point& p1, const g
 void ObjectDetector::start()
 {
   _cloudSub = _nh.subscribe("cloud", 1, &ObjectDetector::cloudCallback, this);
-
+  _planCloudSub = _nh.subscribe("plane_cloud", 1, &ObjectDetector::planeCloudCallback, this);
   // _objectDetectionSub = _nh.subscribe("/Homodeus/Behaviour/Take/Request", 1, &ObjectDetector::objectDetectionCallback, this);
   _objectDetectionSub = _nh.subscribe("/Homodeus/Perception/Detect", 1, &ObjectDetector::objectDetectionCallback, this);
+
+  _objectDropSub = _nh.subscribe("/Homodeus/Behaviour/Drop/Request", 1, &ObjectDetector::dropObjectCallback, this);
+  
+  
   _enabled = true;
 }
 
 void ObjectDetector::stop()
 {
   _cloudSub.shutdown();
+  _planCloudSub.shutdown();
   _objectDetectionSub.shutdown();
+  _objectDropSub.shutdown();
   _enabled = false;
 }
 
@@ -495,7 +593,8 @@ void ObjectDetector::run()
 
   while ( ros::ok() )
   {
-    bool anySubscriber = _HDPosePub.getNumSubscribers() > 0 ||
+    bool anySubscriber = _prehension_pose.getNumSubscribers() > 0 ||
+                         _prehension_drop_pose.getNumSubscribers() > 0 ||
                          _objectVisualisationPosePub.getNumSubscribers() > 0 ||
                          _objectVisualisationMarkerPub.getNumSubscribers() > 0;
 

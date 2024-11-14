@@ -8,8 +8,9 @@ hac("/head_controller/follow_joint_trajectory", true)
 {
     ROS_INFO("Node init strated");
 
-    pick_pose_sub = nh.subscribe("/object_detector/hd_pose", 1, &ArmInterfaceNode::pickPoseCB, this);
+    pick_pose_sub = nh.subscribe("/object_detector/prehension_pose", 1, &ArmInterfaceNode::pickPoseCB, this);
     drop_pose_sub = nh.subscribe("/drop_point", 1, &ArmInterfaceNode::dropPoseCB, this);
+    drop_hard_sub = nh.subscribe("/object_detector/prehension_drop_pose", 1, &ArmInterfaceNode::dropPoseHard, this);
 
     close_gripper_goal.trajectory = closedGripper();
     open_gripper_goal.trajectory = openedGripper();
@@ -102,7 +103,7 @@ trajectory_msgs::JointTrajectory ArmInterfaceNode::goUp()
     go_up.joint_names[0] = "torso_lift_joint";
     go_up.points.resize(1);
     go_up.points[0].positions.resize(1);
-    go_up.points[0].positions[0] = 0.3;
+    go_up.points[0].positions[0] = 0.36;
     go_up.points[0].time_from_start = ros::Duration(3);
     return go_up;
 }
@@ -132,8 +133,13 @@ void ArmInterfaceNode::gotoInitPose()
 
 }
 
-void ArmInterfaceNode::pickPoseCB(const homodeus_msgs::HDPose& hd_pose_msg)
+void ArmInterfaceNode::pickPoseCB(const homodeus_msgs::PrehensionPos& prehensionPos)
 {
+    const homodeus_msgs::HDPose& hd_pose_msg = prehensionPos.hdpose;
+
+    // std::vector<moveit_msgs::CollisionObject> obstacles_list = prehensionPos.obstacles;
+    // addObstacles(obstacles_list);
+    
     geometry_msgs::Pose pose = hd_pose_msg.pose;
     bool success = false;
     ROS_INFO("Going to grasp preparation pose");
@@ -203,22 +209,51 @@ void ArmInterfaceNode::pickPoseCB(const homodeus_msgs::HDPose& hd_pose_msg)
     if (success) {
         ROS_INFO("Good job, the object has been picked up.");
     }
+
+    if (success)
+    {
+        success = gotoDropPrep();
+        ROS_INFO("Drop preparation pose reach");
+    }
+    else
+    {
+        ROS_ERROR("FAILED : Drop preparation pose");
+    }
+
+
     homodeus_msgs::HDResponse hd_response_msg;
     hd_response_msg.id =  hd_pose_msg.id;
     hd_response_msg.result = success; 
     hbba_take_response_pub.publish(hd_response_msg);
+
+
     
 
-    if (success) {
-        ros::Duration(2).sleep();
-        ROS_INFO("Now drop object.");
-        drop_pose_pub.publish(hd_pose_msg);
-    }
+    // if (success) {
+    //     ros::Duration(2).sleep();
+    //     ROS_INFO("Now drop object.");
+    //     drop_pose_pub.publish(hd_pose_msg);
+    // }
+
+
 
 }
 
+void ArmInterfaceNode::dropPoseHard(const homodeus_msgs::PrehensionPos& prehensionPos){
+    ROS_INFO("START DROP");
+    bool success = true;
+    const homodeus_msgs::HDPose& hd_pose_msg = prehensionPos.hdpose;
+
+    gac.sendGoalAndWait(open_schunk_gripper_goal, ros::Duration(2));
+
+    homodeus_msgs::HDResponse hd_response_msg;
+    hd_response_msg.id =  hd_pose_msg.id;
+    hd_response_msg.result = success; 
+    hbba_drop_response_pub.publish(hd_response_msg);
+}
+
 void ArmInterfaceNode::dropPoseCB(const homodeus_msgs::HDPose& hd_pose_msg)
-{
+{   
     geometry_msgs::Pose pose = hd_pose_msg.pose;
     bool success = true;
 
@@ -314,6 +349,13 @@ bool ArmInterfaceNode::gotoGraspPrep()
     success = moveToJoint(0.34, 0.20, 0.79, 0.01, 2.10, -1.5, 1.37, 0.0);
     success = moveToJoint(0.34, 0.20, 0.79, -1.50, 1.60, -1.20, 1.37, 0.0);
     success = moveToJoint(0.34, 0.20, 0.79, -1.50, 1.60, -1.20, 0.14, 0.0);
+    return success;
+}
+
+bool ArmInterfaceNode::gotoDropPrep()
+{
+    bool success;
+    success = moveToJoint(0.35, 0.07, -1.27, -0.28, 2.27, 0.18, 1.39, 1.16);
     return success;
 }
 

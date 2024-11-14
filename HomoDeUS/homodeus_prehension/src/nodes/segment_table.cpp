@@ -230,12 +230,11 @@ namespace pal {
     //                                          &planeCoeff);
 
     // NEW --------------------------------------------------------
-    // TODO : Ajouter le plan ensemble pour les afficher dans RVIZ
-    // En se moment : seulement le plan horizontal
-    // Remove main plane
+
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr pclPlaneCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr pclNonHorizontalPlaneCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
     pcl::ModelCoefficients::Ptr planeCoeff(new pcl::ModelCoefficients);
+
     pal::planeSegmentation<pcl::PointXYZRGB>(pclDownSampledCloud,
                                              &pclPlaneCloud,
                                              &pclNonHorizontalPlaneCloud,
@@ -245,13 +244,13 @@ namespace pal {
     // Enleve les murs 
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr pclVerticalPlaneCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr pclNonPlaneCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
-
     pcl::ModelCoefficients::Ptr verticalPlaneCoeff(new pcl::ModelCoefficients);
     verticalPlaneCoeff->values.resize(4);
     verticalPlaneCoeff->values[0] = 0; // A
     verticalPlaneCoeff->values[1] = 0; // B
     verticalPlaneCoeff->values[2] = 1; // C (positif car orienté vers l'avant)
     verticalPlaneCoeff->values[3] = 0; // D
+    
     pal::planeSegmentation<pcl::PointXYZRGB>(pclNonHorizontalPlaneCloud,
                                           &pclVerticalPlaneCloud,
                                           &pclNonPlaneCloud,
