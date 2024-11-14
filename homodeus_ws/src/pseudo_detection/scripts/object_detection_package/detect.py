@@ -83,14 +83,10 @@ def detect():
     view_img = True
     # Sacha - Dont save video - saves 700ms
     save_img = True
-    print("avant jeu loop while: ", time()-t10)
+    print("avant loop: ", time()-t10)
 
     while True:
-        #Sacha import picture temp
-        #monim0s = cv2.imread('test_pictures/2.jpg')  # équivalent de img0
-        print("wait for image")
         donnee = rospy.wait_for_message("/xtion/rgb/image_raw/compressed", CompressedImage)
-        print("image reçue")
         buf = np.ndarray(shape=(1, len(donnee.data)), dtype=np.uint8, buffer=donnee.data)
         im0 = cv2.imdecode(buf, cv2.IMREAD_ANYCOLOR)
         monim0s = im0
@@ -99,7 +95,6 @@ def detect():
         monimg = monimg[:, :, ::-1].transpose(2, 0, 1)  # BGR to RGB, to 3x416x416
         monimg = np.ascontiguousarray(monimg)
 
-        # A ajouter apres l'autre wait_for_message
         image : Image = rospy.wait_for_message('xtion/depth_registered/image_raw', Image, timeout=None)
         depth_image = bridge.imgmsg_to_cv2(image, "passthrough")
 
@@ -112,6 +107,7 @@ def detect():
         t0 = time()
         print("avant loop: ", time()-t10)
         for path, img, im0s, vid_cap in dataset:
+            #TODO combien de fois on effectue le loop? juste 1 probablement? on devrait pouvoir l'enlever
             img = monimg
             im0s = monim0s
             img = torch.from_numpy(img).to(device)
@@ -169,9 +165,7 @@ def detect():
                     endPoint = []
                     # Write results
                     for *xyxy, conf, cls in reversed(det):
-                        print(xyxy[0].item())
                         xywh = (xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
-                        print("xyxy: ", xywh)
                         labels.append(f'{names[int(cls)]} {conf:.2f}')
                         startPoint.append([int(xyxy[0].item()), int(xyxy[1].item())])
                         endPoint.append([int(xyxy[2].item()), int(xyxy[3].item())])
@@ -185,8 +179,6 @@ def detect():
                         if save_img or view_img:  # Add bbox to image
                             label = f'{names[int(cls)]} {conf:.2f}'
                             plot_one_box(xyxy, im0, label=label, color=colors[int(cls)], line_thickness=1)
-                            # print("bbox", label)
-                            # print(xyxy)
 
                     # A ajouter apres la for de detect boxes
                     msgHBBA: ObjectsDetection = objDetection.prepareMsgObjectsDetection(depth_image, labels, startPoint, endPoint)
@@ -202,6 +194,7 @@ def detect():
                     cv2.waitKey(1)  # 1 millisecond
 
                 # Save results (image with detections)
+                #TODO regarder on a quel cas, juste garder 1 des 2
                 if save_img:
                     if dataset.mode == 'image':
                         cv2.imwrite(save_path, im0)
@@ -223,7 +216,6 @@ def detect():
 
         if save_txt or save_img:
             s = f"\n{len(list(save_dir.glob('labels/*.txt')))} labels saved to {save_dir / 'labels'}" if save_txt else ''
-            #print(f"Results saved to {save_dir}{s}")
 
         print(f'Done. ({time() - t0:.3f}s)')
 
@@ -249,7 +241,6 @@ if __name__ == '__main__':
     parser.add_argument('--no-trace', action='store_true', help='don`t trace model')
     opt = parser.parse_args()
     print(opt)
-    #check_requirements(exclude=('pycocotools', 'thop'))
     print("detection started")
 
     with torch.no_grad():

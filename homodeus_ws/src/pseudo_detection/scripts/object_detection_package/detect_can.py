@@ -83,14 +83,10 @@ def detect():
     view_img = True
     # Sacha - Dont save video - saves 700ms
     save_img = True
-    # Print("avant jeu loop while: ", time()-t10)
+    print("avant loop: ", time()-t10)
 
     while True:
-        #Sacha import picture temp
-        #monim0s = cv2.imread('test_pictures/2.jpg')  # équivalent de img0
-        # Print("wait for image")
         donnee = rospy.wait_for_message("/xtion/rgb/image_raw/compressed", CompressedImage)
-        # Print("image reçue")
         buf = np.ndarray(shape=(1, len(donnee.data)), dtype=np.uint8, buffer=donnee.data)
         im0 = cv2.imdecode(buf, cv2.IMREAD_ANYCOLOR)
         monim0s = im0
@@ -99,7 +95,6 @@ def detect():
         monimg = monimg[:, :, ::-1].transpose(2, 0, 1)  # BGR to RGB, to 3x416x416
         monimg = np.ascontiguousarray(monimg)
 
-        # A ajouter apres l'autre wait_for_message
         image : Image = rospy.wait_for_message('xtion/depth_registered/image_raw', Image, timeout=None)
         depth_image = bridge.imgmsg_to_cv2(image, "passthrough")
 
@@ -110,8 +105,9 @@ def detect():
         old_img_b = 1
 
         t0 = time()
-        # Print("avant loop: ", time()-t10)
+        print("avant loop: ", time()-t10)
         for path, img, im0s, vid_cap in dataset:
+            #TODO combien de fois on effectue le loop? juste 1 probablement? on devrait pouvoir l'enlever
             img = monimg
             im0s = monim0s
             img = torch.from_numpy(img).to(device)
@@ -129,7 +125,7 @@ def detect():
                 for i in range(3):
                     model(img, augment=opt.augment)[0]
 
-            # Print("avant inférence: ", time() - t10)
+            print("avant inférence: ", time() - t10)
             # Inference
             t1 = time_synchronized()
             with torch.no_grad():   # Calculating gradients would cause a GPU memory leak
@@ -159,7 +155,7 @@ def detect():
                     # Rescale boxes from img_size to im0 size
                     det[:, :4] = scale_coords(img.shape[2:], det[:, :4], im0.shape).round()
 
-                    # # Print results
+                    # Print results
                     for c in det[:, -1].unique():
                         n = (det[:, -1] == c).sum()  # detections per class
                         s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
@@ -169,14 +165,11 @@ def detect():
                     endPoint = []
                     # Write results
                     for *xyxy, conf, cls in reversed(det):
-                        # Print(xyxy[0].item())
                         xywh = (xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
-                        # # Print("xyxy: ", xywh)
-                        labels.append(f'{names[int(cls)]}')
-                        # labels.append(f'{names[int(cls)]} {conf:.2f}')
+                        labels.append(f'{names[int(cls)]} {conf:.2f}')
                         startPoint.append([int(xyxy[0].item()), int(xyxy[1].item())])
                         endPoint.append([int(xyxy[2].item()), int(xyxy[3].item())])
-                        # # Print("string detection: ", (f'{names[int(cls)]} {conf:.2f}', [xywh[0], xywh[1]],[xywh[0]+xywh[2], xywh[1]+xywh[3]]))
+                        print("string detection: ", (f'{names[int(cls)]} {conf:.2f}', [xywh[0], xywh[1]],[xywh[0]+xywh[2], xywh[1]+xywh[3]]))
                         if save_txt:  # Write to file
                             xywh = (xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
                             line = (cls, *xywh, conf) if opt.save_conf else (cls, *xywh)  # label format
@@ -186,16 +179,13 @@ def detect():
                         if save_img or view_img:  # Add bbox to image
                             label = f'{names[int(cls)]} {conf:.2f}'
                             plot_one_box(xyxy, im0, label=label, color=colors[int(cls)], line_thickness=1)
-                            # # Print("bbox", label)
-                            # # Print(xyxy)
 
                     # A ajouter apres la for de detect boxes
                     msgHBBA: ObjectsDetection = objDetection.prepareMsgObjectsDetection(depth_image, labels, startPoint, endPoint)
-                    print(msgHBBA)
                     objects_detection_pub.publish(msgHBBA)
 
-                # # Print time (inference + NMS)
-                # # Print(f'{s}Done. ({(1E3 * (t2 - t1)):.1f}ms) Inference, ({(1E3 * (t3 - t2)):.1f}ms) NMS')
+                # Print time (inference + NMS)
+                print(f'{s}Done. ({(1E3 * (t2 - t1)):.1f}ms) Inference, ({(1E3 * (t3 - t2)):.1f}ms) NMS')
 
 
                 # Stream results
@@ -204,10 +194,11 @@ def detect():
                     cv2.waitKey(1)  # 1 millisecond
 
                 # Save results (image with detections)
+                #TODO regarder on a quel cas, juste garder 1 des 2
                 if save_img:
                     if dataset.mode == 'image':
                         cv2.imwrite(save_path, im0)
-                        # Print(f" The image with the result is saved in: {save_path}")
+                        print(f" The image with the result is saved in: {save_path}")
                     else:  # 'video' or 'stream'
                         if vid_path != save_path:  # new video
                             vid_path = save_path
@@ -225,9 +216,8 @@ def detect():
 
         if save_txt or save_img:
             s = f"\n{len(list(save_dir.glob('labels/*.txt')))} labels saved to {save_dir / 'labels'}" if save_txt else ''
-            ## Print(f"Results saved to {save_dir}{s}")
 
-        # Print(f'Done. ({time() - t0:.3f}s)')
+        print(f'Done. ({time() - t0:.3f}s)')
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -250,9 +240,8 @@ if __name__ == '__main__':
     parser.add_argument('--exist-ok', action='store_true', help='existing project/name ok, do not increment')
     parser.add_argument('--no-trace', action='store_true', help='don`t trace model')
     opt = parser.parse_args()
-    # Print(opt)
-    #check_requirements(exclude=('pycocotools', 'thop'))
-    # Print("detection started")
+    print(opt)
+    print("detection started")
 
     with torch.no_grad():
         if opt.update:  # update all models (to fix SourceChangeWarning)
