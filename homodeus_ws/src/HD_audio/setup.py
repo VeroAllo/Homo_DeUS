@@ -4,7 +4,7 @@ from catkin_pkg.python_setup import generate_distutils_setup
 
 distutils_setup = generate_distutils_setup(
     packages=['HD_audio'],
-    package_dir={'':'src'}
+    package_dir={'':'python'}
 )
 
 setup(**distutils_setup)

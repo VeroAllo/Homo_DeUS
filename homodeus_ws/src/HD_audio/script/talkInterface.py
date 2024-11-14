@@ -4,7 +4,7 @@ import argparse
 import rospy
 from rospy import Publisher, Subscriber
 from homodeus_msgs.msg import HDResponse, HDTextToTalk, HDStatus
-from talk import AudioTalk
+from HD_audio.talk import AudioTalk
 
 
 class AudioRos():
@@ -14,17 +14,17 @@ class AudioRos():
     
 
     def __init__(self, tts, node_name: str = 'base_rotate') -> None:
-
+        print('1bateau')
         # Initialise the node
         rospy.init_node(node_name, anonymous=True)
-
+        print('2bateau')
         # Initialise parameters
         self.__talker: AudioTalk = AudioTalk(tts)
         self.__desireID: int        = 0
-
+        print('3bateau')
         # Subscriber
         self.__talk_request_sub: Subscriber = Subscriber(self._TALK_REQUEST_TOPIC, HDTextToTalk, self.__talk_request_subscriber_callback)
-              
+        print('4bateau')
         # Publisher
         self.__talk_status_pub: Publisher = Publisher(self._TALK_STATUS_TOPIC, HDStatus, queue_size=1)
         self.__talk_response_pub: Publisher = Publisher(self._TALK_RESPONSE_TOPIC, HDResponse, queue_size=1)
@@ -60,7 +60,7 @@ def add_parser():
   parser.add_argument(
     '--tts',
     help='Set tts type',
-    default='hdTTS',
+    default='gTTS',
     type=str,
     choices=['gTTS', 'hdTTS'],
   )

@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-
-
 import argparse
 import json
 import vosk
@@ -13,7 +11,7 @@ from gtts import gTTS
 
 import rospy
 from std_msgs.msg import String
-from hdTTS import hdTTS
+from HD_audio.hdTTS import hdTTS
 from homodeus_msgs.msg import HDResponse, HDDiscussionStarted, HDStatus
 
 class AudioRosDiscuss:
@@ -32,34 +30,34 @@ class AudioRosDiscuss:
         if self.tts_type == 'hdTTS':
             self.__tts = hdTTS()
         else:
-            self.__sound_file:str = "response.mp3"
+            self.__sound_file:str = "/home/tiblond/Homo_DeUS/homodeus_ws/src/HD_audio/utils/response.mp3"
         
-        def get_message_history(self, lang):
-            if lang == 'fr':
-                return [
-                    {"role": "system", "content": """
-                    Vous êtes un assistant serviable et serveur de restaurant. Votre travail consiste à prendre des commandes, répondre aux questions sur le menu et fournir des recommandations.
-                    Vous devez être poli, amical et professionnel en tout temps. Il est très important de demander à l'utilisateur de confirmer son choix. Répondez toujours en français. Voici quelques instructions spécifiques :
-                    0. Le restaurant est le Tiagoh Bistro.
-                    1. Si le client demande des recommandations, suggérez un des articles du menu.
-                    2. Le menu ne comporte que 3 articles : Pepsi, Coke et Soda.
-                    3. Confirmez la commande avant de terminer la conversation.
-                    4. Remerciez le client.
-                    """}
-                ]
-            else:
-                return [
-                    {"role": "system", "content": """
-                    You are a helpful assistant and restaurant server. Your job is to take orders, answer questions about the menu, and provide recommendations.
-                    You should be polite, friendly, and professional at all times. It is very important to ask the user to confirm his choice. Always respond in English. Here are some specific instructions:
-                    0. The restaurant is the Tiagoh Bistro.
-                    1. If the customer asks for recommendations, suggest one of the items on the menu.
-                    2. The menu only has 3 items: Pepsi, Coke, and Soda.
-                    3. Confirm the order before ending the conversation.
-                    4. Thank the customer.
-                    """}
-                ]
-        openai.api_key = ''  # Assurez-vous que l'API key est définie ici
+    def get_message_history(self, lang):
+        if lang == 'fr':
+            return [
+                {"role": "system", "content": """
+                Vous êtes un assistant serviable et serveur de restaurant. Votre travail consiste à prendre des commandes, répondre aux questions sur le menu et fournir des recommandations.
+                Vous devez être poli, amical et professionnel en tout temps. Il est très important de demander à l'utilisateur de confirmer son choix. Répondez toujours en français. Voici quelques instructions spécifiques :
+                0. Le restaurant est le Tiagoh Bistro.
+                1. Si le client demande des recommandations, suggérez un des articles du menu.
+                2. Le menu ne comporte que 3 articles : Pepsi, Coke et Canada dry. Si tu enumere le menu il ne faut pas mettre de nombre devant les items.
+                3. Confirmez la commande avant de terminer la conversation.
+                4. Remerciez le client.
+                """}
+            ]
+        else:
+            return [
+                {"role": "system", "content": """
+                You are a helpful assistant and restaurant server. Your job is to take orders, answer questions about the menu, and provide recommendations.
+                You should be polite, friendly, and professional at all times. It is very important to ask the user to confirm his choice. Always respond in English. Here are some specific instructions:
+                0. The restaurant is the Tiagoh Bistro.
+                1. If the customer asks for recommendations, suggest one of the items on the menu.
+                2. The menu only has 3 items: Pepsi, Coke, and Canada dry.
+                3. Confirm the order before ending the conversation.
+                4. Thank the customer.
+                """}
+            ]
+    openai.api_key = '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'  # Assurez-vous que l'API key est définie ici
 
     def __tts_prepare(self, text, lang):
         if self.tts_type == 'hdTTS':
@@ -72,7 +70,7 @@ class AudioRosDiscuss:
         if self.tts_type == 'hdTTS':
             self.__tts.talk_blocking()
         else:
-            os.system("mpg321 {self.__sound_file}".format(self=self))
+            os.system("mpg321 /home/tiblond/Homo_DeUS/homodeus_ws/src/HD_audio/utils/response.mp3".format(self=self))
 
     def __tts_talk(self, text, lang):
         self.__tts_prepare(text, lang)
@@ -80,12 +78,15 @@ class AudioRosDiscuss:
         self.__talk()
         self.is_playing.clear()
 
+
     def setup_audio(self):
+        base_path = os.path.dirname(os.path.abspath(__file__))
         if self.lang == 'fr':
-            self.vosk_model = vosk.Model('vosk-model-small-fr-0.22')  # Spécifiez le chemin correct ici
+            model_path = '/home/tiblond/Homo_DeUS/homodeus_ws/src/HD_audio/utils/vosk-model-small-fr-0.22'
         else:
-            self.vosk_model = vosk.Model('vosk-model-small-en-us-0.15') 
-          # Spécifiez le chemin correct ici
+            model_path = os.path.join(base_path, '/../utils/vosk-model-small-en-us-0.15')
+
+        self.vosk_model = vosk.Model(model_path)
         self.recognizer = vosk.KaldiRecognizer(self.vosk_model, 16000)
         self.audio = pyaudio.PyAudio()
         self.stream = self.audio.open(format=pyaudio.paInt16, channels=1, rate=16000, input=True, frames_per_buffer=4096)
@@ -127,6 +128,7 @@ class AudioRosDiscuss:
                 continue
 
             if text:
+                print(f"Message de l'utilisateur : {text}")
                 self.message_history.append({"role": "user", "content": text})
                 response = openai.ChatCompletion.create(
                     model="gpt-3.5-turbo",
@@ -142,8 +144,10 @@ class AudioRosDiscuss:
                     selected_item = self.extract_order_item(response_text)
 
                 # TODO, A valider si 'en_US' existe pour gTTS, car TtsAction est base sur RFC 3006
-                self.__tts_talk(response_text, 'en_US')
-
+                if self.lang== 'fr' :
+                    self.__tts_talk(response_text, 'fr-CA')
+                else : 
+                    self.__tts_talk(response_text, 'en-US')
                 # Vérification de la fin de la conversation
                 if self.check_thank_you(response_text.lower(), args.lang):
                     if selected_item:
@@ -156,7 +160,7 @@ class AudioRosDiscuss:
                     self.stop_event.set()
                     break
 
-    def check_confirmation(response_text, lang):
+    def check_confirmation(self, response_text, lang):
         if lang == 'fr':
             phrases = ["confirmer", "votre commande de"]
         else:
@@ -167,7 +171,7 @@ class AudioRosDiscuss:
                 return True
         return False
 
-    def check_thank_you(response_text, lang):
+    def check_thank_you(self, response_text, lang):
         if lang == 'fr':
             phrases = ["merci", "bon appétit"]
         else:
