@@ -18,6 +18,7 @@ class AudioRosDiscuss:
         self.desire_id = 1
         self.lang = lang
         self.message_history = self.get_message_history(lang)
+        self.selected_item = None
 
         self.audio_queue = queue.Queue()
         self.is_playing = threading.Event()
@@ -36,12 +37,12 @@ class AudioRosDiscuss:
         if lang == 'fr':
             return [
                 {"role": "system", "content": """
-                Vous êtes un assistant serviable et serveur de restaurant. Votre travail consiste à prendre des commandes, répondre aux questions sur le menu et fournir des recommandations.
-                Vous devez être poli, amical et professionnel en tout temps. Il est primordial de demander à l'utilisateur de confirmer son choix. Répondez toujours en français et de manière concise. Voici quelques instructions spécifiques :
+                Vous êtes un serveur de restaurant. Votre travail consiste à prendre des commandes, répondre aux questions sur le menu et fournir des recommandations.
+                Vous devez être poli, amical et professionnel en tout temps. Répondez toujours en français et de manière concise. Voici quelques instructions spécifiques :
                 0. Le restaurant est le Tiagoh Bistro.
                 1. Si le client demande des recommandations, suggérez un des articles du menu.
-                2. Le menu ne comporte que 3 articles : Pepsi, Coke et Canada dry. Si tu enumere le menu il ne faut pas mettre de nombre devant les items.
-                3. Confirmez la commande avant de terminer la conversation.
+                2. Le menu ne comporte que 3 articles : Pepsi, Coke et Canada dry.
+                3. Confirmez la commande avant de terminer la conversation. Dans la forme suivante : "Voulez-vous confirmer votre commande de [item] ?"
                 4. Remerciez le client.
                 5. Le client ne peut commande qu'un seul item et n'a besoin de rien d'autre. 
                 6. Les réponses de l'assistant doivent être courtes et précises.
@@ -90,9 +91,9 @@ class AudioRosDiscuss:
     def setup_audio(self):
         base_path = os.path.dirname(os.path.abspath(__file__))
         if self.lang == 'fr':
-            model_path = '/home/tiblond/Homo_DeUS/homodeus_ws/src/HD_audio/utils/vosk-model-small-fr-0.22'
+            model_path = os.path.join(base_path, '../utils/vosk-model-small-fr-0.22')
         else:
-            model_path = os.path.join(base_path, '/../utils/vosk-model-small-en-us-0.15')
+            model_path = os.path.join(base_path, '../utils/vosk-model-small-en-us-0.15')
 
         self.vosk_model = vosk.Model(model_path)
         self.recognizer = vosk.KaldiRecognizer(self.vosk_model, 16000)
@@ -140,9 +141,15 @@ class AudioRosDiscuss:
         self.message_history.append({"role": "assistant", "content": response_text})
 
         if self.lang == 'fr':
-            self.__tts_talk(response_text, 'fr-CA')
+            if self.tts_type == 'hdTTS':
+                self.__tts_talk(response_text, 'fr_FR')
+            else:
+                self.__tts_talk(response_text, 'fr-CA')
         else:
-            self.__tts_talk(response_text, 'en-US')
+            if self.tts_type == 'hdTTS':
+                self.__tts_talk(response_text, 'en_US')
+            else:
+                self.__tts_talk(response_text, 'en-US')
 
         while not self.stop_event.is_set():
             try:
@@ -164,20 +171,27 @@ class AudioRosDiscuss:
                 print(f"Réponse de l'agent : {response_text}")  # Debugging line
                 if self.check_confirmation(response_text.lower(), self.lang):
                     # Extraire l'item sélectionné
-                    selected_item = self.extract_order_item(response_text)
+                    self.selected_item = self.extract_order_item(response_text)
 
                 if self.lang == 'fr':
-                    self.__tts_talk(response_text, 'fr-CA')
+                    if self.tts_type == 'hdTTS':
+                        self.__tts_talk(response_text, 'fr_FR')
+                    else:
+                        self.__tts_talk(response_text, 'fr-CA')
                 else:
-                    self.__tts_talk(response_text, 'en-US')
+                    if self.tts_type == 'hdTTS':
+                        self.__tts_talk(response_text, 'en_US')
+                    else:
+                        self.__tts_talk(response_text, 'en-US')
 
                 # Vérification de la fin de la conversation
                 if self.check_thank_you(response_text.lower(), self.lang):
-                    if selected_item:
-                        print(f"Commande confirmée : {selected_item}")
+                    if self.selected_item:
+                        print(f"Commande confirmée : {self.selected_item}")
                         response_msg = HDResponse()
-                        response_msg.id.desire_id = 0
-                        response_msg.message.data = "Commande :" + selected_item
+                        response_msg.id.desire_id = self.desire_id
+                        response_msg.message.data = "Commande :" + self.selected_item
+                        print("Response msg", response_msg)
                         self.response_pub.publish(response_msg)
                     print("Fin de la conversation")
                     self.stop_event.set()
