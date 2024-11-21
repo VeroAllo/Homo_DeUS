@@ -99,13 +99,9 @@ void TalkStrategy::SubscriberResponseCallBack(const homodeus_msgs::HDResponse& r
     if(response.id.desire_id == m_desireID)
     {
         ROS_INFO_STREAM("TalkDesire Finished - DesireID : " << m_desireID);
-        ROS_INFO_STREAM("0 kiwi ");
         m_DesireSet->removeDesire(m_desireID);
-        ROS_INFO_STREAM("1 kiwi ");
         onDisabling();
-        ROS_INFO_STREAM("2 kiwi ");
         strategy_motivation_interface_.publishMessage("Table 1");
-        ROS_INFO_STREAM("3 kiwi ");
         return;
     }
     ROS_ERROR_STREAM("The desireIDs do not match - Received : " << response.id.desire_id << ", Expected : " << m_desireID);
@@ -238,9 +234,8 @@ void TakeStrategy::onEnabling(const TakeDesire& desire)
         // ROS_INFO_STREAM("m_PublisherList : " << m_PublisherList);
         for(ros::Publisher pub : m_PublisherList)
         {
-            ROS_INFO_STREAM("AFTER BB : " << boundingBox);
-            ROS_INFO_STREAM("pub.getTopic () : " << pub.getTopic());
-            ROS_INFO_STREAM("pub.getNumSubscribers () : " << pub.getNumSubscribers());
+            ROS_INFO_STREAM("Object Detection : " << boundingBox);
+
             pub.publish(boundingBox);
         }
     }
