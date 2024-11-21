@@ -9,6 +9,7 @@
   <arg name="downsampling_size"         default="0.01"                            />
   <arg name="show_rviz"                 default="true"                            />
   <arg name="objs"  			  default="segment_table/nonplane"/>
+  <arg name="plane"  			  default="segment_table/plane"/>
 
   <node name="segment_table" pkg="homodeus_prehension" type="segment_table" output="screen">
     <remap from="cloud"                     to="$(arg cloud)"     />
@@ -22,6 +23,7 @@
 
   <node name="object_detector" pkg="homodeus_prehension" type="object_detector" output="screen">
     <remap from="cloud" to="$(arg objs)"/>
+    <remap from="plane_cloud" to="$(arg plane)"/>
     <param name="rate"  type="double" value="$(arg rate)"/>
     <param name="frame" type="string" value="$(arg frame)"  />
   </node>

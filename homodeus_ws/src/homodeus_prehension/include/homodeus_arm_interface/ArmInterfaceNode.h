@@ -13,7 +13,8 @@
 
 #include <homodeus_msgs/HDResponse.h>
 #include <homodeus_msgs/DesireID.h>
-#include <homodeus_msgs/HDPose.h>
+#include <homodeus_msgs/PrehensionPos.h>
+#include <moveit_msgs/CollisionObject.h>
 
 
 class ArmInterfaceNode: ArmInterface
@@ -26,6 +27,7 @@ class ArmInterfaceNode: ArmInterface
 
         ros::Subscriber pick_pose_sub;
         ros::Subscriber drop_pose_sub;
+        ros::Subscriber drop_hard_sub;
 
         geometry_msgs::PoseStamped pick_point;
         geometry_msgs::PoseStamped drop_point;
@@ -41,8 +43,9 @@ class ArmInterfaceNode: ArmInterface
         control_msgs::FollowJointTrajectoryGoal go_up;
         control_msgs::FollowJointTrajectoryGoal look_down;
 
-        void pickPoseCB(const homodeus_msgs::HDPose& hd_pose_msg);
+        void pickPoseCB(const homodeus_msgs::PrehensionPos& hd_pose_msg);
         void dropPoseCB(const homodeus_msgs::HDPose& hd_pose_msg);
+        void dropPoseHard(const homodeus_msgs::PrehensionPos& hd_pose_msg);
         trajectory_msgs::JointTrajectory openedGripper();
         trajectory_msgs::JointTrajectory closedGripper();
 
@@ -69,6 +72,7 @@ class ArmInterfaceNode: ArmInterface
         void gotoInitPose();
         void changeVelFactor();
         void closeHand();
+        bool gotoDropPrep();
 };
 
 #endif
