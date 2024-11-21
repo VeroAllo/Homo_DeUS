@@ -112,7 +112,7 @@ void startNode(ros::NodeHandle& nodeHandle)
     motivations.emplace_back(createAccueillirMotivation(nodeHandle, desireSet, &stateManager));
     motivations.emplace_back(createPrendreCommande(nodeHandle, desireSet, &stateManager));
     motivations.emplace_back(createChercherCommande(nodeHandle, desireSet, &stateManager));
-    stateManager.switchTo<IdleState>(2);
+    stateManager.switchTo<IdleState>(0);
 
     ros::spin();
 }
