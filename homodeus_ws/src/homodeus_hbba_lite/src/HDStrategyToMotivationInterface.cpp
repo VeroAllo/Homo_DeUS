@@ -11,6 +11,7 @@ void HDStrategyMotivationInterface::publishMessage(const std::string& data)
 {
     std_msgs::String msg{};
     msg.data = data;
+    ROS_INFO_STREAM("3 banane ");
     strategy_pub_.publish(msg);
 }
 

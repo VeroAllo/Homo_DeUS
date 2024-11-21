@@ -34,27 +34,17 @@ geometry_msgs::Pose mapStringToPose(std::string name)
     else if (name == "Table1")
     {        
         poseToReturn.position.x = 8.50f;
-        poseToReturn.orientation.z = 3.1416f;
-        poseToReturn.position.y = 3.00f;
-        // "PosX" : 8.50,
-        // "PosY" : 3.00,
-        // "PosZ" : 0.00,
-        // "ObjOri" : 3.1416
+        poseToReturn.orientation.z = 3.00f;
+        poseToReturn.position.y = 3.09375f;
         // For now, let the default values
     }
     else if (name == "Kitchen")
     {
         
-        poseToReturn.position.x = 9.70;
-        poseToReturn.position.y = 5.75;
-        poseToReturn.orientation.z = 1.5708;
+        poseToReturn.position.x = 9.671875f;
+        poseToReturn.position.y = 5.78125f;
+        poseToReturn.orientation.z = 1.5272f;
         // For now, let the default values
-    }
-    else if (name == "Home")
-    {
-        poseToReturn.position.x = 0.25f;
-        poseToReturn.position.y = 0.50f;
-        poseToReturn.orientation.z = 0.0f;
     }
     return poseToReturn;
 }
@@ -64,14 +54,12 @@ GotoStrategy::GotoStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHand
 void GotoStrategy::SubscriberResponseCallBack(const homodeus_msgs::HDResponse& response) 
 {
     if(response.id.desire_id == m_desireID)
-    {
-        ROS_INFO_STREAM("GotoDesire Finished - DesireID : " << m_desireID << " - Result : " << response.result);
-        m_DesireSet->removeDesire(m_desireID);
+    {    
+        ROS_INFO_STREAM("GotoDesire Finished - DesireID : " << response.id.desire_id << " - Result : Table 1" );
+        m_DesireSet->removeDesire(response.id.desire_id);
         onDisabling();
-        strategy_motivation_interface_.publishMessage(response.message.data);
         return;
     }
-    ROS_ERROR_STREAM("The desireIDs do not match - Received : " << response.id.desire_id << ", Expected : " << m_desireID);
 }
 
 void GotoStrategy::SubscriberCancelCallBack(const homodeus_msgs::DesireID& desireID) 
@@ -96,13 +84,14 @@ void GotoStrategy::onEnabling(const GotoDesire& desire)
     hdPose.id.desire_id = m_desireID;
 
     hdPose.pose = mapStringToPose(desire.m_DestinationInText);
+    hdPose.name.data = desire.m_DestinationInText;
     for(ros::Publisher pub : m_PublisherList)
     {
         pub.publish(hdPose);
     }
 }
 
-TalkStrategy::TalkStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, std::map<std::string,bool> publisherTopicList, std::map<std::string,bool> subscriberTopicList, std::shared_ptr<DesireSet> desireSet, std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName) : HDStrategy(filterPool, nodeHandle, publisherTopicList, subscriberTopicList, desireSet, filterConfigurationByName){}
+TalkStrategy::TalkStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, std::map<std::string,bool> publisherTopicList, std::map<std::string,bool> subscriberTopicList, std::shared_ptr<DesireSet> desireSet, std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName) : HDStrategy(filterPool, nodeHandle, publisherTopicList, subscriberTopicList, desireSet, filterConfigurationByName), strategy_motivation_interface_(nodeHandle){}
 
 void TalkStrategy::SubscriberResponseCallBack(const homodeus_msgs::HDResponse& response) 
 {
@@ -110,8 +99,13 @@ void TalkStrategy::SubscriberResponseCallBack(const homodeus_msgs::HDResponse& r
     if(response.id.desire_id == m_desireID)
     {
         ROS_INFO_STREAM("TalkDesire Finished - DesireID : " << m_desireID);
+        ROS_INFO_STREAM("0 kiwi ");
         m_DesireSet->removeDesire(m_desireID);
+        ROS_INFO_STREAM("1 kiwi ");
         onDisabling();
+        ROS_INFO_STREAM("2 kiwi ");
+        strategy_motivation_interface_.publishMessage("Table 1");
+        ROS_INFO_STREAM("3 kiwi ");
         return;
     }
     ROS_ERROR_STREAM("The desireIDs do not match - Received : " << response.id.desire_id << ", Expected : " << m_desireID);
@@ -148,6 +142,7 @@ DiscussStrategy::DiscussStrategy(std::shared_ptr<FilterPool> filterPool, ros::No
 
 void DiscussStrategy::SubscriberResponseCallBack(const homodeus_msgs::HDResponse& response) 
 {
+
     if(response.id.desire_id == m_desireID)
     {
         ROS_INFO_STREAM("DiscussDesire Finished - DesireID : " << m_desireID);
@@ -239,10 +234,13 @@ void TakeStrategy::onEnabling(const TakeDesire& desire)
     }
     else
     {
-        ROS_INFO_STREAM("AFTER BB : " << boundingBox);
         boundingBox.id.desire_id = m_desireID;
+        // ROS_INFO_STREAM("m_PublisherList : " << m_PublisherList);
         for(ros::Publisher pub : m_PublisherList)
         {
+            ROS_INFO_STREAM("AFTER BB : " << boundingBox);
+            ROS_INFO_STREAM("pub.getTopic () : " << pub.getTopic());
+            ROS_INFO_STREAM("pub.getNumSubscribers () : " << pub.getNumSubscribers());
             pub.publish(boundingBox);
         }
     }
