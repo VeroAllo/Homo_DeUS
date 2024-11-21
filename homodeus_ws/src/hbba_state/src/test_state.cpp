@@ -69,11 +69,11 @@ void startNode(ros::NodeHandle& nodeHandle)
         make_unique<GoToAccueilState>(stateManager, desireSet, nodeHandle, greetingStateType, 1)
     );
     stateManager.addState(0,
-        make_unique<GreetingState>(stateManager, desireSet, nodeHandle, gotoTableStateType, 2, "en")
+        make_unique<GreetingState>(stateManager, desireSet, nodeHandle, idleStateType, 2, "fr")
     );
-    stateManager.addState(0,
-        make_unique<GoToTableState>(stateManager, desireSet, nodeHandle, idleStateType, 3)
-    );
+    // stateManager.addState(0,
+        // make_unique<GoToTableState>(stateManager, desireSet, nodeHandle, idleStateType, 3)
+    // );
     stateManager.addListStates(1,
         make_unique<IdleState>(stateManager, desireSet, nodeHandle, gotoTableStateType, 0)
     );
@@ -102,7 +102,7 @@ void startNode(ros::NodeHandle& nodeHandle)
         make_unique<GoToHomeState>(stateManager, desireSet, nodeHandle, goodbyeStateType, 5)
     );
     stateManager.addState(2, 
-        make_unique<GoodbyeState>(stateManager, desireSet, nodeHandle, idleStateType, 5, "en")
+        make_unique<GoodbyeState>(stateManager, desireSet, nodeHandle, idleStateType, 5, "fr")
     );
 
     //stateManager.switchTo<IdleState>(0);
@@ -112,7 +112,7 @@ void startNode(ros::NodeHandle& nodeHandle)
     motivations.emplace_back(createAccueillirMotivation(nodeHandle, desireSet, &stateManager));
     motivations.emplace_back(createPrendreCommande(nodeHandle, desireSet, &stateManager));
     motivations.emplace_back(createChercherCommande(nodeHandle, desireSet, &stateManager));
-    // stateManager.switchTo<IdleState>(0);
+    stateManager.switchTo<IdleState>(2);
 
     ros::spin();
 }

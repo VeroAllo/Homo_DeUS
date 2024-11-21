@@ -10,7 +10,7 @@ GreetingState::GreetingState(
     ros::NodeHandle& nodeHandle,
     std::type_index nextStateType,
     int Intensite, std::string language)
-    : TalkState(stateManager, desireSet, nodeHandle, type_index(typeid(GoToTableState)), Intensite, language)
+    : TalkState(stateManager, desireSet, nodeHandle, nextStateType, Intensite, language)
 {
 
 }
