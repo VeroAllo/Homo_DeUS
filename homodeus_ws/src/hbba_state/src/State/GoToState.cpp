@@ -23,10 +23,10 @@ GoToState::~GoToState()
 
 void GoToState::onDesireSetChanged(const vector<unique_ptr<Desire>>& _)
 {
-    ROS_INFO("Goto desireSet changed");
+    // ROS_INFO("Goto desireSet changed");
     if(!enabled() || m_desireSet->contains(m_gotoDesireId))
     {
-        ROS_INFO("We got inside");
+        // ROS_INFO("We got inside");
         return;
     }
 

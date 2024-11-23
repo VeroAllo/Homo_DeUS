@@ -35,7 +35,8 @@
   <arg name="passthrough_min"     default="0.4"                             />
   <arg name="passthrough_max"     default="1.6"                             />
   <arg name="downsampling_size"   default="0.01"                            />
-  <arg name="objs"  			        default="segment_table/nonplane"          />
+  <arg name="objs"  		   default="segment_table/nonplane"          />
+  <arg name="plane"  		   default="segment_table/plane"	      />
 
   <!-- -->
   <arg name="recording"           default="false"/>
@@ -91,6 +92,7 @@
       <arg name="downsampling_size"      value="$(arg downsampling_size)"/>
       <arg name="show_rviz"              value="$(arg rviz)"/>
       <arg name="objs"                   value="$(arg objs)"/>
+      <arg name="plane"                   value="$(arg plane)"/>
     </include>
 
     <node name="arm_interface_node" pkg="homodeus_prehension" type="arm_interface_node"

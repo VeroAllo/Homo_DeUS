@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   std_msgs
   message_generation
+  moveit_msgs
 )
 
 ################################################
@@ -54,6 +55,7 @@ add_message_files(
   HDStatus.msg
   HDTextToTalk.msg
   RobotPoseStamped.msg
+  PrehensionPos.msg
 )
 
 ## Generate actions in the 'action' folder
@@ -73,6 +75,7 @@ generate_messages(
   DEPENDENCIES
   actionlib_msgs
   geometry_msgs
+  moveit_msgs
   std_msgs
 )
 

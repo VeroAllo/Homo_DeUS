@@ -190,7 +190,7 @@ class AudioRosDiscuss:
                         print(f"Commande confirmée : {self.selected_item}")
                         response_msg = HDResponse()
                         response_msg.id.desire_id = self.desire_id
-                        response_msg.message.data = "Commande :" + self.selected_item
+                        response_msg.message.data = "Commande:" + self.selected_item
                         print("Response msg", response_msg)
                         self.response_pub.publish(response_msg)
                     print("Fin de la conversation")
@@ -224,7 +224,7 @@ class AudioRosDiscuss:
         items = ["Pepsi", "Coke", "Canada dry"]
         for item in items:
             if item.lower() in response_text.lower():
-                return item
+                return item.lower()
         return None
 
 def add_parser():

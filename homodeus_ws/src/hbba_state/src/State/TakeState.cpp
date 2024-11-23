@@ -52,5 +52,5 @@ void TakeState::disable()
 
 void TakeState::GenerateObjectToTake(const std::string& parameter)
 {
-    m_Commande = "coke";//parameter;
+    m_Commande = parameter;
 }

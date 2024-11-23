@@ -27,6 +27,8 @@ class TalkStrategy : public HDStrategy<TalkDesire>
         void SubscriberResponseCallBack(const homodeus_msgs::HDResponse& response) override;
         void SubscriberCancelCallBack(const homodeus_msgs::DesireID& desireID) override;
         void SubscriberStatusCallBack(const homodeus_msgs::HDStatus& status) override;
+    private:
+        HDStrategyMotivationInterface strategy_motivation_interface_;
 };
 
 class DiscussStrategy : public HDStrategy<DiscussDesire>
@@ -68,7 +70,7 @@ class TakeStrategy : public HDStrategy<TakeDesire>
                 {
                     if (objectsToDetectCopy.objects[i].header.frame_id == commande)
                     {
-            m_ObjectsToDetect.objects.clear();
+                        m_ObjectsToDetect.objects.clear();
                         return objectsToDetectCopy.objects[i];
                     }                
 

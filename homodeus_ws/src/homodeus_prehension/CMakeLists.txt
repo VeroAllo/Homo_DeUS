@@ -28,12 +28,14 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_simple_controller_manager
   robot_state_publisher
   xacro
+  moveit_msgs
 )
 
 generate_messages(
    DEPENDENCIES
    geometry_msgs
    std_msgs
+   moveit_msgs
 )
 
 catkin_package(

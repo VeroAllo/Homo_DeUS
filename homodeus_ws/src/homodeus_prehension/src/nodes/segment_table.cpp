@@ -65,6 +65,10 @@ namespace pal {
 
     void cloudCallback(const sensor_msgs::PointCloud2ConstPtr& cloud);
 
+  bool isHorizontal(const pcl::ModelCoefficients::Ptr& coeff);
+  bool isVertical(const pcl::ModelCoefficients::Ptr& coeff);
+
+
     void start();
     void stop();
 
@@ -221,56 +225,56 @@ namespace pal {
     }
 
     // // Remove main plane
-    // pcl::PointCloud<pcl::PointXYZRGB>::Ptr pclPlaneCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
-    // pcl::PointCloud<pcl::PointXYZRGB>::Ptr pclNonPlaneCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
-    // pcl::ModelCoefficients::Ptr planeCoeff(new pcl::ModelCoefficients);
-    // pal::planeSegmentation<pcl::PointXYZRGB>(pclDownSampledCloud,
-    //                                          &pclPlaneCloud,
-    //                                          &pclNonPlaneCloud,
-    //                                          &planeCoeff);
 
-    // NEW --------------------------------------------------------
-    // TODO : Ajouter le plan ensemble pour les afficher dans RVIZ
-    // En se moment : seulement le plan horizontal
-    // Remove main plane
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr pclHorizontalPlaneCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr pclVerticalPlaneCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+
+
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr pclPlaneCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr pclNonHorizontalPlaneCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr pclNonPlaneCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
     pcl::ModelCoefficients::Ptr planeCoeff(new pcl::ModelCoefficients);
     pal::planeSegmentation<pcl::PointXYZRGB>(pclDownSampledCloud,
                                              &pclPlaneCloud,
-                                             &pclNonHorizontalPlaneCloud,
+                                             &pclNonPlaneCloud,
                                              &planeCoeff);
 
+    if (isHorizontal(planeCoeff)) {
+      // Horizontal
+      pclHorizontalPlaneCloud = pclPlaneCloud;
+    } else if (isVertical(planeCoeff)) {
+      // Vertical
+      pclVerticalPlaneCloud = pclPlaneCloud;
+    }
 
-    // Enleve les murs 
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr pclVerticalPlaneCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr pclNonPlaneCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
-
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr pclPlaneCloud2(new pcl::PointCloud<pcl::PointXYZRGB>);
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr pclNonPlaneCloud2(new pcl::PointCloud<pcl::PointXYZRGB>);
     pcl::ModelCoefficients::Ptr verticalPlaneCoeff(new pcl::ModelCoefficients);
-    verticalPlaneCoeff->values.resize(4);
-    verticalPlaneCoeff->values[0] = 0; // A
-    verticalPlaneCoeff->values[1] = 0; // B
-    verticalPlaneCoeff->values[2] = 1; // C (positif car orienté vers l'avant)
-    verticalPlaneCoeff->values[3] = 0; // D
-    pal::planeSegmentation<pcl::PointXYZRGB>(pclNonHorizontalPlaneCloud,
-                                          &pclVerticalPlaneCloud,
-                                          &pclNonPlaneCloud,
+    pal::planeSegmentation<pcl::PointXYZRGB>(pclNonPlaneCloud,
+                                          &pclPlaneCloud2,
+                                          &pclNonPlaneCloud2,
                                           &verticalPlaneCoeff);
 
-    pclPlaneCloud->insert( pclPlaneCloud->end(), pclVerticalPlaneCloud->begin(), pclVerticalPlaneCloud->end() );
+    if (isHorizontal(verticalPlaneCoeff)) { 
+      // Horizontal      
+      pclHorizontalPlaneCloud = pclPlaneCloud2;
+    } else if (isVertical(verticalPlaneCoeff)) {
+      // Vertical
+      pclVerticalPlaneCloud = pclPlaneCloud2;
+    }
+
     //filter outliers in the plane cloud
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr pclFilteredPlaneCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
-    if ( pclPlaneCloud->empty() )
-      pclFilteredPlaneCloud = pclPlaneCloud;
+    if ( pclHorizontalPlaneCloud->empty() )
+      pclFilteredPlaneCloud = pclHorizontalPlaneCloud;
     else
-      pal::statisticalOutlierRemoval<pcl::PointXYZRGB>(pclPlaneCloud, 25, 1.0,pclFilteredPlaneCloud);
+      pal::statisticalOutlierRemoval<pcl::PointXYZRGB>(pclHorizontalPlaneCloud, 25, 1.0,pclFilteredPlaneCloud);
 
     //filter outliers in the cloud not belonging to the main plane
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr pclFilteredNonPlaneCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
-    if ( pclNonPlaneCloud->empty() )
-      pclFilteredNonPlaneCloud = pclNonPlaneCloud;
+    if ( pclNonPlaneCloud2->empty() )
+      pclFilteredNonPlaneCloud = pclNonPlaneCloud2;
     else
-      pal::statisticalOutlierRemoval<pcl::PointXYZRGB>(pclNonPlaneCloud, 25, 1.0, pclFilteredNonPlaneCloud);
+      pal::statisticalOutlierRemoval<pcl::PointXYZRGB>(pclNonPlaneCloud2, 25, 1.0, pclFilteredNonPlaneCloud);
 
     // ROS_INFO_STREAM("Processing:");
     // ROS_INFO_STREAM("\tInput cloud:                 " << pclCloud->points.size() << " points");
@@ -286,6 +290,21 @@ namespace pal {
             pclCloud->header.stamp,
             pclCloud->header.frame_id);
   }
+
+  bool SegmentPlane::isHorizontal(const pcl::ModelCoefficients::Ptr& coeff) {
+      float a = coeff->values[0];
+      float b = coeff->values[1];
+      float c = coeff->values[2];
+      return (std::abs(c) > 0.9 && std::abs(a) < 0.1 && std::abs(b) < 0.1);
+  }
+
+  bool SegmentPlane::isVertical(const pcl::ModelCoefficients::Ptr& coeff) {
+      float a = coeff->values[0];
+      float b = coeff->values[1];
+      float c = coeff->values[2];
+      return ((std::abs(a) > 0.9 || std::abs(b) > 0.9) && std::abs(c) < 0.1);
+  }
+
 
   void SegmentPlane::publish(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& planeCloud,
                                  pcl::PointCloud<pcl::PointXYZRGB>::Ptr& nonPlaneCloud,

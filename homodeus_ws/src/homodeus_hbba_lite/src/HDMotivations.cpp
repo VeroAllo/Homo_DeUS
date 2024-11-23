@@ -21,6 +21,7 @@ AccueillirClient::AccueillirClient(const std::map<std::string, bool>& subscriber
 
 void AccueillirClient::VisionSubscriberCallBack(const homodeus_msgs::ObjectsDetection& detected)
 {
+
     bool Person = false;
     if (hasDone) return;
     for (const homodeus_msgs::ObjectDetection& detected_object : detected.objects)
@@ -29,10 +30,10 @@ void AccueillirClient::VisionSubscriberCallBack(const homodeus_msgs::ObjectsDete
         {
             geometry_msgs::Point point = detected_object.pose.position;
             ROS_INFO_STREAM(point);
-            float min_x = 7.50f;
-            float max_x = 8.00f;
-            float min_y = 6.75f;
-            float max_y = 7.25f;
+            float min_x = 7.500f;
+            float max_x = 8.125f;
+            float min_y = 7.125f;
+            float max_y = 7.750f;
 
 
             if (min_x < point.x && point.x < max_x && min_y < point.y && point.y < max_y) {
@@ -60,7 +61,7 @@ void AccueillirClient::VisionSubscriberCallBack(const homodeus_msgs::ObjectsDete
 
 void AccueillirClient::StrategySubscriberCallBack(const std_msgs::String& msg)
 {
-    ROS_INFO_STREAM("Received message from GotoStrategy: " << msg.data);
+    ROS_INFO_STREAM("Accuillir - Received message from GotoStrategy: " << msg.data);
 }
 
 void AccueillirClient::VerifyCondition()
@@ -137,7 +138,7 @@ ChercherCommande::ChercherCommande(const std::map<std::string, bool>& subscriber
 void ChercherCommande::StrategySubscriberCallBack(const std_msgs::String& msg)
 {
     ROS_INFO_STREAM("Received message from Discuss: " << msg.data);
-    if (msg.data.find("Commande:") != std::string::npos)
+    if (msg.data.find("Commande") != std::string::npos)
     {
         static_cast<TakeState*>(m_StateManager->m_listsStates[2][std::type_index(typeid(TakeState))].get())->GenerateObjectToTake(msg.data.substr(9));
         StateMachine("test");
