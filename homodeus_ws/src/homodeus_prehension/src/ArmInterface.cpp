@@ -14,46 +14,14 @@ ArmInterface::ArmInterface() : _moveGroup("arm_torso"), _ref_frame("base_link")
 {
     ROS_INFO("Initialising ArmInterface...");
     // Using 5 seconds because it's a reasonable delay
-    _planningTime = 5.0;
-    _plannerId = "SBLkConfigDefault";
+    _planningTime = 20.0;
+    _plannerId = "LBKPIECEkConfigDefault";
 
     _moveGroup.setPlannerId(_plannerId);
     _moveGroup.setMaxVelocityScalingFactor(max_vel_factor);
-    _moveGroup.setNumPlanningAttempts(5);
+    _moveGroup.setNumPlanningAttempts(15);
     _jointsNames = _moveGroup.getJoints();
 
-    // Using a factor of 1.0 at first, we'll see if this value needs to be changed
-    //_moveGroup.setMaxVelocityScalingFactor(0.3);
-
-
-    // Créer un objet PlanningParams pour stocker les paramètres de planification
-    std::map<std::string, std::string> params_map = _moveGroup.getPlannerParams(_plannerId, "arm_torso");
-
-    // Modifier les paramètres de planification
-    /*
-    Resolution (résolution de la grille de planification)
-    Valeur par défaut : 0.01
-    Min : 0.001
-    Max : 1.0
-    */
-    params_map["grid_resolution"] = "0.001"; // Résolution de la grille de planification
-    /*
-    MaxTime (temps maximal de planification en secondes)
-    Valeur par défaut : 5.0
-    Min : 1.0
-    Max : 60.0
-    */
-    params_map["max_time"] = "10.0"; // Temps maximum autorisé pour la planification
-    /*
-    NumPlanningAttempts (nombre de tentatives de planification)
-    Valeur par défaut : 1
-    Min : 1
-    Max : 10
-    */
-    params_map["num_planning_attempts"] = "5";  // Nombre de tentatives de planification
-
-    // Appliquer les nouveaux paramètres de planification
-    _moveGroup.setPlannerParams(_plannerId, "arm_torso", params_map);
 }
 
 /* ArmInterface: Alternative Constructor
@@ -71,46 +39,14 @@ ArmInterface::ArmInterface(std::string ref_frame) : _moveGroup("arm_torso"), _re
 {
     ROS_WARN("Initialising ArmInterface...");
     // Using 5 seconds because it's a reasonable delay
-    _planningTime = 5.0;
-    _plannerId = "SBLkConfigDefault";
+    _planningTime = 25.0;
+    _plannerId = "LBKPIECEkConfigDefault";
 
     _moveGroup.setPlannerId(_plannerId);
     _moveGroup.setMaxVelocityScalingFactor(max_vel_factor);
-    _moveGroup.setNumPlanningAttempts(5);
+    _moveGroup.setNumPlanningAttempts(15);
     _jointsNames = _moveGroup.getJoints();
 
-    // Using a factor of 1.0 at first, we'll see if this value needs to be changed
-    //_moveGroup.setMaxVelocityScalingFactor(0.3);
-
-
-    // Créer un objet PlanningParams pour stocker les paramètres de planification
-    std::map<std::string, std::string> params_map = _moveGroup.getPlannerParams(_plannerId, "arm_torso");
-
-    // Modifier les paramètres de planification
-    /*
-    Resolution (résolution de la grille de planification)
-    Valeur par défaut : 0.01
-    Min : 0.001
-    Max : 1.0
-    */
-    params_map["grid_resolution"] = "0.001"; // Résolution de la grille de planification
-    /*
-    MaxTime (temps maximal de planification en secondes)
-    Valeur par défaut : 5.0
-    Min : 1.0
-    Max : 60.0
-    */
-    params_map["max_time"] = "10.0"; // Temps maximum autorisé pour la planification
-    /*
-    NumPlanningAttempts (nombre de tentatives de planification)
-    Valeur par défaut : 1
-    Min : 1
-    Max : 10
-    */
-    params_map["num_planning_attempts"] = "5";  // Nombre de tentatives de planification
-
-    // Appliquer les nouveaux paramètres de planification
-    _moveGroup.setPlannerParams(_plannerId, "arm_torso", params_map);
 }
 
 /* ArmInterface: Trajectory Planner in Cartesian Space
@@ -264,10 +200,7 @@ bool ArmInterface::moveToCartesian(double x, double y, double z, double roll, do
     }
 
     _moveGroup.move();
-    double tol = _moveGroup.getGoalPositionTolerance();
-    std::cout << "Tolerance = " << tol << std::endl;
-    geometry_msgs::PoseStamped currentPos = _moveGroup.getCurrentPose();
-    std::cout << "currentPos = " << currentPos << std::endl;
+
     return true;
 }
 
@@ -338,12 +271,108 @@ bool ArmInterface::moveToJoint(double torso, double j1, double j2, double j3, do
     return true;
 }
 
+moveit::planning_interface::MoveGroupInterface::Plan ArmInterface::nextJointsPlan(moveit::planning_interface::MoveGroupInterface::Plan* plan1, 
+double torso, double j1, double j2, double j3, double j4, double j5, double j6, double j7)
+{
+
+    ROS_INFO("nextJointsPlan 1");
+    robot_state::RobotState start_state(*_moveGroup.getCurrentState());
+
+    moveit::planning_interface::MoveGroupInterface::Plan nextPlan;
+    ros::Duration(1.5).sleep();
+    if (plan1 == nullptr) {
+        _moveGroup.setStartStateToCurrentState();
+    } else {
+        robot_state::RobotState state(start_state);
+        const std::vector<double> joints = plan1->trajectory_.joint_trajectory.points.back().positions;
+
+        state.setJointGroupPositions("arm_torso", joints);
+
+        _moveGroup.setStartState(state);
+    }
+
+    ROS_INFO("nextJointsPlan 2");
+    std::map<std::string, double> targetPosition;
+
+    targetPosition["torso_lift_joint"] = torso;
+    targetPosition["arm_1_joint"] = j1;
+    targetPosition["arm_2_joint"] = j2;
+    targetPosition["arm_3_joint"] = j3;
+    targetPosition["arm_4_joint"] = j4;
+    targetPosition["arm_5_joint"] = j5;
+    targetPosition["arm_6_joint"] = j6;
+    targetPosition["arm_7_joint"] = j7;
+
+    for (unsigned int i = 0; i < _jointsNames.size(); i++)
+    {
+        if (targetPosition.count(_jointsNames[i]) > 0)
+            _moveGroup.setJointValueTarget(_jointsNames[i], targetPosition[_jointsNames[i]]);
+    }
+
+    _moveGroup.setPlanningTime(_planningTime);
+    auto su = _moveGroup.plan(nextPlan);
+    _plan_success = bool(su);
+    
+    return nextPlan;
+}
+
+moveit::planning_interface::MoveGroupInterface::Plan ArmInterface::nextCartesianPlan(moveit::planning_interface::MoveGroupInterface::Plan* plan1, double x, double y, double z, double roll, double pitch, double yaw) {
+
+    robot_state::RobotState start_state(*_moveGroup.getCurrentState());
+
+    moveit::planning_interface::MoveGroupInterface::Plan nextPlan;
+
+    ros::Duration(1.5).sleep();
+    if (plan1 == nullptr) {
+        _moveGroup.setStartStateToCurrentState();
+    } else {
+        robot_state::RobotState state(start_state);
+        const std::vector<double> joints = plan1->trajectory_.joint_trajectory.points.back().positions;
+
+        state.setJointGroupPositions("arm_torso", joints);
+
+        _moveGroup.setStartState(state);
+    }
+
+    geometry_msgs::PoseStamped goalPose;
+    goalPose.header.frame_id = _ref_frame;
+    goalPose.pose.position.x = x;
+    goalPose.pose.position.y = y;
+    goalPose.pose.position.z = z;
+    goalPose.pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(roll, pitch, yaw);
+
+    _moveGroup.setPoseReferenceFrame(_ref_frame);
+    _moveGroup.setPoseTarget(goalPose);
+
+    _moveGroup.setPlanningTime(_planningTime);
+
+    auto su = _moveGroup.plan(nextPlan);
+    _plan_success = bool(su);
+    return nextPlan;
+}
+
+bool ArmInterface::executePlans(std::vector<moveit::planning_interface::MoveGroupInterface::Plan> plans){
+    for (const auto& plan : plans)
+    {
+        bool success = _moveGroup.execute(plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS;
+        if (!success)
+        {
+            ROS_WARN("Échec de l'exécution d'un plan !");
+            return false;
+        }
+    }
+    return true;
+
+}
+
+
 void ArmInterface::addObstacles(std::vector<moveit_msgs::CollisionObject> obstacles_list){
-    cleanObstacles();
     _planningScene.applyCollisionObjects(obstacles_list);
 }
 
-void ArmInterface::cleanObstacles(){
-    std::vector<std::string> object_ids;
-    _planningScene.removeCollisionObjects(object_ids);
+void ArmInterface::cleanObstacles(std::vector<moveit_msgs::CollisionObject> obstacles_list){
+    for (auto object :  obstacles_list){
+        object.operation = object.REMOVE;
+    }
+    _planningScene.applyCollisionObjects(obstacles_list);
 }

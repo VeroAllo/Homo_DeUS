@@ -225,7 +225,6 @@ namespace pal {
     }
 
     // // Remove main plane
-
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr pclHorizontalPlaneCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr pclVerticalPlaneCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
 
@@ -244,6 +243,13 @@ namespace pal {
     } else if (isVertical(planeCoeff)) {
       // Vertical
       pclVerticalPlaneCloud = pclPlaneCloud;
+    }
+
+    if ( pclNonPlaneCloud->points.size() < 10 )
+    {
+      ROS_INFO_STREAM("Not locating a plane because there are only " <<
+                      pclNonPlaneCloud->points.size() << " points");
+      return;
     }
 
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr pclPlaneCloud2(new pcl::PointCloud<pcl::PointXYZRGB>);

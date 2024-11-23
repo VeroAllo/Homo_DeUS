@@ -14,6 +14,7 @@
 #include <tf/transform_broadcaster.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <moveit_msgs/CollisionObject.h>
+#include <moveit/robot_state/robot_state.h>
 
 
 
@@ -54,13 +55,18 @@ class ArmInterface
         ArmInterface(std::string ref_frame);
 
         float max_vel_factor = 0.2;
+        bool _plan_success;
         void setPlanningTime(float value);
         void setPlannerId(std::string id);
         bool moveToCartesian(double x, double y, double z, double roll, double pitch, double yaw);
         bool moveToJoint(double torso, double j1, double j2, double j3, double j4, double j5, double j6, double j7);
         bool moveToGrasp(std::vector<moveit_msgs::Grasp> grasps);
         void addObstacles(std::vector<moveit_msgs::CollisionObject> obstacles_list);
-        void cleanObstacles();
+        void cleanObstacles(std::vector<moveit_msgs::CollisionObject> obstacles_list);
+
+        moveit::planning_interface::MoveGroupInterface::Plan nextJointsPlan(moveit::planning_interface::MoveGroupInterface::Plan* plan1, double torso, double j1, double j2, double j3, double j4, double j5, double j6, double j7);
+        moveit::planning_interface::MoveGroupInterface::Plan nextCartesianPlan(moveit::planning_interface::MoveGroupInterface::Plan* plan1, double x, double y, double z, double roll, double pitch, double yaw);
+        bool executePlans(std::vector<moveit::planning_interface::MoveGroupInterface::Plan> plans);
 };
 
 #endif

@@ -46,6 +46,12 @@ geometry_msgs::Pose mapStringToPose(std::string name)
         poseToReturn.orientation.z = 1.5272f;
         // For now, let the default values
     }
+        else if (name == "Home")
+    {
+        poseToReturn.position.x = 9.0f;
+        poseToReturn.position.y = 4.8f;
+        poseToReturn.orientation.z = 2.2f;
+    }
     return poseToReturn;
 }
 

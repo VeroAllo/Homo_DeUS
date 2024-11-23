@@ -56,6 +56,7 @@ class ArmInterfaceNode: ArmInterface
         trajectory_msgs::JointTrajectory lookDown();
 
         
+        bool makeAllPlans(geometry_msgs::Pose pose);
         ros::Publisher hbba_take_response_pub;
         ros::Publisher hbba_drop_response_pub;
         // FOR TEST ONLY : Temp Drop pub to drop after pick

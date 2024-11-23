@@ -24,7 +24,7 @@ string GreetingState::generateText(const string& parameter){
         return "Greeting, would you please follow me.";
     }
     else {
-        return "Bonjour, veuillez me suivre s'il vous plait.";
+        return "Bonjour, veuillez me suivre sil vous plait.";
     }
     
 }
