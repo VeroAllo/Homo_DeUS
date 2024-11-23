@@ -43,7 +43,7 @@ class AudioRosDiscuss:
                 1. Si le client demande des recommandations, suggérez un des articles du menu.
                 2. Le menu ne comporte que 3 articles : Pepsi, Coke et Canada dry.
                 3. Confirmez la commande avant de terminer la conversation. Dans la forme suivante : "Voulez-vous confirmer votre commande de [item] ?"
-                4. Remerciez le client.
+                4. Si le client confirme sa commande, annonez lui que vous revenez sous peu avec la commande dans ce format : "je reviens avec votre commande"
                 5. Le client ne peut commande qu'un seul item et n'a besoin de rien d'autre. 
                 6. Les réponses de l'assistant doivent être courtes et précises.
                 """}
@@ -185,7 +185,7 @@ class AudioRosDiscuss:
                         self.__tts_talk(response_text, 'en-US')
 
                 # Vérification de la fin de la conversation
-                if self.check_thank_you(response_text.lower(), self.lang):
+                if (self.check_thank_you(response_text.lower(), self.lang) and (self.selected_item!=None)):
                     if self.selected_item:
                         print(f"Commande confirmée : {self.selected_item}")
                         response_msg = HDResponse()
@@ -210,7 +210,7 @@ class AudioRosDiscuss:
 
     def check_thank_you(self, response_text, lang):
         if lang == 'fr':
-            phrases = ["merci", "bon appétit"]
+            phrases = ["je reviens avec votre commande", "bon appétit"]
         else:
             phrases = ["thank you", "have a pleasant meal"]
 

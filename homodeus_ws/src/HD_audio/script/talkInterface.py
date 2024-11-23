@@ -52,6 +52,7 @@ class AudioRos():
             print(f"{self.__sound_file} does not exist.")
         response = HDResponse()
         response.id.desire_id = self.__desireID
+        response.message.data = msg.message.data
         response.result = True
         self.__talk_response_pub.publish(response)
         rospy.loginfo("Response to talk sent")

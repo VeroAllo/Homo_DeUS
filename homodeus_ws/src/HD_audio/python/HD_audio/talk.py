@@ -34,5 +34,5 @@ class AudioTalk:
         self.__talk()
 
     def talk(self, initial_message):
-        self.__tts_talk(initial_message, 'fr-CA')
+        self.__tts_talk(initial_message, 'fr_FR')
 
