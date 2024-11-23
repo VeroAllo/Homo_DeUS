@@ -26,6 +26,8 @@ class AudioRosDiscuss:
         self.setup_audio()
         self.setup_ros()
         self.load_api_key()
+        #Print le microphone qui est utilisé
+        print("Microphone utilisé : ", pyaudio.PyAudio().get_default_input_device_info()['name'])
         base_path = os.path.dirname(os.path.abspath(__file__))
         self.__sound_file = os.path.join(base_path,'response.mp3')
         print("Le pathL", self.__sound_file)
@@ -54,9 +56,10 @@ class AudioRosDiscuss:
                 8. Les client ne sont pas accompagnés
                 9. Tu ne peux pas arrêter la conversation avant que le client confirme sa commande avec un choix de boisson.
                 10. Le bistro ce trouve sur le Campus de l'Université de Sherbrooke.
-                11. Si un client commande un coq assume qu'il veut dire un coke.
-                
+                11. Si un client commande un coq ou une coque assume qu'il veut dire un coke.
+                12.
                 """}
+
             ]
         else:
             return [
