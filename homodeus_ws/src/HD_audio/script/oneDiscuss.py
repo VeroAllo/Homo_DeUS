@@ -54,6 +54,7 @@ class AudioRosDiscuss:
                 8. Les client ne sont pas accompagnés
                 9. Tu ne peux pas arrêter la conversation avant que le client confirme sa commande avec un choix de boisson.
                 10. Le bistro ce trouve sur le Campus de l'Université de Sherbrooke.
+                11. Si un client commande un coq assume qu'il veut dire un coke.
                 
                 """}
             ]
