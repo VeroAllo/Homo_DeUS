@@ -101,7 +101,8 @@ void TalkStrategy::SubscriberResponseCallBack(const homodeus_msgs::HDResponse& r
         ROS_INFO_STREAM("TalkDesire Finished - DesireID : " << m_desireID);
         m_DesireSet->removeDesire(m_desireID);
         onDisabling();
-        strategy_motivation_interface_.publishMessage("Table 1");
+        if ((response.message.data.find("Greeting") != std::string::npos) || (response.message.data.find("Bonjour") != std::string::npos))
+            strategy_motivation_interface_.publishMessage("Table 1");
         return;
     }
     ROS_ERROR_STREAM("The desireIDs do not match - Received : " << response.id.desire_id << ", Expected : " << m_desireID);

@@ -88,12 +88,12 @@ void AccueillirClient::StateMachine()
 
 PrendreCommande::PrendreCommande(const std::map<std::string, bool>& subscriberTopicList, ros::NodeHandle& nodeHandle, std::vector<bool> perceptionList, std::shared_ptr<DesireSet> desireSet, StateManager* stateManager) : Motivation(desireSet), m_StateManager(stateManager), m_PerceptionList(perceptionList), strategy_motivation_interface_(nodeHandle)
 {
-    m_Timers.reserve(10);
+    // m_Timers.reserve(10);
     strategy_motivation_interface_.setCallback(std::bind(&PrendreCommande::StrategySubscriberCallBack, this, std::placeholders::_1));    
-    m_Timers[0] = nodeHandle.createTimer(ros::Duration(TEMPSDATTENTE), [this](const ros::TimerEvent&) { this->TimerSubscriberCallBack(0); }, false, false);
-    m_Timers[1] = nodeHandle.createTimer(ros::Duration(TEMPSDATTENTE), [this](const ros::TimerEvent&) { this->TimerSubscriberCallBack(1); }, false, false);
-    m_Timers[2] = nodeHandle.createTimer(ros::Duration(TEMPSDATTENTE), [this](const ros::TimerEvent&) { this->TimerSubscriberCallBack(2); }, false, false);
-    m_Timers[3] = nodeHandle.createTimer(ros::Duration(TEMPSDATTENTE), [this](const ros::TimerEvent&) { this->TimerSubscriberCallBack(3); }, false, false);
+    // m_Timers[0] = nodeHandle.createTimer(ros::Duration(TEMPSDATTENTE), [this](const ros::TimerEvent&) { this->TimerSubscriberCallBack(0); }, false, false);
+    // m_Timers[1] = nodeHandle.createTimer(ros::Duration(TEMPSDATTENTE), [this](const ros::TimerEvent&) { this->TimerSubscriberCallBack(1); }, false, false);
+    // m_Timers[2] = nodeHandle.createTimer(ros::Duration(TEMPSDATTENTE), [this](const ros::TimerEvent&) { this->TimerSubscriberCallBack(2); }, false, false);
+    // m_Timers[3] = nodeHandle.createTimer(ros::Duration(TEMPSDATTENTE), [this](const ros::TimerEvent&) { this->TimerSubscriberCallBack(3); }, false, false);
 }
 
 void PrendreCommande::StrategySubscriberCallBack(const std_msgs::String& msg)
@@ -106,16 +106,17 @@ void PrendreCommande::StrategySubscriberCallBack(const std_msgs::String& msg)
         {
             ROS_INFO_STREAM("TImer starter" << table);
             m_Tables[table] = true;
-            m_Timers[table].start();
+            // m_Timers[table].start();
+            VerifyCondition(table);
         }
     }
 }
 
-void PrendreCommande::TimerSubscriberCallBack(int table)
-{
-    m_Timers[table].stop();
-    VerifyCondition(table);
-}
+// void PrendreCommande::TimerSubscriberCallBack(int table)
+// {
+//     m_Timers[table].stop();
+//     VerifyCondition(table);
+// }
 
 void PrendreCommande::VerifyCondition(int tb)
 {

@@ -93,7 +93,7 @@ void startNode(ros::NodeHandle& nodeHandle)
         make_unique<TakeState>(stateManager, desireSet, nodeHandle, gotoTableStateType, 2)
     );
     stateManager.addState(2,
-        make_unique<GoToTableState>(stateManager, desireSet, nodeHandle, idleStateType, 3)
+        make_unique<GoToTableState>(stateManager, desireSet, nodeHandle, dropStatetype, 3)
     );
     stateManager.addState(2, 
         make_unique<DropState>(stateManager, desireSet, nodeHandle, gotoHomeStateType, 4)
