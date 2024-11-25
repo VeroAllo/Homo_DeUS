@@ -47,7 +47,7 @@ class AudioRosDiscuss:
                 Voici quelques instructions spécifiques :
                 0. Le restaurant est le Tiagoh Bistro.
                 1. Si le client demande des recommandations, suggérez un des articles du menu.
-                2. Le menu ne comporte que 3 articles : Pepsi, Coke et Canada dry.
+                2. Le menu ne comporte que 3 articles : Jus de pomme, jus d'orange et punch aux fruits.
                 3. Confirmez la commande avant de terminer la conversation. Dans la forme suivante : "Voulez-vous confirmer votre commande de [item] ?"
                 4. Si le client confirme sa commande, annonez lui que vous revenez sous peu avec la commande dans ce format : "je reviens avec votre commande"
                 5. Le client ne peut commande qu'un seul item et n'a besoin de rien d'autre. 
@@ -56,8 +56,7 @@ class AudioRosDiscuss:
                 8. Les client ne sont pas accompagnés
                 9. Tu ne peux pas arrêter la conversation avant que le client confirme sa commande avec un choix de boisson.
                 10. Le bistro ce trouve sur le Campus de l'Université de Sherbrooke.
-                11. Si un client commande un coq ou une coque assume qu'il veut dire un coke.
-                12.
+
                 """}
 
             ]
@@ -234,7 +233,7 @@ class AudioRosDiscuss:
 
     def extract_order_item(self, response_text):
         # Extraire l'item de la commande à partir de la réponse de ChatGPT
-        items = ["Pepsi", "Coke", "Canada dry"]
+        items = ["pomme", "orange", "punch"]
         for item in items:
             if item.lower() in response_text.lower():
                 return item.lower()
