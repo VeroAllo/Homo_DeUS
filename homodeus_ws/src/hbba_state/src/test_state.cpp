@@ -33,13 +33,13 @@ void startNode(ros::NodeHandle& nodeHandle)
 {
     shared_ptr<DesireSet> desireSet = make_shared<DesireSet>();
     shared_ptr<RosFilterPool> filterPool = make_shared<RosFilterPool>(nodeHandle, WAIT_FOR_SERVICE);
-
+    StateManager stateManager;
     vector<unique_ptr<BaseStrategy>> strategies;
     //setup strategy needed for state
     strategies.emplace_back(createTalkStrategy(filterPool, desireSet, nodeHandle));
     strategies.emplace_back(createGoToStrategy(filterPool, desireSet, nodeHandle));
     strategies.emplace_back(createDiscussStrategy(filterPool, desireSet, nodeHandle));
-    strategies.emplace_back(createTakeStrategy(filterPool, desireSet, nodeHandle));
+    strategies.emplace_back(createTakeStrategy(filterPool, desireSet, nodeHandle, &stateManager));
     strategies.emplace_back(createDropStrategy(filterPool, desireSet, nodeHandle));
     // strategies.emplace_back(createExploreStrategy(filterPool, desireSet, nodeHandle));
 
@@ -48,7 +48,6 @@ void startNode(ros::NodeHandle& nodeHandle)
     unique_ptr<RosTopicStrategyStateLogger> strategyStateLogger = make_unique<RosTopicStrategyStateLogger>(nodeHandle);
     HbbaLite hbba(desireSet, move(strategies), {/*ressource*/}, move(solver), move(strategyStateLogger));
     ROS_INFO("Allo HBBA lite");
-    StateManager stateManager;
 
     type_index greetingStateType = type_index(typeid(GreetingState));
     type_index discussStateType = type_index(typeid(DiscussionState));
@@ -96,13 +95,13 @@ void startNode(ros::NodeHandle& nodeHandle)
         make_unique<GoToTableState>(stateManager, desireSet, nodeHandle, dropStatetype, 3)
     );
     stateManager.addState(2, 
-        make_unique<DropState>(stateManager, desireSet, nodeHandle, gotoHomeStateType, 4)
+        make_unique<DropState>(stateManager, desireSet, nodeHandle, goodbyeStateType, 4)
     );
     stateManager.addState(2, 
-        make_unique<GoToHomeState>(stateManager, desireSet, nodeHandle, goodbyeStateType, 5)
+        make_unique<GoToHomeState>(stateManager, desireSet, nodeHandle, idleStateType, 5)
     );
     stateManager.addState(2, 
-        make_unique<GoodbyeState>(stateManager, desireSet, nodeHandle, idleStateType, 5, "fr")
+        make_unique<GoodbyeState>(stateManager, desireSet, nodeHandle, gotoHomeStateType, 5, "fr")
     );
 
     //stateManager.switchTo<IdleState>(0);

@@ -4,6 +4,7 @@
 #include <homodeus_hbba_lite/HDStrategy.h>
 #include <hbba_lite/filters/FilterState.h>
 #include <hbba_lite/core/Strategy.h>
+#include <../../hbba_state/src/State/GoodbyeState.h>
 #include <std_msgs/String.h>
 #include <std_msgs/UInt16.h>
 #include <geometry_msgs/Pose.h>
@@ -70,15 +71,24 @@ void GotoStrategy::SubscriberResponseCallBack(const homodeus_msgs::HDResponse& r
 
 void GotoStrategy::SubscriberCancelCallBack(const homodeus_msgs::DesireID& desireID) 
 {
-    if(desireID.desire_id == m_desireID)
-    {
-        // TODO : Implement behaviour in V2
-    }
+   
 }
 
-void GotoStrategy::SubscriberStatusCallBack(const homodeus_msgs::HDStatus& status) 
+void GotoStrategy::SubscriberStatusCallBack(const homodeus_msgs::HDPose& hdPose) 
 {
-    // TODO : Implement behaviour in V2
+    if(hdPose.id.desire_id == m_desireID)
+    {
+        // TODO : Implement behaviour in V2
+        // homodeus_msgs::HDPose hdPose{};
+        // hdPose.id.desire_id = m_desireID;
+
+        // hdPose.pose = mapStringToPose(desire.m_DestinationInText);
+        // hdPose.name.data = desire.m_DestinationInText;
+        for(ros::Publisher pub : m_PublisherList)
+        {
+            pub.publish(hdPose);
+        }
+    }
 }
 
 void GotoStrategy::onEnabling(const GotoDesire& desire)
@@ -185,7 +195,10 @@ void DiscussStrategy::onEnabling(const DiscussDesire& desire)
     }
 }
 
-TakeStrategy::TakeStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, std::map<std::string,bool> publisherTopicList, std::map<std::string,bool> subscriberTopicList, std::shared_ptr<DesireSet> desireSet, std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName) : HDStrategy(filterPool, nodeHandle, publisherTopicList, subscriberTopicList, desireSet, filterConfigurationByName), m_NodeHandle(nodeHandle) {}
+TakeStrategy::TakeStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, std::map<std::string,bool> publisherTopicList, std::map<std::string,bool> subscriberTopicList, std::shared_ptr<DesireSet> desireSet, std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName, StateManager* stateManager) : HDStrategy(filterPool, nodeHandle, publisherTopicList, subscriberTopicList, desireSet, filterConfigurationByName), m_NodeHandle(nodeHandle) 
+{
+    m_StateManager = stateManager;
+}
 
 void TakeStrategy::SubscriberResponseCallBack(const homodeus_msgs::HDResponse& response) 
 {    
@@ -201,10 +214,7 @@ void TakeStrategy::SubscriberResponseCallBack(const homodeus_msgs::HDResponse& r
 
 void TakeStrategy::SubscriberCancelCallBack(const homodeus_msgs::DesireID& desireID) 
 {
-    if(desireID.desire_id == m_desireID)
-    {
-        // TODO : Implement behaviour in V2
-    }
+    
 }
 
 void TakeStrategy::SubscriberVisionCallback(const homodeus_msgs::ObjectsDetection& objects)
@@ -212,9 +222,17 @@ void TakeStrategy::SubscriberVisionCallback(const homodeus_msgs::ObjectsDetectio
     m_ObjectsToDetect = objects;
 }
 
-void TakeStrategy::SubscriberStatusCallBack(const homodeus_msgs::HDStatus& status) 
+void TakeStrategy::SubscriberStatusCallBack(const homodeus_msgs::HDResponse& response) 
 {
-    // TODO : Implement behaviour in V2
+    if(response.id.desire_id == m_desireID)
+    {
+        // TODO : Implement behaviour in V2
+        std::string fail = "Fail";
+        static_cast<GoodbyeState*>(m_StateManager->m_listsStates[2][std::type_index(typeid(GoodbyeState))].get())->generateText(fail);
+        m_DesireSet->removeDesire(m_desireID);
+        onDisabling();
+        return;
+    }
 }
 
 void TakeStrategy::onEnabling(const TakeDesire& desire)
@@ -343,9 +361,9 @@ std::unique_ptr<BaseStrategy> createDiscussStrategy(std::shared_ptr<FilterPool> 
     return std::make_unique<DiscussStrategy>(filterPool, nodeHandle, std::map<std::string, bool>{{BEHAVIOUR "/Discuss/Request", false}, {BEHAVIOUR "/Discuss/Cancel", false} },std::map<std::string, bool>{{BEHAVIOUR "/Discuss/Response", false}, {BEHAVIOUR "/Discuss/Status", false}}, desireSet, std::unordered_map<std::string, FilterConfiguration>{{"discuss/FilterState", FilterConfiguration::onOff()}});
 }
 
-std::unique_ptr<BaseStrategy> createTakeStrategy(std::shared_ptr<FilterPool> filterPool, std::shared_ptr<DesireSet> desireSet, ros::NodeHandle& nodeHandle, uint16_t utility)
+std::unique_ptr<BaseStrategy> createTakeStrategy(std::shared_ptr<FilterPool> filterPool, std::shared_ptr<DesireSet> desireSet, ros::NodeHandle& nodeHandle, StateManager* stateManager, uint16_t utility)
 {
-    return std::make_unique<TakeStrategy>(filterPool, nodeHandle, std::map<std::string, bool>{{BEHAVIOUR "/Take/Request", false}, {BEHAVIOUR "/Take/Cancel", false}},std::map<std::string, bool>{{BEHAVIOUR "/Take/Response", false}, {BEHAVIOUR "/Take/Status", false}, {PERCEPTION "/Detect", true}}, desireSet, std::unordered_map<std::string, FilterConfiguration>{{"Take/FilterState", FilterConfiguration::onOff()}});
+    return std::make_unique<TakeStrategy>(filterPool, nodeHandle, std::map<std::string, bool>{{BEHAVIOUR "/Take/Request", false}, {BEHAVIOUR "/Take/Cancel", false}},std::map<std::string, bool>{{BEHAVIOUR "/Take/Response", false}, {BEHAVIOUR "/Take/Status", false}, {PERCEPTION "/Detect", true}}, desireSet, std::unordered_map<std::string, FilterConfiguration>{{"Take/FilterState", FilterConfiguration::onOff()}}, stateManager);
 }
 
 std::unique_ptr<BaseStrategy> createDropStrategy(std::shared_ptr<FilterPool> filterPool, std::shared_ptr<DesireSet> desireSet, ros::NodeHandle& nodeHandle, uint16_t utility)

@@ -62,6 +62,10 @@ void AccueillirClient::VisionSubscriberCallBack(const homodeus_msgs::ObjectsDete
 void AccueillirClient::StrategySubscriberCallBack(const std_msgs::String& msg)
 {
     ROS_INFO_STREAM("Accuillir - Received message from GotoStrategy: " << msg.data);
+    if (msg.data.find("Commande") != std::string::npos)
+    {
+        hasDone = false;
+    }
 }
 
 void AccueillirClient::VerifyCondition()
@@ -108,6 +112,7 @@ void PrendreCommande::StrategySubscriberCallBack(const std_msgs::String& msg)
             m_Tables[table] = true;
             // m_Timers[table].start();
             VerifyCondition(table);
+            m_Tables[table] = false;
         }
     }
 }

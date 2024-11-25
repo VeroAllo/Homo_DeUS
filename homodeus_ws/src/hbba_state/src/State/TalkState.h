@@ -20,15 +20,13 @@ public:
     DECLARE_NOT_MOVABLE(TalkState);
 
     void onDesireSetChanged(const std::vector<std::unique_ptr<Desire>>& _) override;
-    std::string m_language;
+    virtual std::string generateText(const std::string& parameter) { return "";}
 
 protected:
     void enable(const std::string& parameter, const std::type_index& previousStageType) override;
     void disable() override;
-    
+    std::string m_language;
 
-private:
-    virtual std::string generateText(const std::string& parameter) { return "";};
 };
 
 #endif

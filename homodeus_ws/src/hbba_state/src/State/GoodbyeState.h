@@ -16,11 +16,11 @@ public :
 
     DECLARE_NOT_COPYABLE(GoodbyeState);
     DECLARE_NOT_MOVABLE(GoodbyeState);
+    std::string generateText(const std::string& parameter) override;
 
 protected:
     std::type_index type() const override;
-
-    std::string generateText(const std::string& parameter) override;
+    
    
 };
 

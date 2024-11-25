@@ -4,7 +4,7 @@
 #include <ros/ros.h>
 #include <vector>
 #include <memory>
-
+#include <../../hbba_state/src/State/StateManager.h>
 #include "HDStrategyToMotivationInterface.h"
 
 class GotoStrategy : public HDStrategy<GotoDesire>
@@ -14,7 +14,8 @@ class GotoStrategy : public HDStrategy<GotoDesire>
         void onEnabling(const GotoDesire& desire) override;
         void SubscriberResponseCallBack(const homodeus_msgs::HDResponse& response) override;
         void SubscriberCancelCallBack(const homodeus_msgs::DesireID& desireID) override;
-        void SubscriberStatusCallBack(const homodeus_msgs::HDStatus& status) override;
+        void SubscriberStatusCallBack(const homodeus_msgs::HDPose& hdPose);
+        void SubscriberStatusCallBack(const homodeus_msgs::HDStatus& status) override {}
     private:
         HDStrategyMotivationInterface strategy_motivation_interface_;
 };
@@ -46,11 +47,12 @@ class DiscussStrategy : public HDStrategy<DiscussDesire>
 class TakeStrategy : public HDStrategy<TakeDesire>
 {
     public:
-        TakeStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, std::map<std::string,bool> publisherTopicList, std::map<std::string,bool> subscriberTopicList, std::shared_ptr<DesireSet> desireSet,std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName);
+        TakeStrategy(std::shared_ptr<FilterPool> filterPool, ros::NodeHandle& nodeHandle, std::map<std::string,bool> publisherTopicList, std::map<std::string,bool> subscriberTopicList, std::shared_ptr<DesireSet> desireSet,std::unordered_map<std::string, FilterConfiguration> filterConfigurationByName, StateManager* stateManager);
         void onEnabling(const TakeDesire& desire) override;
         void SubscriberResponseCallBack(const homodeus_msgs::HDResponse& response) override;
         void SubscriberCancelCallBack(const homodeus_msgs::DesireID& desireID) override;
-        void SubscriberStatusCallBack(const homodeus_msgs::HDStatus& status) override;
+        void SubscriberStatusCallBack(const homodeus_msgs::HDResponse& response);
+        void SubscriberStatusCallBack(const homodeus_msgs::HDStatus& status) override {}
         void SubscriberVisionCallback(const homodeus_msgs::ObjectsDetection& status) override;
     private:
         homodeus_msgs::ObjectDetection GetClosestTagMatchingCommande(const std::string& commande)
@@ -92,6 +94,7 @@ class TakeStrategy : public HDStrategy<TakeDesire>
 
         homodeus_msgs::ObjectsDetection m_ObjectsToDetect{};
         ros::NodeHandle& m_NodeHandle;
+        StateManager* m_StateManager;
 };
 
 class DropStrategy : public HDStrategy<DropDesire>
@@ -120,7 +123,7 @@ std::unique_ptr<BaseStrategy> createTalkStrategy(std::shared_ptr<FilterPool> fil
 
 std::unique_ptr<BaseStrategy> createDiscussStrategy(std::shared_ptr<FilterPool> filterPool, std::shared_ptr<DesireSet> desireSet, ros::NodeHandle& nodeHandle, uint16_t utility = 1U);
 
-std::unique_ptr<BaseStrategy> createTakeStrategy(std::shared_ptr<FilterPool> filterPool, std::shared_ptr<DesireSet> desireSet, ros::NodeHandle& nodeHandle, uint16_t utility = 1U);
+std::unique_ptr<BaseStrategy> createTakeStrategy(std::shared_ptr<FilterPool> filterPool, std::shared_ptr<DesireSet> desireSet, ros::NodeHandle& nodeHandle, StateManager* stateManager,  uint16_t utility = 1U);
 
 std::unique_ptr<BaseStrategy> createDropStrategy(std::shared_ptr<FilterPool> filterPool, std::shared_ptr<DesireSet> desireSet, ros::NodeHandle& nodeHandle, uint16_t utility = 1U);
 

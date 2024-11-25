@@ -13,14 +13,13 @@ public :
         std::type_index nextStateType,
         int Intensite, std::string language);
     ~GreetingState() override;
+    std::string generateText(const std::string& parameter) override;
 
     DECLARE_NOT_COPYABLE(GreetingState);
     DECLARE_NOT_MOVABLE(GreetingState);
 
 protected:
     std::type_index type() const override;
-
-    std::string generateText(const std::string& parameter) override;
    
 };
 
