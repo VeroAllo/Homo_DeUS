@@ -56,6 +56,9 @@ class AudioRosDiscuss:
                 8. Les client ne sont pas accompagnés
                 9. Tu ne peux pas arrêter la conversation avant que le client confirme sa commande avec un choix de boisson.
                 10. Le bistro ce trouve sur le Campus de l'Université de Sherbrooke.
+                11. Si tu ne comprends pas ce que le client désire, tu peux lui demander de répéter.
+                12. Si la demande du client est sogrenu tu peux lui demander de reformuler sa demande.
+                13. Si le client mentionne "jeu" assume qu'il parle de jus mais toi continuer d'employer le mot jus.
 
                 """}
 
