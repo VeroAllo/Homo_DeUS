@@ -74,16 +74,16 @@ void GotoStrategy::SubscriberCancelCallBack(const homodeus_msgs::DesireID& desir
    
 }
 
-void GotoStrategy::SubscriberStatusCallBack(const homodeus_msgs::HDPose& hdPose) 
+void GotoStrategy::SubscriberStatusCallBack(const homodeus_msgs::HDStatus& status) 
 {
-    if(hdPose.id.desire_id == m_desireID)
+    if(status.id.desire_id == m_desireID)
     {
         // TODO : Implement behaviour in V2
-        // homodeus_msgs::HDPose hdPose{};
-        // hdPose.id.desire_id = m_desireID;
-
-        // hdPose.pose = mapStringToPose(desire.m_DestinationInText);
-        // hdPose.name.data = desire.m_DestinationInText;
+        homodeus_msgs::HDPose hdPose{};
+        hdPose.id.desire_id = m_desireID;
+        ROS_INFO_STREAM("Destination du desire status: " << status.message.data);
+        hdPose.pose = mapStringToPose(status.message.data);
+        hdPose.name.data = status.message.data;
         for(ros::Publisher pub : m_PublisherList)
         {
             pub.publish(hdPose);
@@ -222,10 +222,11 @@ void TakeStrategy::SubscriberVisionCallback(const homodeus_msgs::ObjectsDetectio
     m_ObjectsToDetect = objects;
 }
 
-void TakeStrategy::SubscriberStatusCallBack(const homodeus_msgs::HDResponse& response) 
+void TakeStrategy::SubscriberStatusCallBack(const homodeus_msgs::HDStatus& status) 
 {
-    if(response.id.desire_id == m_desireID)
+    if(status.id.desire_id == m_desireID)
     {
+        ROS_INFO_STREAM("TakeDesire Status  : " << status.message.data);
         // TODO : Implement behaviour in V2
         std::string fail = "Fail";
         static_cast<GoodbyeState*>(m_StateManager->m_listsStates[2][std::type_index(typeid(GoodbyeState))].get())->generateText(fail);

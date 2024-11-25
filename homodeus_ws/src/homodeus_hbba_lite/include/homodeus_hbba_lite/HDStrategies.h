@@ -14,8 +14,7 @@ class GotoStrategy : public HDStrategy<GotoDesire>
         void onEnabling(const GotoDesire& desire) override;
         void SubscriberResponseCallBack(const homodeus_msgs::HDResponse& response) override;
         void SubscriberCancelCallBack(const homodeus_msgs::DesireID& desireID) override;
-        void SubscriberStatusCallBack(const homodeus_msgs::HDPose& hdPose);
-        void SubscriberStatusCallBack(const homodeus_msgs::HDStatus& status) override {}
+        void SubscriberStatusCallBack(const homodeus_msgs::HDStatus& status) override;
     private:
         HDStrategyMotivationInterface strategy_motivation_interface_;
 };
@@ -51,8 +50,7 @@ class TakeStrategy : public HDStrategy<TakeDesire>
         void onEnabling(const TakeDesire& desire) override;
         void SubscriberResponseCallBack(const homodeus_msgs::HDResponse& response) override;
         void SubscriberCancelCallBack(const homodeus_msgs::DesireID& desireID) override;
-        void SubscriberStatusCallBack(const homodeus_msgs::HDResponse& response);
-        void SubscriberStatusCallBack(const homodeus_msgs::HDStatus& status) override {}
+        void SubscriberStatusCallBack(const homodeus_msgs::HDStatus& status) override;
         void SubscriberVisionCallback(const homodeus_msgs::ObjectsDetection& status) override;
     private:
         homodeus_msgs::ObjectDetection GetClosestTagMatchingCommande(const std::string& commande)
