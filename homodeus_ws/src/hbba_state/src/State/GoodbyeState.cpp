@@ -20,7 +20,9 @@ GoodbyeState::~GoodbyeState(){
 }
 
 string GoodbyeState::generateText(const string& parameter){
-    if (parameter == "Fail")
+    m_fail = parameter;
+    if (m_fail == "Fail")
+        m_fail = "";
         return "Une erreur sest produite lors de la prise de votre commande. Nous sommes désoler";
     if (m_language == "en"){
         return "Goodbye";

@@ -20,7 +20,8 @@ public :
 
 protected:
     std::type_index type() const override;
-    
+private:
+    std::string m_fail;
    
 };
 
