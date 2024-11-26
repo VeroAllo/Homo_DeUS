@@ -52,6 +52,7 @@ class TakeStrategy : public HDStrategy<TakeDesire>
         void SubscriberCancelCallBack(const homodeus_msgs::DesireID& desireID) override;
         void SubscriberStatusCallBack(const homodeus_msgs::HDStatus& status) override;
         void SubscriberVisionCallback(const homodeus_msgs::ObjectsDetection& status) override;
+        void SubscriberProductVisionCallback(const homodeus_msgs::ObjectsDetection& status) override;
     private:
         homodeus_msgs::ObjectDetection GetClosestTagMatchingCommande(const std::string& commande)
         {

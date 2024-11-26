@@ -219,6 +219,11 @@ void TakeStrategy::SubscriberCancelCallBack(const homodeus_msgs::DesireID& desir
 
 void TakeStrategy::SubscriberVisionCallback(const homodeus_msgs::ObjectsDetection& objects)
 {
+//    m_ObjectsToDetect = objects;
+}
+
+void TakeStrategy::SubscriberProductVisionCallback(const homodeus_msgs::ObjectsDetection& objects)
+{
     m_ObjectsToDetect = objects;
 }
 
@@ -364,7 +369,7 @@ std::unique_ptr<BaseStrategy> createDiscussStrategy(std::shared_ptr<FilterPool> 
 
 std::unique_ptr<BaseStrategy> createTakeStrategy(std::shared_ptr<FilterPool> filterPool, std::shared_ptr<DesireSet> desireSet, ros::NodeHandle& nodeHandle, StateManager* stateManager, uint16_t utility)
 {
-    return std::make_unique<TakeStrategy>(filterPool, nodeHandle, std::map<std::string, bool>{{BEHAVIOUR "/Take/Request", false}, {BEHAVIOUR "/Take/Cancel", false}},std::map<std::string, bool>{{BEHAVIOUR "/Take/Response", false}, {BEHAVIOUR "/Take/Status", false}, {PERCEPTION "/Detect", true}}, desireSet, std::unordered_map<std::string, FilterConfiguration>{{"Take/FilterState", FilterConfiguration::onOff()}}, stateManager);
+    return std::make_unique<TakeStrategy>(filterPool, nodeHandle, std::map<std::string, bool>{{BEHAVIOUR "/Take/Request", false}, {BEHAVIOUR "/Take/Cancel", false}},std::map<std::string, bool>{{BEHAVIOUR "/Take/Response", false}, {BEHAVIOUR "/Take/Status", false}, {PERCEPTION "/Detect", true},{PERCEPTION "/Detect/Product", true}}, desireSet, std::unordered_map<std::string, FilterConfiguration>{{"Take/FilterState", FilterConfiguration::onOff()}}, stateManager);
 }
 
 std::unique_ptr<BaseStrategy> createDropStrategy(std::shared_ptr<FilterPool> filterPool, std::shared_ptr<DesireSet> desireSet, ros::NodeHandle& nodeHandle, uint16_t utility)
