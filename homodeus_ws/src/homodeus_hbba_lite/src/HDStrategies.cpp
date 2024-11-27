@@ -34,7 +34,7 @@ geometry_msgs::Pose mapStringToPose(std::string name)
     }
     else if (name == "Table1")
     {        
-        poseToReturn.position.x = 8.50f;
+        poseToReturn.position.x = 8.50f - 0.2f;
         poseToReturn.orientation.z = 3.00f;
         poseToReturn.position.y = 3.09375f;
         // For now, let the default values
@@ -44,7 +44,7 @@ geometry_msgs::Pose mapStringToPose(std::string name)
         
         poseToReturn.position.x = 9.671875f;
         poseToReturn.position.y = 5.78125f;
-        poseToReturn.orientation.z = 1.5272f;
+        poseToReturn.orientation.z = 1.5272f + 0.261799f;
         // For now, let the default values
     }
         else if (name == "Home")
@@ -221,8 +221,7 @@ void TakeStrategy::SubscriberVisionCallback(const homodeus_msgs::ObjectsDetectio
 {
 //    m_ObjectsToDetect = objects;
 }
-
-void TakeStrategy::SubscriberProductVisionCallback(const homodeus_msgs::ObjectsDetection& objects)
+void TakeStrategy::SubscriberVisionProductCallback(const homodeus_msgs::ObjectsDetection& objects)
 {
     m_ObjectsToDetect = objects;
 }
@@ -234,7 +233,7 @@ void TakeStrategy::SubscriberStatusCallBack(const homodeus_msgs::HDStatus& statu
         ROS_INFO_STREAM("TakeDesire Status  : " << status.message.data);
         // TODO : Implement behaviour in V2
         std::string fail = "Fail";
-        static_cast<GoodbyeState*>(m_StateManager->m_listsStates[2][std::type_index(typeid(GoodbyeState))].get())->generateText(fail);
+        // static_cast<GoodbyeState*>(m_StateManager->m_listsStates[2][std::type_index(typeid(GoodbyeState))].get())->generateText(fail);
         m_DesireSet->removeDesire(m_desireID);
         onDisabling();
         return;
@@ -249,26 +248,21 @@ void TakeStrategy::onEnabling(const TakeDesire& desire)
     homodeus_msgs::ObjectDetection boundingBox;
     for (size_t i = 0; i < 3; i++)
     {
+        ROS_INFO_STREAM("TakeStrategy enable: " << m_ObjectsToDetect.objects.size());
         while (m_ObjectsToDetect.objects.size() == 0){ }
+        ROS_INFO_STREAM("While loop pass: " << m_ObjectsToDetect.objects.size());
         boundingBox = GetClosestTagMatchingCommande(desire.GetCommande());
         if (boundingBox.header.frame_id != "NOT FOUND") break;    
     }
     
-
-    if (boundingBox.header.frame_id == "NOT FOUND")
+    ROS_INFO_STREAM("frame_id : " << boundingBox.header.frame_id);
+    boundingBox.id.desire_id = m_desireID;
+    // ROS_INFO_STREAM("m_PublisherList : " << m_PublisherList);
+    for(ros::Publisher pub : m_PublisherList)
     {
-        ROS_INFO_STREAM(":(");
-    }
-    else
-    {
-        boundingBox.id.desire_id = m_desireID;
-        // ROS_INFO_STREAM("m_PublisherList : " << m_PublisherList);
-        for(ros::Publisher pub : m_PublisherList)
-        {
-            ROS_INFO_STREAM("Object Detection : " << boundingBox);
+        ROS_INFO_STREAM("Object Detection : " << boundingBox);
 
-            pub.publish(boundingBox);
-        }
+        pub.publish(boundingBox);
     }
 }
 
