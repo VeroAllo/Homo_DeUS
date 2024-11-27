@@ -54,18 +54,20 @@ class ArmInterface
         ArmInterface();
         ArmInterface(std::string ref_frame);
 
-        float max_vel_factor = 0.2;
+        float max_vel_factor = 0.3;
         bool _plan_success;
+        robot_state::RobotState* _initState;
         void setPlanningTime(float value);
         void setPlannerId(std::string id);
-        bool moveToCartesian(double x, double y, double z, double roll, double pitch, double yaw);
+        bool moveToCartesian(double x, double y, double z, double roll, double pitch, double yaw, std::string planner="SBLkConfigDefault", bool onlyFront=false);
         bool moveToJoint(double torso, double j1, double j2, double j3, double j4, double j5, double j6, double j7);
         bool moveToGrasp(std::vector<moveit_msgs::Grasp> grasps);
         void addObstacles(std::vector<moveit_msgs::CollisionObject> obstacles_list);
-        void cleanObstacles(std::vector<moveit_msgs::CollisionObject> obstacles_list);
+        void cleanObstacles();
+        void setInitState();
 
-        moveit::planning_interface::MoveGroupInterface::Plan nextJointsPlan(moveit::planning_interface::MoveGroupInterface::Plan* plan1, double torso, double j1, double j2, double j3, double j4, double j5, double j6, double j7);
-        moveit::planning_interface::MoveGroupInterface::Plan nextCartesianPlan(moveit::planning_interface::MoveGroupInterface::Plan* plan1, double x, double y, double z, double roll, double pitch, double yaw);
+        moveit::planning_interface::MoveGroupInterface::Plan nextJointsPlan(moveit::planning_interface::MoveGroupInterface::Plan* plan1, std::string planner, double torso, double j1, double j2, double j3, double j4, double j5, double j6, double j7);
+        moveit::planning_interface::MoveGroupInterface::Plan nextCartesianPlan(const moveit::planning_interface::MoveGroupInterface::Plan& plan1, std::string planner, double x, double y, double z, double roll, double pitch, double yaw);
         bool executePlans(std::vector<moveit::planning_interface::MoveGroupInterface::Plan> plans);
 };
 

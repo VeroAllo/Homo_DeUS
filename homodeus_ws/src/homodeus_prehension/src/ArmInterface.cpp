@@ -10,12 +10,13 @@ Inputs:         None
 
 Outputs:        None
 */
-ArmInterface::ArmInterface() : _moveGroup("arm_torso"), _ref_frame("base_link")
+// ArmInterface::ArmInterface() : _moveGroup("arm_torso"), _ref_frame("base_link")
+ArmInterface::ArmInterface() : _moveGroup("arm"), _ref_frame("base_link")
 {
     ROS_INFO("Initialising ArmInterface...");
     // Using 5 seconds because it's a reasonable delay
-    _planningTime = 20.0;
-    _plannerId = "LBKPIECEkConfigDefault";
+    _planningTime = 5.0;
+    _plannerId = "SBLkConfigDefault";
 
     _moveGroup.setPlannerId(_plannerId);
     _moveGroup.setMaxVelocityScalingFactor(max_vel_factor);
@@ -35,12 +36,13 @@ Inputs:         ref_frame (type, std::string)
 
 Outputs:        None
 */
-ArmInterface::ArmInterface(std::string ref_frame) : _moveGroup("arm_torso"), _ref_frame(ref_frame)
+// ArmInterface::ArmInterface(std::string ref_frame) : _moveGroup("arm_torso"), _ref_frame(ref_frame)
+ArmInterface::ArmInterface(std::string ref_frame) : _moveGroup("arm"), _ref_frame(ref_frame)
 {
     ROS_WARN("Initialising ArmInterface...");
     // Using 5 seconds because it's a reasonable delay
-    _planningTime = 25.0;
-    _plannerId = "LBKPIECEkConfigDefault";
+    _planningTime = 5.0;
+    _plannerId = "SBLkConfigDefault";
 
     _moveGroup.setPlannerId(_plannerId);
     _moveGroup.setMaxVelocityScalingFactor(max_vel_factor);
@@ -65,7 +67,7 @@ Outputs:        plan (type, moveit::planning_interface::MoveGroupInterface::Plan
 */
 bool ArmInterface::planTrajectory(moveit::planning_interface::MoveGroupInterface::Plan &plan)
 {
-    ros::Duration(1.5).sleep();
+    ros::Duration(1.0).sleep();
     _moveGroup.setStartStateToCurrentState();
     _moveGroup.setPlanningTime(_planningTime);
 
@@ -93,7 +95,7 @@ Outputs:        plan (type, moveit::planning_interface::MoveGroupInterface::Plan
 */
 bool ArmInterface::planTrajectoryJ(moveit::planning_interface::MoveGroupInterface::Plan &plan)
 {
-    ros::Duration(1.5).sleep();
+    ros::Duration(1.0).sleep();
     _moveGroup.setStartStateToCurrentState();
     _moveGroup.setPlanningTime(_planningTime);
 
@@ -170,8 +172,24 @@ Outputs:        success (type, bool):
                     This method returns true if it was able to move the arm and
                     false otherwise.
 */
-bool ArmInterface::moveToCartesian(double x, double y, double z, double roll, double pitch, double yaw)
-{
+bool ArmInterface::moveToCartesian(double x, double y, double z, double roll, double pitch, double yaw, std::string planner, bool onlyFront)
+{   
+    _moveGroup.clearPathConstraints();
+    if (onlyFront) {
+        moveit_msgs::OrientationConstraint ocm;
+        ocm.link_name = "arm";
+        ocm.header.frame_id = "base_link";
+        ocm.orientation.w = 1.0; // Quaternion indiquant une orientation horizontale
+        ocm.absolute_x_axis_tolerance = 0.01; // Tolérance pour roll
+        ocm.absolute_y_axis_tolerance = 0.01; // Tolérance pour pitch
+        ocm.absolute_z_axis_tolerance = 3.14; // Yaw peut varier librement
+        ocm.weight = 1.0;
+
+        moveit_msgs::Constraints constraints;
+        constraints.orientation_constraints.push_back(ocm);
+        _moveGroup.setPathConstraints(constraints);
+    }
+    _moveGroup.setPlannerId(planner);
     geometry_msgs::PoseStamped goalPose;
     goalPose.header.frame_id = _ref_frame;
     goalPose.pose.position.x = x;
@@ -241,9 +259,10 @@ Outputs:        success (type, bool):
 */
 bool ArmInterface::moveToJoint(double torso, double j1, double j2, double j3, double j4, double j5, double j6, double j7)
 {
+    setPlannerId("SBLkConfigDefault");
     std::map<std::string, double> targetPosition;
 
-    targetPosition["torso_lift_joint"] = torso;
+    // targetPosition["torso_lift_joint"] = torso;
     targetPosition["arm_1_joint"] = j1;
     targetPosition["arm_2_joint"] = j2;
     targetPosition["arm_3_joint"] = j3;
@@ -271,10 +290,11 @@ bool ArmInterface::moveToJoint(double torso, double j1, double j2, double j3, do
     return true;
 }
 
-moveit::planning_interface::MoveGroupInterface::Plan ArmInterface::nextJointsPlan(moveit::planning_interface::MoveGroupInterface::Plan* plan1, 
+moveit::planning_interface::MoveGroupInterface::Plan ArmInterface::nextJointsPlan(moveit::planning_interface::MoveGroupInterface::Plan* plan1, std::string planner, 
 double torso, double j1, double j2, double j3, double j4, double j5, double j6, double j7)
 {
 
+    _moveGroup.setPlannerId(planner);
     ROS_INFO("nextJointsPlan 1");
     robot_state::RobotState start_state(*_moveGroup.getCurrentState());
 
@@ -286,7 +306,7 @@ double torso, double j1, double j2, double j3, double j4, double j5, double j6, 
         robot_state::RobotState state(start_state);
         const std::vector<double> joints = plan1->trajectory_.joint_trajectory.points.back().positions;
 
-        state.setJointGroupPositions("arm_torso", joints);
+        state.setJointGroupPositions("arm", joints);
 
         _moveGroup.setStartState(state);
     }
@@ -316,22 +336,30 @@ double torso, double j1, double j2, double j3, double j4, double j5, double j6, 
     return nextPlan;
 }
 
-moveit::planning_interface::MoveGroupInterface::Plan ArmInterface::nextCartesianPlan(moveit::planning_interface::MoveGroupInterface::Plan* plan1, double x, double y, double z, double roll, double pitch, double yaw) {
+void ArmInterface::setInitState(){
+    _initState = new robot_state::RobotState(*_moveGroup.getCurrentState());
+}
+
+moveit::planning_interface::MoveGroupInterface::Plan ArmInterface::nextCartesianPlan(const moveit::planning_interface::MoveGroupInterface::Plan& plan1, std::string planner, double x, double y, double z, double roll, double pitch, double yaw) {
+    ROS_INFO_STREAM("CART 1");
+
+    _moveGroup.setPlannerId(planner);
 
     robot_state::RobotState start_state(*_moveGroup.getCurrentState());
-
     moveit::planning_interface::MoveGroupInterface::Plan nextPlan;
 
-    ros::Duration(1.5).sleep();
-    if (plan1 == nullptr) {
+    if (plan1.trajectory_.joint_trajectory.points.empty()) {
         _moveGroup.setStartStateToCurrentState();
     } else {
+        ROS_INFO_STREAM("GOOD STATE");
         robot_state::RobotState state(start_state);
-        const std::vector<double> joints = plan1->trajectory_.joint_trajectory.points.back().positions;
 
-        state.setJointGroupPositions("arm_torso", joints);
+        const std::vector<double>& joints = plan1.trajectory_.joint_trajectory.points.back().positions;
+
+        state.setJointGroupPositions("arm", joints);
 
         _moveGroup.setStartState(state);
+
     }
 
     geometry_msgs::PoseStamped goalPose;
@@ -342,6 +370,7 @@ moveit::planning_interface::MoveGroupInterface::Plan ArmInterface::nextCartesian
     goalPose.pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(roll, pitch, yaw);
 
     _moveGroup.setPoseReferenceFrame(_ref_frame);
+
     _moveGroup.setPoseTarget(goalPose);
 
     _moveGroup.setPlanningTime(_planningTime);
@@ -370,9 +399,24 @@ void ArmInterface::addObstacles(std::vector<moveit_msgs::CollisionObject> obstac
     _planningScene.applyCollisionObjects(obstacles_list);
 }
 
-void ArmInterface::cleanObstacles(std::vector<moveit_msgs::CollisionObject> obstacles_list){
-    for (auto object :  obstacles_list){
-        object.operation = object.REMOVE;
+void ArmInterface::cleanObstacles(){
+    // Create a vector to hold collision objects to be removed
+    std::vector<moveit_msgs::CollisionObject> obstacles_to_remove;
+
+    // Retrieve all current collision objects
+    auto current_objects = _planningScene.getObjects();
+
+    for (const auto& obj_pair : current_objects) {
+        moveit_msgs::CollisionObject collision_object;
+        collision_object.id = obj_pair.first; // Set the ID of the object
+        collision_object.operation = moveit_msgs::CollisionObject::REMOVE; // Mark for removal
+        obstacles_to_remove.push_back(collision_object);
     }
-    _planningScene.applyCollisionObjects(obstacles_list);
+
+    // Apply the removal operation
+    _planningScene.applyCollisionObjects(obstacles_to_remove);
+
+    /**std::vector<std::string> object_ids;
+object_ids.push_back(collision_object.id);
+planning_scene_interface.removeCollisionObjects(object_ids); */
 }

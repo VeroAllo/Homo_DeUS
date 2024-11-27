@@ -12,9 +12,11 @@
 #include <control_msgs/FollowJointTrajectoryAction.h>
 
 #include <homodeus_msgs/HDResponse.h>
+#include <homodeus_msgs/HDStatus.h>
 #include <homodeus_msgs/DesireID.h>
-#include <homodeus_msgs/PrehensionPos.h>
+#include <homodeus_prehension/PrehensionPos.h>
 #include <moveit_msgs/CollisionObject.h>
+#include <pal_control_msgs/ActuatorCurrentLimit.h>
 
 
 class ArmInterfaceNode: ArmInterface
@@ -43,9 +45,9 @@ class ArmInterfaceNode: ArmInterface
         control_msgs::FollowJointTrajectoryGoal go_up;
         control_msgs::FollowJointTrajectoryGoal look_down;
 
-        void pickPoseCB(const homodeus_msgs::PrehensionPos& hd_pose_msg);
+        void pickPoseCB(const homodeus_prehension::PrehensionPos& hd_pose_msg);
         void dropPoseCB(const homodeus_msgs::HDPose& hd_pose_msg);
-        void dropPoseHard(const homodeus_msgs::PrehensionPos& hd_pose_msg);
+        void dropPoseHard(const homodeus_prehension::PrehensionPos& hd_pose_msg);
         trajectory_msgs::JointTrajectory openedGripper();
         trajectory_msgs::JointTrajectory closedGripper();
 
@@ -55,9 +57,9 @@ class ArmInterfaceNode: ArmInterface
         trajectory_msgs::JointTrajectory goUp();
         trajectory_msgs::JointTrajectory lookDown();
 
-        
         bool makeAllPlans(geometry_msgs::Pose pose);
         ros::Publisher hbba_take_response_pub;
+        ros::Publisher hbba_take_status_pub;
         ros::Publisher hbba_drop_response_pub;
         // FOR TEST ONLY : Temp Drop pub to drop after pick
         ros::Publisher drop_pose_pub;

@@ -77,10 +77,11 @@
 #include <moveit_msgs/CollisionObject.h>
 #include <homodeus_msgs/BoundingBox.h>
 #include <homodeus_msgs/ObjectDetection.h>
-#include <homodeus_msgs/PrehensionPos.h>
+#include <homodeus_prehension/PrehensionPos.h>
 #include <homodeus_msgs/HDBoundingBox.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2_ros/transform_listener.h>
+#include <homodeus_msgs/HDStatus.h>
 
 
 namespace pal {
@@ -140,6 +141,7 @@ protected:
   ros::Publisher  _objectVisualisationMarkerPub;
   ros::Publisher  _planeVisualisationMarkerPub;
   
+  ros::Publisher _hbba_take_status_pub;
 
 
   std::vector<geometry_msgs::Pose> _objets_pos_list;
@@ -164,11 +166,13 @@ ObjectDetector::ObjectDetector(ros::NodeHandle& nh,
 
   pnh.param<double>("rate", _rate, _rate);
 
-  _prehension_pose   = _pnh.advertise<homodeus_msgs::PrehensionPos>("prehension_pose", 1);
-  _prehension_drop_pose = _pnh.advertise<homodeus_msgs::PrehensionPos>("prehension_drop_pose", 1);
+  _prehension_pose   = _pnh.advertise<homodeus_prehension::PrehensionPos>("prehension_pose", 1);
+  _prehension_drop_pose = _pnh.advertise<homodeus_prehension::PrehensionPos>("prehension_drop_pose", 1);
   _objectVisualisationPosePub   = _pnh.advertise< geometry_msgs::PoseStamped >("object_pose", 1);
   _objectVisualisationMarkerPub = _pnh.advertise<visualization_msgs::MarkerArray>("object_marker", 1);
   _planeVisualisationMarkerPub = _pnh.advertise<visualization_msgs::MarkerArray>("plane_marker", 1);
+
+  _hbba_take_status_pub = nh.advertise<homodeus_msgs::HDStatus>("/Homodeus/Behaviour/Take/Status", 1);
   
 }
 
@@ -386,7 +390,7 @@ void ObjectDetector::publishPose(const geometry_msgs::Pose& pose, const homodeus
     hd_pos_msg.pose = pose;
     ROS_INFO_STREAM("HD POSE :" << hd_pos_msg);
 
-    homodeus_msgs::PrehensionPos prehension_pos_msg;
+    homodeus_prehension::PrehensionPos prehension_pos_msg;
     prehension_pos_msg.hdpose = hd_pos_msg;
     prehension_pos_msg.obstacles = obstacles_list;
 
@@ -402,7 +406,7 @@ void ObjectDetector::publishDropPose(const homodeus_msgs::DesireID& desireID, st
     homodeus_msgs::HDPose hd_pos_msg;
     hd_pos_msg.id = desireID;
 
-    homodeus_msgs::PrehensionPos prehension_pos_msg;
+    homodeus_prehension::PrehensionPos prehension_pos_msg;
     prehension_pos_msg.hdpose = hd_pos_msg;
     prehension_pos_msg.obstacles = obstacles_list;
 
@@ -426,6 +430,13 @@ void ObjectDetector::publishPosestamped(const geometry_msgs::Pose& pose)
 void ObjectDetector::objectDetectionCallback(const homodeus_msgs::ObjectDetection& objectDetectionMsg) {
 
   ROS_INFO_STREAM("ObjectDetectionMSG RECEIVED");
+  if (objectDetectionMsg.header.frame_id == "NOT FOUND") {
+    ROS_INFO("NO OBJECT TO TAKE");
+    homodeus_msgs::HDStatus hd_status_msg;
+    hd_status_msg.id =  objectDetectionMsg.id;
+    _hbba_take_status_pub.publish(hd_status_msg);
+    return;
+  }
   geometry_msgs::Pose pose = objectDetectionMsg.pose;
   geometry_msgs::PointStamped point_in_map;
   point_in_map.header = objectDetectionMsg.header;
@@ -582,7 +593,7 @@ void ObjectDetector::start()
   _planCloudSub = _nh.subscribe("plane_cloud", 1, &ObjectDetector::planeCloudCallback, this);
 
   // KIWI
-  _objectDetectionSub = _nh.subscribe("/Homode0us/Behaviour/Take/Request", 1, &ObjectDetector::objectDetectionCallback, this);
+  _objectDetectionSub = _nh.subscribe("/Homodeus/Behaviour/Take/Request", 1, &ObjectDetector::objectDetectionCallback, this);
   // _objectDetectionSub = _nh.subscribe("/Homodeus/Perception/Detect", 1, &ObjectDetector::objectDetectionCallback, this);
 
   _objectDropSub = _nh.subscribe("/Homodeus/Behaviour/Drop/Request", 1, &ObjectDetector::dropObjectCallback, this);

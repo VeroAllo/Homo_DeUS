@@ -37,12 +37,30 @@ hac("/head_controller/follow_joint_trajectory", true)
     
     // HBBA observer topics
     hbba_take_response_pub = nh.advertise<homodeus_msgs::HDResponse>("/Homodeus/Behaviour/Take/Response", 1);
+    hbba_take_status_pub = nh.advertise<homodeus_msgs::HDStatus>("/Homodeus/Behaviour/Take/Status", 1);
     hbba_drop_response_pub = nh.advertise<homodeus_msgs::HDResponse>("/Homodeus/Behaviour/Drop/Response", 1);
+    
+    // ros::Publisher gripper_pub = nh.advertise<pal_control_msgs::ActuatorCurrentLimit>("/gripper_current_limit_controller/command", 1);
+    // pal_control_msgs::ActuatorCurrentLimit actuator;
+    // actuator.actuator_names.resize(1);
+    // actuator.actuator_names[0] = "gripper_motor";
+    // actuator.current_limits.resize(1);
+    // actuator.current_limits[0] = 0.1;
+
+    // gripper_pub.publish(actuator);
+
+    // ros::Duration(2).sleep();
+    // gripper_pub.shutdown();
+
 
     // TEST ONLY: Temp drop pose
     drop_pose_pub = nh.advertise<homodeus_msgs::HDPose>("/drop_point", 1);
 
+    ROS_INFO("Cleaning");
+    cleanObstacles();
+
     ROS_INFO("Node init done");
+    
 }
 
 trajectory_msgs::JointTrajectory ArmInterfaceNode::closedGripper()
@@ -80,8 +98,11 @@ trajectory_msgs::JointTrajectory ArmInterfaceNode::closedSchunkGripper()
     close_fingers.joint_names[0] = "gripper_finger_joint";
     close_fingers.points.resize(1);
     close_fingers.points[0].positions.resize(1);
-    close_fingers.points[0].positions[0] = 0.01;
-    close_fingers.points[0].time_from_start = ros::Duration(0.5);
+    // close_fingers.points[0].positions[0] = 0.024;
+    close_fingers.points[0].positions[0] = 0.015;
+    close_fingers.points[0].effort.resize(1);
+    close_fingers.points[0].effort[0] = 50.0; 
+    close_fingers.points[0].time_from_start = ros::Duration(1.5);
     return close_fingers;
 }
 
@@ -92,7 +113,7 @@ trajectory_msgs::JointTrajectory ArmInterfaceNode::openedSchunkGripper()
     open_fingers.joint_names[0] = "gripper_finger_joint";
     open_fingers.points.resize(1);
     open_fingers.points[0].positions.resize(1);
-    open_fingers.points[0].positions[0] = 0.050;
+    open_fingers.points[0].positions[0] = 0.030;
     open_fingers.points[0].time_from_start = ros::Duration(0.5);
     return open_fingers;
 }
@@ -134,12 +155,6 @@ void ArmInterfaceNode::gotoInitPose()
 }
 
 bool ArmInterfaceNode::makeAllPlans(geometry_msgs::Pose pose){
-
-    moveit::planning_interface::MoveGroupInterface::Plan* lastPlan = nullptr;
-    moveit::planning_interface::MoveGroupInterface::Plan nextPlan;
-    std::vector<moveit::planning_interface::MoveGroupInterface::Plan> allPlans;
-    std::string erro_msg = "PLAN FAILED : ";
-
     tf::Quaternion quat;
     tf::quaternionMsgToTF(pose.orientation, quat);
     double roll, pitch, yaw;
@@ -149,58 +164,64 @@ bool ArmInterfaceNode::makeAllPlans(geometry_msgs::Pose pose){
     auto y  = pose.position.y;
     auto z  = pose.position.z;
 
-    roll = roll +1.571;
-
-    ROS_INFO("makeAllPlans 1");
-    // Preparation 
-    std::string erro_msg_step = erro_msg + " Prep - ";
-    nextPlan = nextJointsPlan(lastPlan, 0.34, 0.20, 0.79, 0.01, 2.10, -1.5, 1.37, 0.0);
-    if (!_plan_success) { ROS_INFO_STREAM(erro_msg_step << "1"); return false; }
-    allPlans.push_back(nextPlan);
-    lastPlan = &nextPlan;
-
-    ROS_INFO("makeAllPlans 2");
-    nextPlan = nextJointsPlan(lastPlan, 0.34, 0.20, 0.79, -1.50, 1.60, -1.20, 1.37, 0.0);
-    if (!_plan_success) { ROS_INFO_STREAM(erro_msg_step << "2"); return false; }
-    allPlans.push_back(nextPlan);
-    lastPlan = &nextPlan;
-
-    nextPlan = nextJointsPlan(lastPlan, 0.34, 0.20, 0.79, -1.50, 1.60, -1.20, 0.14, 0.0);
-    if (!_plan_success) { ROS_INFO_STREAM(erro_msg_step << "3"); return false; }
-    allPlans.push_back(nextPlan);
-    lastPlan = &nextPlan;
+    pitch = pitch +1.571;
 
     gac.sendGoalAndWait(open_schunk_gripper_goal, ros::Duration(2));
 
-    ROS_INFO("makeAllPlans 3");
-    // Infront of Objet
-    erro_msg_step = erro_msg + " Front - ";
-    nextPlan = nextCartesianPlan(lastPlan, x-0.4, y, z, roll, pitch, yaw);
-    if (!_plan_success) { ROS_INFO_STREAM(erro_msg_step << "1"); return false; }
-    allPlans.push_back(nextPlan);
-    lastPlan = &nextPlan;
-
-    // In of Objet
-    erro_msg_step = erro_msg + " IN - ";
-    nextPlan = nextCartesianPlan(lastPlan, x-0.10, y, z, roll, pitch, yaw);
-    if (!_plan_success) { ROS_INFO_STREAM(erro_msg_step << "1"); return false; }
-    allPlans.push_back(nextPlan);
-    lastPlan = &nextPlan;
-
-    gac.sendGoalAndWait(close_schunk_gripper_goal, ros::Duration(2));
-
-    //Go Up
-    erro_msg_step = erro_msg + " UP - ";
-    nextPlan = nextCartesianPlan(lastPlan, x-0.10, y, z+0.20, roll, pitch, yaw);
-    if (!_plan_success) { ROS_INFO_STREAM(erro_msg_step << "1"); return false; }
-    allPlans.push_back(nextPlan);
-    lastPlan = &nextPlan;
-
-    ros::Duration(5).sleep();
     bool success = false;
+
+    const moveit::planning_interface::MoveGroupInterface::Plan* lastPlan = nullptr;
+    moveit::planning_interface::MoveGroupInterface::Plan nextPlan;
+    std::vector<moveit::planning_interface::MoveGroupInterface::Plan> plans;
+
+    moveit::planning_interface::MoveGroupInterface::Plan plan1;
+    plans.clear();
+
+    // setInitState();
+    // Infront of Objet
+    std::vector<std::string> plannerIds = 
+    {"SBLkConfigDefault",
+    "RRTConnectkConfigDefault",
+    "LBKPIECEkConfigDefault",
+    "PRMkConfigDefault",
+    "RRTkConfigDefault",
+    "ESTkConfigDefault",
+    "STOMP",
+    "CHOMP"
+    };
+
+    for (auto planner : plannerIds){
+        ROS_INFO_STREAM("Plan FRONT with : " << planner);
+
+        nextPlan = nextCartesianPlan(plan1, planner, x-0.35, y, z-0.01, roll, pitch, yaw);
+        if(_plan_success){break;}
+    }
+
+    if (!_plan_success) { ROS_INFO_STREAM("Plan FAILED - FRONT"); return false; }
+    plans.push_back(nextPlan);
+    plan1 = nextPlan;
+
+    ROS_INFO_STREAM("Plan 1 SUCCES");
+
+    // plan1 = *lastPlan;
+    // On the Objet
+    for (auto planner : plannerIds){
+        ROS_INFO_STREAM("Plan ON with : " << planner);
+        nextPlan = nextCartesianPlan(plan1, planner, x-0.15, y, z-0.01, roll, pitch, yaw);
+        if(_plan_success){break;}
+    }
+
+    if (!_plan_success) { ROS_INFO_STREAM("Plan FAILED - ON"); return false; }
+    plans.push_back(nextPlan);
+    plan1 = nextPlan;
+
+    ROS_INFO_STREAM("Plan 2 - SUCCES");
+
     //EXECUTION
     ROS_INFO("Planning was succesfull, now moving");
-    success = executePlans(allPlans);
+
+    success = executePlans(plans);
+
 
     if (success) {
         ROS_INFO("Execution SUCCESS");
@@ -209,12 +230,21 @@ bool ArmInterfaceNode::makeAllPlans(geometry_msgs::Pose pose){
     }
 
 
+    gac.sendGoalAndWait(close_schunk_gripper_goal, ros::Duration(2));
+
+
+    if (success)
+    {
+        ROS_INFO("Going up!");
+        moveToCartesian(x-0.11, y, z+0.20, roll, pitch, yaw);
+    }
+
+
     return success;
 }
-
-// PLANNING BEFOR MOVING
 /**
-void ArmInterfaceNode::pickPoseCB(const homodeus_msgs::PrehensionPos& prehensionPos)
+// PLANNING BEFOR MOVING
+void ArmInterfaceNode::pickPoseCB(const homodeus_prehension::PrehensionPos& prehensionPos)
 {
     const homodeus_msgs::HDPose& hd_pose_msg = prehensionPos.hdpose;
 
@@ -224,7 +254,11 @@ void ArmInterfaceNode::pickPoseCB(const homodeus_msgs::PrehensionPos& prehension
     geometry_msgs::Pose pose = hd_pose_msg.pose;
     bool success = false;
 
-    success = makeAllPlans(pose);
+    success = gotoGraspPrep();
+
+    if(success) {
+        success = makeAllPlans(pose);
+    }
 
     bool end_succes = false;
     ROS_INFO("Go HOME");
@@ -232,7 +266,7 @@ void ArmInterfaceNode::pickPoseCB(const homodeus_msgs::PrehensionPos& prehension
     if (!end_succes){
         ROS_INFO("FAILED TO GO HOME");
 
-        cleanObstacles(obstacles_list);
+        cleanObstacles();
         return;
     }
 
@@ -241,7 +275,7 @@ void ArmInterfaceNode::pickPoseCB(const homodeus_msgs::PrehensionPos& prehension
     if (!end_succes){
         ROS_INFO("FAILED TO SAFE POSE");
 
-        cleanObstacles(obstacles_list);
+        cleanObstacles();
         return;
     }
     ROS_INFO("SAFE pose reached - SENDING RESPONSE");
@@ -251,10 +285,11 @@ void ArmInterfaceNode::pickPoseCB(const homodeus_msgs::PrehensionPos& prehension
     hd_response_msg.result = success; 
     hbba_take_response_pub.publish(hd_response_msg);
 
-    cleanObstacles(obstacles_list);
-}**/
+    cleanObstacles();
+}
+**/
 
-void ArmInterfaceNode::pickPoseCB(const homodeus_msgs::PrehensionPos& prehensionPos)
+void ArmInterfaceNode::pickPoseCB(const homodeus_prehension::PrehensionPos& prehensionPos)
 {
     const homodeus_msgs::HDPose& hd_pose_msg = prehensionPos.hdpose;
 
@@ -291,33 +326,43 @@ void ArmInterfaceNode::pickPoseCB(const homodeus_msgs::PrehensionPos& prehension
     ROS_INFO_STREAM("yaw " << yaw );
     pitch = pitch +1.571;
 
-    ROS_INFO("arm_interface_node: will attempt to move the arm in cartesian space.");
-    //success = moveToCartesian(x-0.4, y, z-0.05, roll, pitch, yaw);
-    if (success)
-    {
-        success = moveToCartesian(x-0.4, y, z, roll, pitch, yaw);
-    }
-    ros::Duration(1).sleep();
-    if (success)
-    {
-        ROS_INFO("arm_interface_node: reached first wayp1oint");
-        //success = moveToCartesian(x-0.15, y, z-0.05, roll, pitch, yaw);
-        success = moveToCartesian(x-0.15, y, z, roll, pitch, yaw);
+    std::vector<std::string> plannerIds = 
+    {"SBLkConfigDefault",
+    "RRTConnectkConfigDefault",
+    "LBKPIECEkConfigDefault",
+    "PRMkConfigDefault",
+    "RRTkConfigDefault",
+    "ESTkConfigDefault",
+    "STOMP",
+    "CHOMP"
+    };
+
+    z += 0.05;
+
+    ROS_INFO("IN FRONT :");
+    // for (auto planner : plannerIds){
+    //     ROS_INFO_STREAM("Plan FRONT with : " << planner);
+    //     success = moveToCartesian(x-0.3, y, z-0.01, roll, pitch, yaw, planner=planner);
+    //     if(success){break;}
+    // }
+    success = moveToCartesian(x-0.3, y-0.015, z-0.01, roll, pitch, yaw);
+
+
+    ROS_INFO("ON object :");
+    if (success) {
+        // for (auto planner : plannerIds){
+        //     ROS_INFO_STREAM("Plan ON with : " << planner);
+        //     success = moveToCartesian(x-0.11, y, z-0.01, roll, pitch, yaw, true, planner=planner);
+        //     if(success){break;}
+        // }
+        success = moveToCartesian(x-0.10, y-0.015, z-0.01, roll, pitch, yaw, "SBLkConfigDefault", true);
     }
 
     if (success)
     {
-        ROS_INFO("arm_interface_node: successfully moved to pick point, closing gripper...");
-        // gac.sendGoalAndWait(close_gripper_goal, ros::Duration(2));
         gac.sendGoalAndWait(close_schunk_gripper_goal, ros::Duration(2));
         ROS_INFO("Closed!");
-        //
-        ROS_INFO("Going up!");
-        // tac.sendGoalAndWait(go_up, ros::Duration(3));
-        moveToCartesian(x-0.15, y, z+0.15, roll, pitch, yaw);
-
-        // TODO :
-        ROS_INFO("Retreating");
+        moveToCartesian(x-0.10, y-0.015, z+0.20, roll, pitch, yaw);
  
     }
     else
@@ -335,36 +380,42 @@ void ArmInterfaceNode::pickPoseCB(const homodeus_msgs::PrehensionPos& prehension
     end_succes = goHome();
     if (!end_succes){
         ROS_INFO("FAILED TO GO HOME");
-
-        cleanObstacles(obstacles_list);
-        return;
     }
 
     ROS_INFO("TO SAFE POSE");
     end_succes = gotoDropPrep();
     if (!end_succes){
         ROS_INFO("FAILED TO SAFE POSE");
-
-        cleanObstacles(obstacles_list);
-        return;
     }
 
-    ROS_INFO("SAFE pose reached - SENDING RESPONSE");
+   
 
-    homodeus_msgs::HDResponse hd_response_msg;
-    hd_response_msg.id =  hd_pose_msg.id;
-    hd_response_msg.result = success; 
-    hbba_take_response_pub.publish(hd_response_msg);
+
+
+    if (success) {
+         ROS_INFO("SAFE pose reached - SENDING RESPONSE SUCCESS");
+        homodeus_msgs::HDResponse hd_response_msg;
+        hd_response_msg.id =  hd_pose_msg.id;
+        hd_response_msg.result = success; 
+        hbba_take_response_pub.publish(hd_response_msg);
+
+    }else {
+         ROS_INFO("SAFE pose reached - SENDING RESPONSE FAILED");
+        homodeus_msgs::HDStatus hd_status_msg;
+        hd_status_msg.id =  hd_pose_msg.id;
+        hbba_take_status_pub.publish(hd_status_msg);
+
+    }
 
     // if (success) {
     //     ros::Duration(2).sleep();
     //     ROS_INFO("Now drop object.");
     //     drop_pose_pub.publish(hd_pose_msg);
     // }
-    cleanObstacles(obstacles_list);
+    cleanObstacles();
 }
 
-void ArmInterfaceNode::dropPoseHard(const homodeus_msgs::PrehensionPos& prehensionPos){
+void ArmInterfaceNode::dropPoseHard(const homodeus_prehension::PrehensionPos& prehensionPos){
     ROS_INFO("DROP - START");
     bool success = true;
     const homodeus_msgs::HDPose& hd_pose_msg = prehensionPos.hdpose;
@@ -374,7 +425,17 @@ void ArmInterfaceNode::dropPoseHard(const homodeus_msgs::PrehensionPos& prehensi
     // Deplace le joint5 seulement pour descendre 
     success = moveToJoint(0.35, 0.49, -1.31, -0.49, 2.17, 0.15, 1.39, -1.90);
     ROS_INFO("DROP - OPEN");
-    gac.sendGoalAndWait(open_schunk_gripper_goal, ros::Duration(2));
+
+    actionlib::SimpleClientGoalState state = gac.sendGoalAndWait(open_schunk_gripper_goal, ros::Duration(2));
+    if (state != actionlib::SimpleClientGoalState::SUCCEEDED)
+    {
+        ROS_WARN("Gripper goal did not finish successfully, current state: %s", state.toString().c_str());
+    }
+    else
+    {
+        ROS_INFO("Gripper action succeeded.");
+    }
+
     ROS_INFO("DROP - DO BACK");
     success = gotoDropPrep();
 
@@ -457,7 +518,7 @@ void ArmInterfaceNode::dropPoseCB(const homodeus_msgs::HDPose& hd_pose_msg)
 bool ArmInterfaceNode::goHome()
 {
     bool success = false;
-    success = moveToJoint(0.34, 0.20, 0.79, -1.50, 1.60, -1.20, 0.14, 0.0);
+    // success = moveToJoint(0.34, 0.20, 0.79, -1.50, 1.60, -1.20, 0.14, 0.0);
     success = moveToJoint(0.34, 0.20, 0.79, -1.50, 1.60, -1.20, 1.37, 0.0);
     // success = moveToJoint(0.34, 0.20, 0.79, 0.01, 2.10, -1.5, 1.37, 0.0);
     // success = moveToJoint(0.25, 0.20, -1.34, -0.20, 1.94, -1.57, 1.37, 0.0);
@@ -481,14 +542,14 @@ bool ArmInterfaceNode::gotoGraspPrep()
     bool success;
     success = moveToJoint(0.34, 0.20, 0.79, 0.01, 2.10, -1.5, 1.37, 0.0);
     success = moveToJoint(0.34, 0.20, 0.79, -1.50, 1.60, -1.20, 1.37, 0.0);
-    success = moveToJoint(0.34, 0.20, 0.79, -1.50, 1.60, -1.20, 0.14, 0.0);
+    // success = moveToJoint(0.34, 0.20, 0.79, -1.50, 1.60, -1.20, 0.14, 0.0);
     return success;
 }
 
 bool ArmInterfaceNode::gotoDropPrep()
 {
     bool success;
-    success = moveToJoint(0.35, 0.49, -1.31, -0.49, 2.17, -1.25, 1.39, -1.90);
+    success = moveToJoint(0.35, 0.49, -1.31, -0.78, 2.17, -1.25, 1.39, -1.90);
 
     // Drop POS
     // success = moveToJoint(0.35, 0.07, -1.27, -0.28, 2.27, 0.18, 1.39, 1.16);
