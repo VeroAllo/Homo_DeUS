@@ -70,7 +70,8 @@ class NavSelector :
         # Si but assigne est impossible d'atteindre, annuler le but et informer qui de droit
         if self.ImpossibleGoal(goal):
             print(f"Impossible go to goal ({goal.GetPoint()}) from robot's pose")
-            # self.__SendResponseToHBBA(self.__currentID, GoalStatus.REJECTED)
+            self.ClearMap()
+            self.__SendStatusToHBBA(self.__currentID, self.__currentName)
         else:
             if self.__currentGoal is None :
                 self.__currentGoal = goal
@@ -82,12 +83,14 @@ class NavSelector :
         #peut-être, amener un status ici
 
         self.__currentID = pose.id.desire_id
-        self.__currentName = pose.name
+        self.__currentName = pose.name.data
         print("Goal was received sending back a response")
         p, q = pose.pose.position, pose.pose.orientation        
         x, y, z = p.x, p.y, p.z
         w = q.z # quarternion2euler(q).z
+        print("pose")
         self.AddGoalNav(NavGoal(x, y, z, w, self.__currentName))
+        self.__controlTorso()
 
     def AddGoal(self, goalX : float, goalY : float, goalZ : float, goalOri : float, name : str) -> None :
         nav_goal = NavGoal(goalX, goalY, goalZ, goalOri, name)
@@ -181,7 +184,7 @@ class NavSelector :
         else :
             self.__OnNavGoalFail(NAVGOALFAILED,endState)
 
-        pitch, yaw = self.__defineOrientationHead(self.GetCurrentGoal().GetName())
+        pitch, yaw = self.__defineOrientationHead(self.__currentName)
         self.__controlHead(pitch, yaw)
         
         # Informe HBBA
@@ -256,7 +259,7 @@ class NavSelector :
         except rospy.ServiceException as src_exc:
             print(f"Service {srv_name_get_plan} ne repond pas pcq {src_exc}")
 
-    def __defineOrientationHead(self, name:str="") -> float, float:
+    def __defineOrientationHead(self, name:str=""):
         """
             return pitch:float, yaw:float
         """
@@ -266,7 +269,7 @@ class NavSelector :
         if(name == "Accueil"):
             pitch   =0.
             yaw     =0.
-        elif(name == "Table"):
+        elif(name == "Table1"):
             pitch   =-0.2618
             yaw     =-0.2618
         elif(name == "Kitchen"):
@@ -292,12 +295,34 @@ class NavSelector :
         head_trajectory.joint_names = ["head_1_joint", "head_2_joint"]
         head_trajectory.points = [head_trajectory_point]
 
+        
         head_follow_trajectory_goal = FollowJointTrajectoryGoal()
         head_follow_trajectory_goal.trajectory = head_trajectory
 
         self.head_action_client.send_goal_and_wait(head_follow_trajectory_goal, rospy.Duration(3))
-        sleep(1)
+        sleep(2)
 
+    def __controlTorso(self, pitch:float=0, yaw:float=0) -> None:
+        """
+            https://docs.ros.org/en/api/control_msgs/html/index-msg.html
+            https://docs.ros.org/en/api/trajectory_msgs/html/msg/JointTrajectory.html
+        """
+
+        head_trajectory_point = JointTrajectoryPoint()
+        head_trajectory_point.positions = [0.35]
+        head_trajectory_point.time_from_start = rospy.Duration(1)
+        
+        head_trajectory = JointTrajectory()
+        head_trajectory.joint_names = ["torso_lift_joint"]
+        head_trajectory.points = [head_trajectory_point]
+
+        
+        head_follow_trajectory_goal = FollowJointTrajectoryGoal()
+        head_follow_trajectory_goal.trajectory = head_trajectory
+
+        self.torso_action_client.send_goal(head_follow_trajectory_goal)
+        # sleep(1)
+        
     # Private Functions Topics ROS
     def __SendResponseToHBBA(self, id: int, value: int) -> None:
         response : HDResponse = HDResponse()
@@ -305,24 +330,31 @@ class NavSelector :
         response.result = value
         self.__goto_response_pub.publish(response)
 
-    def __SendStatusToHBBA(self, id: int, value: int) -> None:
+    def __SendStatusToHBBA(self, id: int, value: str) -> None:
         status : HDStatus = HDStatus()
         status.id.desire_id = id
-        status.status = value
+        status.message.data = value
         self.__goto_status_pub.publish(status)
 
     def initConnectionToNode(self) -> None :
-        self.__publisher = rospy.Publisher(self.__topic+"/Response", HDResponse, queue_size = 10,  latch = False)
+        self.__goto_response_pub = rospy.Publisher(self.__topic+"/Response", HDResponse, queue_size = 10,  latch = False)
+        self.__goto_status_pub = rospy.Publisher(self.__topic+"/Status", HDStatus, queue_size = 10,  latch = False)
         self.__subscriber = rospy.Subscriber(self.__topic+"/Request", HDPose, callback = self.AddGoalPose, queue_size = 10)
         self.__robot_pose_sub = rospy.Subscriber("/robot_pose", PoseWithCovarianceStamped, self.__robot_pose_subscriber)
 
         self.client = actionlib.SimpleActionClient("move_base", MoveBaseAction)
         if not self.client.wait_for_server(timeout=rospy.Duration(5)):
             print("MoveBaseAction isn't available !")
+        # ~<name>/obstacle_range
         
         action_name = "/head_controller/follow_joint_trajectory"
         self.head_action_client = actionlib.SimpleActionClient(action_name, FollowJointTrajectoryAction)
         if not self.head_action_client.wait_for_server(timeout=rospy.Duration(5)):
+            print("FollowJointTrajectoryAction isn't available !")
+
+        action_name = "/torso_controller/follow_joint_trajectory"
+        self.torso_action_client = actionlib.SimpleActionClient(action_name, FollowJointTrajectoryAction)
+        if not self.torso_action_client.wait_for_server(timeout=rospy.Duration(5)):
             print("FollowJointTrajectoryAction isn't available !")
 
         self.initSrvGetPlan()
@@ -331,12 +363,14 @@ class NavSelector :
 
     def closeConnectionToNode(self) -> None :
         self.__goalList.clear()
-        if self.client.get_state() == GoalStatus.ACTIVE :
-            self.client.cancel_goal()
+        # if self.client.get_state() == GoalStatus.ACTIVE :
+        # self.client.cancel_goal()
+        self.CancelAllGoals()
         if self.head_action_client.get_state() == GoalStatus.ACTIVE :
             self.head_action_client.cancel_goal()
         self.__currentGoal = None
-        self.__publisher.unregister()
+        self.__goto_response_pub.unregister()
+        self.__goto_status_pub.unregister()
         self.__subscriber.unregister()
         self.__robot_pose_sub.unregister()
 
@@ -363,7 +397,7 @@ class NavSelector :
 
     def ClearMap(self) -> None:
         try:
-            srv_name_clear = '/move_base/clear_costmaps'
+            srv_name_clear = '/move_base/clear_costmaps' # Or /move_base/clear_unknown_space
             rospy.wait_for_service(srv_name_clear, timeout=rospy.Duration(5))
             if not hasattr(self, '__srv_clear'):
                 self.__srv_clear = rospy.ServiceProxy(srv_name_clear, Empty)
@@ -420,8 +454,11 @@ class NavSelector :
         #     print(goal)
 
     def Behave(self):
-        if self.counter % 10 == 0 :
-            ...#print("currently behaving")
+        if self.counter % (5 * self.__hz) == 0 :
+            if self.client.get_state() != GoalStatus.ACTIVE:
+                self.ClearMap()
+            if self.client.get_state() == GoalStatus.ACTIVE:
+                self.__controlTorso()
 
         self.counter += 1
 
