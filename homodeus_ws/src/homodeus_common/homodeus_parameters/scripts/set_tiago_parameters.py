@@ -17,15 +17,22 @@ def set_gripper_current_limit(current_limit: float):
 
   gripper_current_limit_pub.publish(gripper_current_limit_ctrl)
 
-  gripper_current_limit_pub.unregister()
+  # gripper_current_limit_pub.unregister()
 
 
 def main() -> None:
+  rospy.init_node("tiago_parameters", anonymous=False)
   rospy.loginfo("TIAGo parameters initialized")
   current_limit = 0.1
-
+  rate: Rate = Rate(10)
+  i = 0
   rospy.loginfo("TIAGo parameters published")
-  set_gripper_current_limit(current_limit)
+  while not rospy.is_shutdown():
+    set_gripper_current_limit(current_limit)
+    rate.sleep()
+    i += 1
+    if i > 10 :
+      exit()
 
   rospy.loginfo("TIAGo parameters finished")
 
@@ -33,5 +40,6 @@ def main() -> None:
 if __name__ == '__main__':
   try:
     main()
+    rospy.spin()
   except rospy.ROSInterruptException as ROSie:
     rospy.loginfo("Node TIAGo parameters", ROSie)
