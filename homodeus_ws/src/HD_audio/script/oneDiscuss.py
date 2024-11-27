@@ -1,5 +1,3 @@
-## Version sécuritaire
-
 import os
 import openai
 import argparse
@@ -49,9 +47,9 @@ class AudioRosDiscuss:
                 Voici quelques instructions spécifiques :
                 0. Le restaurant est le Tiagoh Bistro.
                 1. Si le client demande des recommandations, suggérez un des articles du menu.
-                2. Le menu ne comporte que 3 articles : Jus de pomme, jus d'orange et punch aux fruits.
+                2. Le menu ne comporte que 3 articles : Jus de pomme, jus d'orange et jus de fruits.
                 3. Confirmez la commande avant de terminer la conversation. Dans la forme suivante : "Voulez-vous confirmer votre commande de [item] ?"
-                4. Si le client confirme sa commande, annonez lui que vous revenez sous peu avec la commande dans ce format : "je reviens avec votre commande"
+                4. Si le client confirme sa commande, annonez lui que vous revenez sous peu avec la commande dans ce format : "je reviens avec votre commande de [item]"
                 5. Le client ne peut commande qu'un seul item et n'a besoin de rien d'autre. 
                 6. Les réponses de l'assistant doivent être courtes et précises.
                 7. Les clients peuvent seulement prendre une boisson à la fois.
@@ -61,7 +59,8 @@ class AudioRosDiscuss:
                 11. Si tu ne comprends pas ce que le client désire, tu peux lui demander de répéter.
                 12. Si la demande du client est sogrenu tu peux lui demander de reformuler sa demande.
                 13. Si le client mentionne "jeu" assume qu'il parle de jus mais toi continuer d'employer le mot jus.
-
+                14. Si le client demande pour un just de fruit, il veut un jus de fruit.
+                15. Tu peux chanter de petites chansons si on te le demandes.
                 """}
 
             ]
@@ -238,7 +237,7 @@ class AudioRosDiscuss:
 
     def extract_order_item(self, response_text):
         # Extraire l'item de la commande à partir de la réponse de ChatGPT
-        items = ["pomme", "orange", "punch"]
+        items = ["pomme", "orange", "fruits"]
         for item in items:
             if item.lower() in response_text.lower():
                 return item.lower()
@@ -249,7 +248,7 @@ def add_parser():
     parser.add_argument(
         '--tts',
         help='Set tts type',
-        default='gTTS',
+        default='hdTTS',
         type=str,
         choices=['gTTS', 'hdTTS'],
     )
