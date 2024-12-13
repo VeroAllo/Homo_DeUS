@@ -1,5 +1,16 @@
-Pour utiliser chacun des modules, il veuillez vous référer au README de chacun des modules.
+#
+Chaque dossier représente un paquet (*package*), vous trouverez un README par paquet.
 
+## Paquets
+- [hbba_lite](hbba_lite) contient une fourchette du [hbba_lite](https://github.com/introlab/hbba_lite) développé par introlab.
+- [hbba_state](hbba_state) contient les differents états qui créent les désirs HBBA qui motivent les comportements
+- [hd_audio](hd_audio) contient les comportements parler (*talk*) et discuter (*discuss*)
+- [homodeus_common](homodeus_common) contient les éléments commons à tout Homo DeUS
+- [homodeus_hbba_lite](homodeus_hbba_lite) contient les désirs et stratégies propres au projet Homo DeUS
+- [homodeus_hbba_lite](homodeus_hbba_lite) contient le comportement prendre (*take*) et déposer (*drop*)
+- [navigation](navigation) contient la perception pose et le comportement aller à (*goto*)
+- [pseudo_detection](pseudo_detection) contient les perceptions Détecter des personnes (*dectect_person*) et Détecter des objets spécifiques (*detect_product*)
+  
 ## Installation sur le robot
 Après avoir installer les modules dans son workspace ROS et confirmer le fonctionnement individuel des modules. Il est possible de tester sur le robot.
 
