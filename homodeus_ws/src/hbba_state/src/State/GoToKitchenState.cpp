@@ -25,5 +25,11 @@ void GoToKitchenState::enable(const std::string& parameter, const std::type_inde
 
 string GoToKitchenState::generateGoal(const std::string& parameter)
 {
-    return "Kitchen";
+    ROS_INFO_STREAM(parameter);
+    if(parameter.find("pomme") != std::string::npos)
+        return "Kitchen_pomme";
+    else if(parameter.find("orange") != std::string::npos)
+        return "Kitchen_orange";
+    else
+        return "Kitchen_fruit";
 }

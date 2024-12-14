@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.0.2)
 project(homodeus_prehension)
 
 find_package(catkin REQUIRED COMPONENTS
+  homodeus_msgs
   pcl_conversions
   pcl_ros
   roscpp
@@ -10,7 +11,6 @@ find_package(catkin REQUIRED COMPONENTS
   tf2
   tf2_ros
   tf2_geometry_msgs 
-  homodeus_msgs
   sensor_msgs
   std_msgs
   geometry_msgs
@@ -29,13 +29,21 @@ find_package(catkin REQUIRED COMPONENTS
   robot_state_publisher
   xacro
   moveit_msgs
+  pal_control_msgs
+)
+
+add_message_files(
+  FILES
+  PrehensionPos.msg
 )
 
 generate_messages(
    DEPENDENCIES
    geometry_msgs
    std_msgs
+   homodeus_msgs
    moveit_msgs
+   pal_control_msgs
 )
 
 catkin_package(

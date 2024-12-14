@@ -51,15 +51,19 @@ class TakeStrategy : public HDStrategy<TakeDesire>
         void SubscriberResponseCallBack(const homodeus_msgs::HDResponse& response) override;
         void SubscriberCancelCallBack(const homodeus_msgs::DesireID& desireID) override;
         void SubscriberStatusCallBack(const homodeus_msgs::HDStatus& status) override;
-        void SubscriberVisionCallback(const homodeus_msgs::ObjectsDetection& status) override;
+        void SubscriberVisionCallback(const homodeus_msgs::ObjectsDetection& objects) override;
+        void SubscriberVisionProductCallback(const homodeus_msgs::ObjectsDetection& objects);
     private:
         homodeus_msgs::ObjectDetection GetClosestTagMatchingCommande(const std::string& commande)
         {
             homodeus_msgs::ObjectsDetection objectsToDetectCopy = m_ObjectsToDetect;
+            std::cout << "Objects : " << m_ObjectsToDetect << std::endl;
+            std::cout << "Copy : " << objectsToDetectCopy << std::endl;
+
+            homodeus_msgs::ObjectDetection m_defaultObject =  homodeus_msgs::ObjectDetection{};
+            m_defaultObject.header.frame_id = "NOT FOUND";
 
             ROS_INFO_STREAM(commande);
-            ROS_INFO_STREAM(objectsToDetectCopy.objects.size());
-            ROS_INFO_STREAM(m_ObjectsToDetect.objects.size());
             std::remove_if(objectsToDetectCopy.objects.begin(), objectsToDetectCopy.objects.end(), [commande](const homodeus_msgs::ObjectDetection& object){ return object.header.frame_id != commande; });
             ROS_INFO_STREAM(objectsToDetectCopy.objects.size());
             ROS_INFO_STREAM(m_ObjectsToDetect.objects.size());
@@ -72,21 +76,27 @@ class TakeStrategy : public HDStrategy<TakeDesire>
                     {
                         m_ObjectsToDetect.objects.clear();
                         return objectsToDetectCopy.objects[i];
-                    }                
+                    }       
+                    homodeus_msgs::ObjectDetection tmp = objectsToDetectCopy.objects[i];
+                    if (tmp.header.frame_id == "pomme" || tmp.header.frame_id == "fruits" || tmp.header.frame_id == "orange")
+                    {   
+                        m_ObjectsToDetect.objects.clear();
+                        ROS_INFO_STREAM("FRAME_ID " << tmp.header.frame_id);
+                        m_defaultObject = tmp;
+                        ROS_INFO_STREAM("FRAME_ID 2 " << tmp.header.frame_id);
+                    }          
 
                 }
 
-            m_ObjectsToDetect.objects.clear();
-                homodeus_msgs::ObjectDetection temp = homodeus_msgs::ObjectDetection{};
-                temp.header.frame_id = "NOT FOUND";
-                return temp;
+                m_ObjectsToDetect.objects.clear();
+                // homodeus_msgs::ObjectDetection temp = homodeus_msgs::ObjectDetection{};
+                // temp.header.frame_id = "NOT FOUND";
+                return m_defaultObject;
             }
             else
             {
-            m_ObjectsToDetect.objects.clear();
-                homodeus_msgs::ObjectDetection temp = homodeus_msgs::ObjectDetection{};
-                temp.header.frame_id = "NOT FOUND";
-                return temp;
+                m_ObjectsToDetect.objects.clear();
+                return m_defaultObject;
             }
         }
 

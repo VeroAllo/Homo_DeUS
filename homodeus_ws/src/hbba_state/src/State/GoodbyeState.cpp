@@ -20,15 +20,18 @@ GoodbyeState::~GoodbyeState(){
 }
 
 string GoodbyeState::generateText(const string& parameter){
-    m_fail = parameter;
-    if (m_fail == "Fail")
+    if (parameter == "Fail")
+        m_fail = "Fail";
+    else if (m_fail == "Fail")
+    {
         m_fail = "";
         return "Une erreur sest produite lors de la prise de votre commande. Nous sommes désoler";
-    if (m_language == "en"){
+    }
+    else if (m_language == "en"){
         return "Goodbye";
     }
-    else {
-        return "Au revoir";
+    else if (m_language == "fr") {
+        return "Merci de votre visite au Tiagoh bistro";
     }
     
 }

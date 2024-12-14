@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>homodeus_parameters</name>
+  <version>0.0.1</version>
+  <description>TIAGo parameters from homodeus</description>
+  <maintainer email="homodeus@usherbrooke.ca">HomoDeUS</maintainer>
+  <license>Modified BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- link to find_package(catkin REQUIRED COMPONENTS -->
+  <build_depend>rospy</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>pal_control_msgs</build_depend>
+  <build_depend>std_msgs</build_depend>
+
+  <!-- link to catkin_package(CATKIN_DEPENDS -->
+  <build_export_depend>rospy</build_export_depend>
+  <build_export_depend>geometry_msgs</build_export_depend>
+  <build_export_depend>pal_control_msgs</build_export_depend>
+  <build_export_depend>std_msgs</build_export_depend>
+
+</package>

@@ -29,15 +29,15 @@ void AccueillirClient::VisionSubscriberCallBack(const homodeus_msgs::ObjectsDete
         if(detected_object.header.frame_id.find("person") != std::string::npos)
         {
             geometry_msgs::Point point = detected_object.pose.position;
-            ROS_INFO_STREAM(point);
-            float min_x = 7.500f;
-            float max_x = 8.125f;
-            float min_y = 7.125f;
-            float max_y = 7.750f;
-
+            ROS_INFO_STREAM("Point : " << point);
+            float min_x = 3.220;
+            float max_x = 3.990f;
+            float min_y =-0.010f;
+            float max_y = 1.025f;
 
             if (min_x < point.x && point.x < max_x && min_y < point.y && point.y < max_y) {
                 Person = true;
+                TimeDelay++;
                 if(TimeDelay > 2)
                 {
                     TimeDelay = 0;
@@ -62,7 +62,8 @@ void AccueillirClient::VisionSubscriberCallBack(const homodeus_msgs::ObjectsDete
 void AccueillirClient::StrategySubscriberCallBack(const std_msgs::String& msg)
 {
     ROS_INFO_STREAM("Accuillir - Received message from GotoStrategy: " << msg.data);
-    if (msg.data.find("Commande") != std::string::npos)
+    // if (msg.data.find("Commande") != std::string::npos)
+    if (msg.data.find("Home") != std::string::npos)
     {
         hasDone = false;
     }
@@ -103,9 +104,9 @@ PrendreCommande::PrendreCommande(const std::map<std::string, bool>& subscriberTo
 void PrendreCommande::StrategySubscriberCallBack(const std_msgs::String& msg)
 {
     ROS_INFO_STREAM("Received message from GotoStrategy: " << msg.data);
-    if (msg.data.find("Table") != std::string::npos)
+    if (msg.data.find("Allo") != std::string::npos)
     {
-        int table = std::stoi(msg.data.substr(5,6));  
+        int table = 1;//std::stoi(msg.data.substr(5,6));  
         if (m_Tables[table] == false)
         {
             ROS_INFO_STREAM("TImer starter" << table);
@@ -147,12 +148,12 @@ void ChercherCommande::StrategySubscriberCallBack(const std_msgs::String& msg)
     if (msg.data.find("Commande") != std::string::npos)
     {
         static_cast<TakeState*>(m_StateManager->m_listsStates[2][std::type_index(typeid(TakeState))].get())->GenerateObjectToTake(msg.data.substr(9));
-        StateMachine("test");
+        StateMachine(msg.data);
     }
 }
 
 void ChercherCommande::StateMachine(std::string commande){
-    m_StateManager->switchTo<GoToKitchenState>(2);
+    m_StateManager->switchTo<GoToKitchenState>(2, commande);
 } 
 
 std::unique_ptr<Motivation> createAccueillirMotivation(ros::NodeHandle& nodeHandle,std::shared_ptr<DesireSet> desireSet, StateManager* stateManager)

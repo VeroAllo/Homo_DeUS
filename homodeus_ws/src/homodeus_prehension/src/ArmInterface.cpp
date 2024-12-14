@@ -4,18 +4,18 @@
 /* ArmInterface: Constructor
 
 Description:    Initialize various parameters to communicate
-                with the arm and the torso through MoveIt.
+                with the arm through MoveIt.
 
 Inputs:         None
 
 Outputs:        None
 */
-ArmInterface::ArmInterface() : _moveGroup("arm_torso"), _ref_frame("base_link")
+ArmInterface::ArmInterface() : _moveGroup("arm"), _ref_frame("base_link")
 {
     ROS_INFO("Initialising ArmInterface...");
     // Using 5 seconds because it's a reasonable delay
-    _planningTime = 20.0;
-    _plannerId = "LBKPIECEkConfigDefault";
+    _planningTime = 5.0;
+    _plannerId = "SBLkConfigDefault";
 
     _moveGroup.setPlannerId(_plannerId);
     _moveGroup.setMaxVelocityScalingFactor(max_vel_factor);
@@ -27,7 +27,7 @@ ArmInterface::ArmInterface() : _moveGroup("arm_torso"), _ref_frame("base_link")
 /* ArmInterface: Alternative Constructor
 
 Description:    Initialize various parameters to communicate
-                with the arm and the torso through MoveIt,
+                with the arm through MoveIt,
                 specifying which tf frame to use for cartesian.
 
 Inputs:         ref_frame (type, std::string)
@@ -35,12 +35,12 @@ Inputs:         ref_frame (type, std::string)
 
 Outputs:        None
 */
-ArmInterface::ArmInterface(std::string ref_frame) : _moveGroup("arm_torso"), _ref_frame(ref_frame)
+ArmInterface::ArmInterface(std::string ref_frame) : _moveGroup("arm"), _ref_frame(ref_frame)
 {
     ROS_WARN("Initialising ArmInterface...");
     // Using 5 seconds because it's a reasonable delay
-    _planningTime = 25.0;
-    _plannerId = "LBKPIECEkConfigDefault";
+    _planningTime = 5.0;
+    _plannerId = "SBLkConfigDefault";
 
     _moveGroup.setPlannerId(_plannerId);
     _moveGroup.setMaxVelocityScalingFactor(max_vel_factor);
@@ -65,7 +65,7 @@ Outputs:        plan (type, moveit::planning_interface::MoveGroupInterface::Plan
 */
 bool ArmInterface::planTrajectory(moveit::planning_interface::MoveGroupInterface::Plan &plan)
 {
-    ros::Duration(1.5).sleep();
+    ros::Duration(1.0).sleep();
     _moveGroup.setStartStateToCurrentState();
     _moveGroup.setPlanningTime(_planningTime);
 
@@ -93,7 +93,7 @@ Outputs:        plan (type, moveit::planning_interface::MoveGroupInterface::Plan
 */
 bool ArmInterface::planTrajectoryJ(moveit::planning_interface::MoveGroupInterface::Plan &plan)
 {
-    ros::Duration(1.5).sleep();
+    ros::Duration(1.0).sleep();
     _moveGroup.setStartStateToCurrentState();
     _moveGroup.setPlanningTime(_planningTime);
 
@@ -137,11 +137,6 @@ void ArmInterface::setPlannerId(std::string id)
     _moveGroup.setPlannerId(_plannerId);
 }
 
-bool ArmInterface::moveToGrasp(std::vector<moveit_msgs::Grasp> grasps)
-{
-    // _moveGroup.pick("", grasps);
-    return false;
-}
 /* ArmInterface: Move the Arm To a Desired Position in Cartesian Space
 
 Description:    This method uses the planTrajectory() method to find a trajectory
@@ -171,7 +166,7 @@ Outputs:        success (type, bool):
                     false otherwise.
 */
 bool ArmInterface::moveToCartesian(double x, double y, double z, double roll, double pitch, double yaw)
-{
+{   
     geometry_msgs::PoseStamped goalPose;
     goalPose.header.frame_id = _ref_frame;
     goalPose.pose.position.x = x;
@@ -243,7 +238,7 @@ bool ArmInterface::moveToJoint(double torso, double j1, double j2, double j3, do
 {
     std::map<std::string, double> targetPosition;
 
-    targetPosition["torso_lift_joint"] = torso;
+    // targetPosition["torso_lift_joint"] = torso;
     targetPosition["arm_1_joint"] = j1;
     targetPosition["arm_2_joint"] = j2;
     targetPosition["arm_3_joint"] = j3;
@@ -271,22 +266,129 @@ bool ArmInterface::moveToJoint(double torso, double j1, double j2, double j3, do
     return true;
 }
 
-moveit::planning_interface::MoveGroupInterface::Plan ArmInterface::nextJointsPlan(moveit::planning_interface::MoveGroupInterface::Plan* plan1, 
-double torso, double j1, double j2, double j3, double j4, double j5, double j6, double j7)
-{
+/* ArmInterface: Create the plan to move the Arm To a Desired Position in Cartesian Space
 
-    ROS_INFO("nextJointsPlan 1");
+Description:    This method uses the planTrajectory() method to find a trajectory
+                to a desired position in cartesian space returns the plan if a plan is found.
+
+Inputs:         last_plan (type, moveit::planning_interface::MoveGroupInterface::Plan*):
+                    The last plan created to access the supposed position
+                    of the arm for the new plan
+
+                torso (type, double):
+                    The desired position of the torso.
+
+                j1 (type, double):
+                    The desired position of the first joint of the arm.
+
+                j2 (type, double):
+                    The desired position of the second joint of the arm.
+
+                j3 (type, double):
+                    The desired position of the third joint of the arm.
+
+                j4 (type, double):
+                    The desired position of the fourth joint of the arm.
+
+                j5 (type, double):
+                    The desired position of the fifth joint of the arm.
+
+                j6 (type, double):
+                    The desired position of the sixth joint of the arm.
+
+                j7 (type, double):
+                    The desired position of the seventh joint of the arm.
+
+Outputs:        nextPlan (type, moveit::planning_interface::MoveGroupInterface::Plan):
+                    This method returns the created plan if found or 
+                    nullptr otherwise.
+*/
+moveit::planning_interface::MoveGroupInterface::Plan ArmInterface::nextCartesianPlan(const moveit::planning_interface::MoveGroupInterface::Plan& last_plan, double x, double y, double z, double roll, double pitch, double yaw) {
+
+    robot_state::RobotState start_state(*_moveGroup.getCurrentState());
+    moveit::planning_interface::MoveGroupInterface::Plan nextPlan;
+
+    if (last_plan.trajectory_.joint_trajectory.points.empty()) {
+        _moveGroup.setStartStateToCurrentState();
+    } else {
+        robot_state::RobotState state(start_state);
+
+        const std::vector<double>& joints = last_plan.trajectory_.joint_trajectory.points.back().positions;
+
+        state.setJointGroupPositions("arm", joints);
+
+        _moveGroup.setStartState(state);
+
+    }
+
+    geometry_msgs::PoseStamped goalPose;
+    goalPose.header.frame_id = _ref_frame;
+    goalPose.pose.position.x = x;
+    goalPose.pose.position.y = y;
+    goalPose.pose.position.z = z;
+    goalPose.pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(roll, pitch, yaw);
+
+    _moveGroup.setPoseReferenceFrame(_ref_frame);
+
+    _moveGroup.setPoseTarget(goalPose);
+
+    _moveGroup.setPlanningTime(_planningTime);
+
+    _plan_success = bool(_moveGroup.plan(nextPlan));
+    return nextPlan;
+}
+
+
+/* ArmInterface: Create the plan to move the Arm To a Desired Position in Joints Space
+
+Description:    This method uses the planTrajectoryJ() method to find a trajectory
+                to a desired position in joints space and returns the plan if a plan is found.
+
+Inputs:         last_plan (type, moveit::planning_interface::MoveGroupInterface::Plan*):
+                    The last plan created to access the supposed position
+                    of the arm for the new plan
+
+                torso (type, double):
+                    The desired position of the torso.
+
+                j1 (type, double):
+                    The desired position of the first joint of the arm.
+
+                j2 (type, double):
+                    The desired position of the second joint of the arm.
+
+                j3 (type, double):
+                    The desired position of the third joint of the arm.
+
+                j4 (type, double):
+                    The desired position of the fourth joint of the arm.
+
+                j5 (type, double):
+                    The desired position of the fifth joint of the arm.
+
+                j6 (type, double):
+                    The desired position of the sixth joint of the arm.
+
+                j7 (type, double):
+                    The desired position of the seventh joint of the arm.
+
+Outputs:        nextPlan (type, moveit::planning_interface::MoveGroupInterface::Plan):
+                    This method returns the created plan if found or 
+                    nullptr otherwise.
+*/
+moveit::planning_interface::MoveGroupInterface::Plan ArmInterface::nextJointsPlan(moveit::planning_interface::MoveGroupInterface::Plan* last_plan, double torso, double j1, double j2, double j3, double j4, double j5, double j6, double j7)
+{
     robot_state::RobotState start_state(*_moveGroup.getCurrentState());
 
     moveit::planning_interface::MoveGroupInterface::Plan nextPlan;
     ros::Duration(1.5).sleep();
-    if (plan1 == nullptr) {
+    if (last_plan == nullptr) {
         _moveGroup.setStartStateToCurrentState();
     } else {
         robot_state::RobotState state(start_state);
-        const std::vector<double> joints = plan1->trajectory_.joint_trajectory.points.back().positions;
+        const std::vector<double> joints = last_plan->trajectory_.joint_trajectory.points.back().positions;
 
-        state.setJointGroupPositions("arm_torso", joints);
+        state.setJointGroupPositions("arm", joints);
 
         _moveGroup.setStartState(state);
     }
@@ -310,47 +412,21 @@ double torso, double j1, double j2, double j3, double j4, double j5, double j6, 
     }
 
     _moveGroup.setPlanningTime(_planningTime);
-    auto su = _moveGroup.plan(nextPlan);
-    _plan_success = bool(su);
+    _plan_success = bool(_moveGroup.plan(nextPlan));
     
     return nextPlan;
 }
 
-moveit::planning_interface::MoveGroupInterface::Plan ArmInterface::nextCartesianPlan(moveit::planning_interface::MoveGroupInterface::Plan* plan1, double x, double y, double z, double roll, double pitch, double yaw) {
+/* ArmInterface: Execute given plans
 
-    robot_state::RobotState start_state(*_moveGroup.getCurrentState());
+Description:    This method execute all given plans with MoveGroupInterface
 
-    moveit::planning_interface::MoveGroupInterface::Plan nextPlan;
+Inputs:         plans (type, std::vector<moveit::planning_interface::MoveGroupInterface::Plan>):
+                    The list of plans to be executed
 
-    ros::Duration(1.5).sleep();
-    if (plan1 == nullptr) {
-        _moveGroup.setStartStateToCurrentState();
-    } else {
-        robot_state::RobotState state(start_state);
-        const std::vector<double> joints = plan1->trajectory_.joint_trajectory.points.back().positions;
-
-        state.setJointGroupPositions("arm_torso", joints);
-
-        _moveGroup.setStartState(state);
-    }
-
-    geometry_msgs::PoseStamped goalPose;
-    goalPose.header.frame_id = _ref_frame;
-    goalPose.pose.position.x = x;
-    goalPose.pose.position.y = y;
-    goalPose.pose.position.z = z;
-    goalPose.pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(roll, pitch, yaw);
-
-    _moveGroup.setPoseReferenceFrame(_ref_frame);
-    _moveGroup.setPoseTarget(goalPose);
-
-    _moveGroup.setPlanningTime(_planningTime);
-
-    auto su = _moveGroup.plan(nextPlan);
-    _plan_success = bool(su);
-    return nextPlan;
-}
-
+Outputs:        (type, bool):
+                    This method returns false as soon as a plan fails, otherwise true.
+*/
 bool ArmInterface::executePlans(std::vector<moveit::planning_interface::MoveGroupInterface::Plan> plans){
     for (const auto& plan : plans)
     {
@@ -362,17 +438,41 @@ bool ArmInterface::executePlans(std::vector<moveit::planning_interface::MoveGrou
         }
     }
     return true;
-
 }
 
+/* ArmInterface: Add obstacles to the planning scene
 
+Description:    This method add obstacles to the planning scene.
+                The planner will avoid those obstacles during the plannification. 
+
+Inputs:         obstacles_list (type, std::vector<moveit_msgs::CollisionObject>):
+                    The list of obstacles to avoid
+
+Outputs:        None
+*/
 void ArmInterface::addObstacles(std::vector<moveit_msgs::CollisionObject> obstacles_list){
     _planningScene.applyCollisionObjects(obstacles_list);
 }
 
-void ArmInterface::cleanObstacles(std::vector<moveit_msgs::CollisionObject> obstacles_list){
-    for (auto object :  obstacles_list){
-        object.operation = object.REMOVE;
+/* ArmInterface: Clean the obstacles from the planning scene
+
+Description:    This method removes all obstacles from the planning scene
+
+Inputs:         None
+
+Outputs:        None
+*/
+void ArmInterface::cleanObstacles(){
+    std::vector<moveit_msgs::CollisionObject> obstacles_to_remove;
+
+    auto current_objects = _planningScene.getObjects();
+
+    for (const auto& obj_pair : current_objects) {
+        moveit_msgs::CollisionObject collision_object;
+        collision_object.id = obj_pair.first; 
+        collision_object.operation = moveit_msgs::CollisionObject::REMOVE;
+        obstacles_to_remove.push_back(collision_object);
     }
-    _planningScene.applyCollisionObjects(obstacles_list);
+
+    _planningScene.applyCollisionObjects(obstacles_to_remove);
 }

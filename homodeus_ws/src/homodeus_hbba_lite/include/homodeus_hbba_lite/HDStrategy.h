@@ -47,6 +47,7 @@ protected:
     virtual void SubscriberCancelCallBack(const homodeus_msgs::DesireID& desireID) = 0;
     virtual void SubscriberStatusCallBack(const homodeus_msgs::HDStatus& status) = 0;
     virtual void SubscriberVisionCallback(const homodeus_msgs::ObjectsDetection& status) {}
+    virtual void SubscriberVisionProductCallback(const homodeus_msgs::ObjectsDetection& objects) {}
     std::vector<ros::Publisher>  m_PublisherList{};
     std::vector<ros::Subscriber> m_SubscriberList{};
     std::shared_ptr<DesireSet> m_DesireSet = nullptr;
@@ -102,7 +103,11 @@ private:
             return nh.subscribe(str, 10, &HDStrategy<T>::SubscriberStatusCallBack, this);
         }
         else if (str.find("Detect") != failed)
-        {
+        {    
+            if (str.find("Product") != failed)
+            {
+                return nh.subscribe(str, 10, &HDStrategy<T>::SubscriberVisionProductCallback, this);
+            }
             return nh.subscribe(str, 10, &HDStrategy<T>::SubscriberVisionCallback, this);
         }
         return nh.subscribe("Failed", 1, &HDStrategy<T>::SubscriberCancelCallBack, this);

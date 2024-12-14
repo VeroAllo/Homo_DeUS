@@ -1,0 +1,42 @@
+Tous :
+
+cd ~/tiago_public_ws
+source ./devel/setup.bash
+export ROS_MASTER_URI=http://10.68.0.1:11311
+export ROS_IP=10.68.0.132
+
+
+
+Navigation :
+rosrun NavigationSelector main_navSelector.py
+
+
+Dialog :
+rosrun HD_audio talkInterface.py --tts hdTTS
+
+rosrun HD_audio oneDiscuss.py --tts hdTTS --lang fr
+
+
+HBBA :
+rosrun hbba_state filter_node.py
+
+rosrun hbba_state hbba_state_node
+
+
+Prehension:
+source ./devel_isolated/setup.bash
+
+roslaunch homodeus_prehension object_segmentation.launch
+rosrun homodeus_prehension arm_interface_node
+
+
+Vision :
+source ./devel_isolated/setup.bash
+cd ~/tiago_public_ws/src/HomoDeUS/pseudo_detection/scripts/object_detection_package
+
+python -m detect_can --weights ./jus_v3.pt --conf-thres 0.4
+
+python -m detect --weights ./yolov7-tiny.pt --conf-thres 0.4
+
+
+
