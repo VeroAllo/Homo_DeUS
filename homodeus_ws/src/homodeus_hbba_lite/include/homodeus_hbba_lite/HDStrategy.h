@@ -104,7 +104,7 @@ private:
         }
         else if (str.find("Detect") != failed)
         {    
-            if (str.find("Product"))
+            if (str.find("Product") != failed)
             {
                 return nh.subscribe(str, 10, &HDStrategy<T>::SubscriberVisionProductCallback, this);
             }

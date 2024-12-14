@@ -67,6 +67,10 @@ class NavSelector :
             self.SetCurrentGoal(self.GetGoalList()[index_goal])
 
     def AddGoalNav(self, goal : NavGoal) -> None :
+        if self.__goalSent is not None:
+            self.__SendStatusToHBBA(self.__currentID, self.__currentName)
+            return
+
         # Si but assigne est impossible d'atteindre, annuler le but et informer qui de droit
         if self.ImpossibleGoal(goal):
             print(f"Impossible go to goal ({goal.GetPoint()}) from robot's pose")
@@ -75,6 +79,7 @@ class NavSelector :
         else:
             if self.__currentGoal is None :
                 self.__currentGoal = goal
+                print(f"Set current goal {goal.GetPoint()})")
             else :
                 self.__goalList.append(goal)
                 print(f"Nombre de goal dans la liste : {len(self.__goalList)}")
@@ -84,11 +89,11 @@ class NavSelector :
 
         self.__currentID = pose.id.desire_id
         self.__currentName = pose.name.data
-        print("Goal was received sending back a response")
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+        print("Goal was received sending back a response, ID : " + str(self.__currentID))
         p, q = pose.pose.position, pose.pose.orientation        
         x, y, z = p.x, p.y, p.z
         w = q.z # quarternion2euler(q).z
-        print("pose")
         self.AddGoalNav(NavGoal(x, y, z, w, self.__currentName))
         self.__controlTorso()
 
@@ -174,8 +179,10 @@ class NavSelector :
         #self.__goalList.sort() #Need to sort with a key, which key, I don't know
         pass
 
-    def HandleNodeTaskEnd(self, endState, _) -> None:
+    def HandleNodeTaskEnd(self, endState, result) -> None:
         success = False
+        print(">>>>>>>>>>>>>>>> HandleNodeTaskEnd")
+        print(">>>>>>>> State ", endState, ", result ", result)
         if endState == 0:
             self.__OnNavGoalFail(NAVGOALFAILED,endState)
         elif endState == GoalStatus.SUCCEEDED :
@@ -184,14 +191,19 @@ class NavSelector :
         else :
             self.__OnNavGoalFail(NAVGOALFAILED,endState)
 
+        print(">>>>>>>> HandleNodeTaskEnd")
         pitch, yaw = self.__defineOrientationHead(self.__currentName)
         self.__controlHead(pitch, yaw)
         
         # Informe HBBA
-        self.__SendResponseToHBBA(self.__currentID, success)
-
+        if success:
+          self.__SendResponseToHBBA(self.__currentID, success, self.__currentName)
+        else:
+          self.__SendStatusToHBBA(self.__currentID, self.__currentName)
+        
         self.RemoveCurrentGoal()
         self.__goalSent = None
+        print("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 
     def SendGoal(self) -> None:
         goal = MoveBaseGoal()
@@ -263,18 +275,18 @@ class NavSelector :
         """
             return pitch:float, yaw:float
         """
-        pitch:float =0.
-        yaw:float   =0.
+        pitch:float =-0.5236
+        yaw:float   = 0.
                     
         if(name == "Accueil"):
-            pitch   =0.
-            yaw     =0.
+            pitch   = -0.2
+            yaw     = 0.
         elif(name == "Table1"):
             pitch   =-0.2618
-            yaw     =-0.2618
-        elif(name == "Kitchen"):
-            pitch   =-0.5236
-            yaw     =-0.0
+            yaw     = 0.0
+        elif(name == "Home"):
+            pitch   = 0.0
+            yaw     = 0.0
 
         return pitch, yaw
 
@@ -300,7 +312,9 @@ class NavSelector :
         head_follow_trajectory_goal.trajectory = head_trajectory
 
         self.head_action_client.send_goal_and_wait(head_follow_trajectory_goal, rospy.Duration(3))
-        sleep(2)
+
+        tmp_name = self.__currentName.upper()
+        if tmp_name.find("KITCHEN") >= 0: sleep(4)
 
     def __controlTorso(self, pitch:float=0, yaw:float=0) -> None:
         """
@@ -324,13 +338,16 @@ class NavSelector :
         # sleep(1)
         
     # Private Functions Topics ROS
-    def __SendResponseToHBBA(self, id: int, value: int) -> None:
+    def __SendResponseToHBBA(self, id: int, value: int, msg : str) -> None:
+        print(">>>>>>>> __SendResponseToHBBA", id, value, msg)
         response : HDResponse = HDResponse()
         response.id.desire_id = id
         response.result = value
+        response.message.data = msg
         self.__goto_response_pub.publish(response)
 
     def __SendStatusToHBBA(self, id: int, value: str) -> None:
+        print(">>>>>>>> __SendStatusToHBBA", id, value)
         status : HDStatus = HDStatus()
         status.id.desire_id = id
         status.message.data = value

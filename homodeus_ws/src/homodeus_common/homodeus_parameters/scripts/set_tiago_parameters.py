@@ -23,7 +23,7 @@ def set_gripper_current_limit(current_limit: float):
 def main() -> None:
   rospy.init_node("tiago_parameters", anonymous=False)
   rospy.loginfo("TIAGo parameters initialized")
-  current_limit = 0.1
+  current_limit = 0.2
   rate: Rate = Rate(10)
   i = 0
   rospy.loginfo("TIAGo parameters published")

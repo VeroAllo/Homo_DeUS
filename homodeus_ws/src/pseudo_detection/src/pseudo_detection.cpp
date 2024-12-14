@@ -82,7 +82,8 @@ static const std::string CAMERA_FRAME     = "/xtion_rgb_optical_frame";
 static const std::string IMAGE_TOPIC      = "/xtion/rgb/image_raw";
 static const std::string DEPTH_TOPIC      = "/xtion/depth_registered/image_raw";
 static const std::string CAMERA_INFO_TOPIC= "/xtion/rgb/camera_info";
-static const std::string DETECTION_TOPIC  = "/Homodeus/Perception/Detect";
+// static const std::string DETECTION_TOPIC  = "/Homodeus/Perception/Detect";
+static const std::string DETECTION_TOPIC  = "/Homodeus/Behaviour/Take/Request";
 
 // Intrinsic parameters of the camera
 cv::Mat cameraIntrinsics;
@@ -181,7 +182,8 @@ void sendObjectDetection(ros::Time timestamp, std::string what_is,
   tf2_ros::Buffer tf_buffer;
   tf2_ros::TransformListener tf2_listener(tf_buffer);
   geometry_msgs::TransformStamped head_1_link_to_map;
-  head_1_link_to_map = tf_buffer.lookupTransform("base_footprint", "head_1_link", ros::Time(0), ros::Duration(1.0) );
+  // head_1_link_to_map = tf_buffer.lookupTransform("base_footprint", "head_2_link", ros::Time(0), ros::Duration(1.0) );
+  head_1_link_to_map = tf_buffer.lookupTransform("map", "head_2_link", ros::Time(0), ros::Duration(1.0) );
 
   geometry_msgs::PoseStamped poseRelative;
   poseRelative.header.seq         = 0;

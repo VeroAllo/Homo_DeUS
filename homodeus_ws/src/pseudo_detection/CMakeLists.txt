@@ -41,6 +41,7 @@ install(TARGETS pseudo_detection
 
 catkin_install_python(PROGRAMS
     scripts/object_detection_package/detect.py
+    src/pseudo_productDetection.py
     # scripts/object_detection_package/PrepareMsgObjectsDetection.py
     # scripts/object_detection_package/models/experimental.py
     # scripts/object_detection_package/utils/datasets.py

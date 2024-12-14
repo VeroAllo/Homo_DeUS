@@ -24,34 +24,44 @@ geometry_msgs::Pose mapStringToPose(std::string name)
     geometry_msgs::Pose poseToReturn{};
     if (name == "Accueil") 
     {
-        poseToReturn.position.x = 8.25f;
-        poseToReturn.position.y = 6.50f;
-        poseToReturn.orientation.z = 2.3562f;
-        //  "PosX" :  8.25,
-        // "PosY" :  6.50,
-        // "PosZ" : 0.00,
-        // "ObjOri" : 2.3562
+        poseToReturn.position.x = 2.450f;        // 3.00f
+        poseToReturn.position.y = 0.450f;        // 3.50f
+        poseToReturn.orientation.z = 0.0f;   // 0.5f
     }
     else if (name == "Table1")
-    {        
-        poseToReturn.position.x = 8.50f - 0.2f;
-        poseToReturn.orientation.z = 3.00f;
-        poseToReturn.position.y = 3.09375f;
+    {     
+        poseToReturn.position.x = 2.250f;
+        poseToReturn.position.y = 2.000f;
+        poseToReturn.orientation.z = 0.0f;
         // For now, let the default values
     }
-    else if (name == "Kitchen")
+    else if (name == "Kitchen_pomme")  // Left
+    {
+        poseToReturn.position.x = 1.000f + 0.50f;
+        poseToReturn.position.y = 2.750f;
+        poseToReturn.orientation.z = 1.45f;    // -3.1416/2.0
+        // For now, let the default values
+    }
+    else if (name == "Kitchen_orange")  // Middle
+    {
+        poseToReturn.position.x = 1.000f + 0.00f;
+        poseToReturn.position.y = 2.750f;
+        poseToReturn.orientation.z = 1.45f;    // -3.1416/2.0
+        // For now, let the default values
+    }
+    else if (name == "Kitchen_fruit")  // Right
     {
         
-        poseToReturn.position.x = 9.671875f;
-        poseToReturn.position.y = 5.78125f;
-        poseToReturn.orientation.z = 1.5272f + 0.261799f;
+        poseToReturn.position.x = 1.000f +-0.50f;
+        poseToReturn.position.y = 2.750f;
+        poseToReturn.orientation.z = 1.45f;    // -3.1416/2.0
         // For now, let the default values
     }
-        else if (name == "Home")
+    else if (name == "Home")
     {
-        poseToReturn.position.x = 9.0f;
-        poseToReturn.position.y = 4.8f;
-        poseToReturn.orientation.z = 2.2f;
+        poseToReturn.position.x = 1.002f;
+        poseToReturn.position.y = 2.00f;
+        poseToReturn.orientation.z =-0.50f;
     }
     return poseToReturn;
 }
@@ -63,6 +73,7 @@ void GotoStrategy::SubscriberResponseCallBack(const homodeus_msgs::HDResponse& r
     if(response.id.desire_id == m_desireID)
     {    
         ROS_INFO_STREAM("GotoDesire Finished - DesireID : " << response.id.desire_id << " - Result : Table 1" );
+        strategy_motivation_interface_.publishMessage(response.message.data);
         m_DesireSet->removeDesire(response.id.desire_id);
         onDisabling();
         return;
@@ -118,7 +129,7 @@ void TalkStrategy::SubscriberResponseCallBack(const homodeus_msgs::HDResponse& r
         m_DesireSet->removeDesire(m_desireID);
         onDisabling();
         if ((response.message.data.find("Greeting") != std::string::npos) || (response.message.data.find("Bonjour") != std::string::npos))
-            strategy_motivation_interface_.publishMessage("Table 1");
+            strategy_motivation_interface_.publishMessage("Allo :1");
         return;
     }
     ROS_ERROR_STREAM("The desireIDs do not match - Received : " << response.id.desire_id << ", Expected : " << m_desireID);

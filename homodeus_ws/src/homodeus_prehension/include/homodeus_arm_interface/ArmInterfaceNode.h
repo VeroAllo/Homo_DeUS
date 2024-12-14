@@ -22,22 +22,17 @@
 class ArmInterfaceNode: ArmInterface
 {
     private:
-        bool got_pick_pose = false;
-        bool got_drop_pose = false;
-
         ros::NodeHandle nh;
 
         ros::Subscriber pick_pose_sub;
         ros::Subscriber drop_pose_sub;
-        ros::Subscriber drop_hard_sub;
 
-        geometry_msgs::PoseStamped pick_point;
-        geometry_msgs::PoseStamped drop_point;
 
         // Gripper client
         actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction> gac;
         actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction> tac;
         actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction> hac;
+
         control_msgs::FollowJointTrajectoryGoal close_gripper_goal;
         control_msgs::FollowJointTrajectoryGoal open_gripper_goal;
         control_msgs::FollowJointTrajectoryGoal close_schunk_gripper_goal;
@@ -46,8 +41,9 @@ class ArmInterfaceNode: ArmInterface
         control_msgs::FollowJointTrajectoryGoal look_down;
 
         void pickPoseCB(const homodeus_prehension::PrehensionPos& hd_pose_msg);
-        void dropPoseCB(const homodeus_msgs::HDPose& hd_pose_msg);
-        void dropPoseHard(const homodeus_prehension::PrehensionPos& hd_pose_msg);
+        void dropPoseCB(const homodeus_prehension::PrehensionPos& hd_pose_msg);
+        void dropPoseSafeCB(const homodeus_prehension::PrehensionPos& hd_pose_msg);
+
         trajectory_msgs::JointTrajectory openedGripper();
         trajectory_msgs::JointTrajectory closedGripper();
 
@@ -57,25 +53,19 @@ class ArmInterfaceNode: ArmInterface
         trajectory_msgs::JointTrajectory goUp();
         trajectory_msgs::JointTrajectory lookDown();
 
-        bool makeAllPlans(geometry_msgs::Pose pose);
         ros::Publisher hbba_take_response_pub;
         ros::Publisher hbba_take_status_pub;
         ros::Publisher hbba_drop_response_pub;
-        // FOR TEST ONLY : Temp Drop pub to drop after pick
-        ros::Publisher drop_pose_pub;
+        ros::Publisher hbba_drop_status_pub;
 
     public:
         ArmInterfaceNode(ros::NodeHandle n);
 
         bool gotoGraspPrep();
-        bool gotoRetreat(const geometry_msgs::Pose pose);
         bool goHome();
         bool gotoCarryPose();
 
         void gotoInitPose();
-        void changeVelFactor();
-        void closeHand();
-        bool gotoDropPrep();
 };
 
 #endif

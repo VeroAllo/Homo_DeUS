@@ -108,6 +108,11 @@
 
     <!-- <node name="BaseRotate" pkg="BaseRotate" type="main_baseRotate.py"
       respawn="false" output="screen" launch-prefix="gnome-terminal - -command"/> -->
+
+
+    <!-- TiagoParams -->
+    <node name="set_tiago_parameters" pkg="homodeus_parameters" type="set_tiago_parameters.py"
+      respawn="false" output="screen"/>
     
     <!-- Behavior's Node -->
     <!-- NAVIGATION -->

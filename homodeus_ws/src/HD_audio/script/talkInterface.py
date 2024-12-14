@@ -70,7 +70,7 @@ def add_parser():
   parser.add_argument(
     '--tts',
     help='Set tts type',
-    default='gTTS',
+    default='hdTTS',
     type=str,
     choices=['gTTS', 'hdTTS'],
   )

@@ -31,7 +31,7 @@ string GoodbyeState::generateText(const string& parameter){
         return "Goodbye";
     }
     else if (m_language == "fr") {
-        return "Au revoir";
+        return "Merci de votre visite au Tiagoh bistro";
     }
     
 }

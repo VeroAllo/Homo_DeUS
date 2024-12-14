@@ -34,11 +34,6 @@
 
 /** \author Jordi Pages. */
 
-// PAL headers
-// #include <homodeus_prehension/pcl_filters.hpp>
-// #include <homodeus_prehension/geometry.h>
-// #include <homodeus_prehension/tf_transforms.hpp>
-
 // PCL headers
 #include <pcl/filters/extract_indices.h>
 #include <pcl_conversions/pcl_conversions.h>
@@ -50,6 +45,12 @@
 // Needed for clang linking
 // https://github.com/PointCloudLibrary/pcl/issues/2406
 #include <pcl/search/impl/search.hpp>
+#include <pcl/point_types.h>
+#include <pcl/io/pcd_io.h>
+#include <pcl/filters/statistical_outlier_removal.h>
+#include <pcl/common/transforms.h>
+#include <pcl/features/normal_3d.h>
+#include <pcl/segmentation/sac_segmentation.h>
 
 // ROS headers
 #include <ros/ros.h>
@@ -60,27 +61,20 @@
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <object_recognition_msgs/RecognizedObjectArray.h>
+#include <moveit_msgs/CollisionObject.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2_ros/transform_listener.h>
+#include <cmath>
 
 // Eigen headers
 #include <Eigen/Core>
 
 
-//Mine 
-#include <pcl/point_types.h>
-#include <pcl/io/pcd_io.h>
-#include <pcl/filters/statistical_outlier_removal.h>
-#include <pcl/common/transforms.h>
-#include <pcl/features/normal_3d.h>
-#include <pcl/segmentation/sac_segmentation.h>
-#include <cmath>
-
-#include <moveit_msgs/CollisionObject.h>
+//HomodeUS
 #include <homodeus_msgs/BoundingBox.h>
 #include <homodeus_msgs/ObjectDetection.h>
 #include <homodeus_prehension/PrehensionPos.h>
 #include <homodeus_msgs/HDBoundingBox.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <tf2_ros/transform_listener.h>
 #include <homodeus_msgs/HDStatus.h>
 
 
@@ -102,22 +96,20 @@ protected:
   void cloudCallback(const sensor_msgs::PointCloud2ConstPtr& cloud);
   void planeCloudCallback(const sensor_msgs::PointCloud2ConstPtr& cloud);
 
-  void publishPose(const geometry_msgs::Pose& pose,
+  void publishPickPose(const geometry_msgs::Pose& pose,
                       const homodeus_msgs::DesireID& desireID,
                       std::vector<moveit_msgs::CollisionObject> obstacles_list);
 
   void publishDropPose(const homodeus_msgs::DesireID& desireID,
                       std::vector<moveit_msgs::CollisionObject> obstacles_list);
-  void publishPosestamped(const geometry_msgs::Pose& pose);
+  void publishPickPosestamped(const geometry_msgs::Pose& pose);
 
   void selectObject(geometry_msgs::Point pointBoundingBox, std::vector<geometry_msgs::Pose> pose_list);
-  void objectDetectionCallback(const homodeus_msgs::ObjectDetection& objectDetectionMsg);
+  void pickObjectCallback(const homodeus_msgs::ObjectDetection& objectDetectionMsg);
   void dropObjectCallback(const homodeus_msgs::HDBoundingBox& boundingBoxMsg);
-  double calculateDistance(const geometry_msgs::Point& p1, const geometry_msgs::Point& p2);
-  geometry_msgs::Point transformPoint(const Eigen::Vector3f& point);
-  visualization_msgs::Marker createMarker(std_msgs::Header header, geometry_msgs::Pose pose, std_msgs::ColorRGBA color, pcl::PointXYZ max_point_OBB, pcl::PointXYZ min_point_OBB, int id);
-
-  
+  double distanceBetweenPositions(const geometry_msgs::Point& p1, const geometry_msgs::Point& p2);
+  geometry_msgs::Point vectorToPoint(const Eigen::Vector3f& point);
+  visualization_msgs::Marker createBoundingBox(std_msgs::Header header, geometry_msgs::Pose pose, std_msgs::ColorRGBA color, pcl::PointXYZ max_point_OBB, pcl::PointXYZ min_point_OBB, int id, bool isPlan);
   moveit_msgs::CollisionObject createObstacles(float Longueur, float largeur, float Hauteur, pcl::PointXYZ position_OBB, geometry_msgs::Quaternion quaternion, std::string id);
 
 
@@ -126,32 +118,25 @@ protected:
 
   ros::NodeHandle& _nh, _pnh;
   ros::CallbackQueue _cbQueue;
-  bool _enabled;
   double _rate;
 
   // ROS interfaces
   ros::Subscriber _cloudSub;
   ros::Subscriber _planCloudSub;
-  ros::Subscriber _objectDetectionSub;
+  ros::Subscriber _objectPickSub;
   ros::Subscriber _objectDropSub;
   
-  ros::Publisher  _prehension_pose;
-  ros::Publisher _prehension_drop_pose;
+  ros::Publisher  _prehension_pick_pose;
+  ros::Publisher  _prehension_drop_pose;
   ros::Publisher  _objectVisualisationPosePub;
   ros::Publisher  _objectVisualisationMarkerPub;
   ros::Publisher  _planeVisualisationMarkerPub;
   
   ros::Publisher _hbba_take_status_pub;
 
-
   std::vector<geometry_msgs::Pose> _objets_pos_list;
   std::vector<moveit_msgs::CollisionObject> _obstacle_list;
   std::vector<moveit_msgs::CollisionObject> _obstacle_plan_list;
-  
-  std::vector<moveit_msgs::CollisionObject> _plan_list;
-  std::mutex obstacle_list_mutex;
-  int _obstacle_id = 0;
-  
 };
 
 
@@ -159,14 +144,13 @@ ObjectDetector::ObjectDetector(ros::NodeHandle& nh,
                                    ros::NodeHandle& pnh):
   _nh(nh),
   _pnh(pnh),
-  _enabled(false),
   _rate(5.0)
 {
   _nh.setCallbackQueue(&_cbQueue);
 
   pnh.param<double>("rate", _rate, _rate);
 
-  _prehension_pose   = _pnh.advertise<homodeus_prehension::PrehensionPos>("prehension_pose", 1);
+  _prehension_pick_pose   = _pnh.advertise<homodeus_prehension::PrehensionPos>("prehension_pose", 1);
   _prehension_drop_pose = _pnh.advertise<homodeus_prehension::PrehensionPos>("prehension_drop_pose", 1);
   _objectVisualisationPosePub   = _pnh.advertise< geometry_msgs::PoseStamped >("object_pose", 1);
   _objectVisualisationMarkerPub = _pnh.advertise<visualization_msgs::MarkerArray>("object_marker", 1);
@@ -191,7 +175,8 @@ void ObjectDetector::cloudCallback(const sensor_msgs::PointCloud2ConstPtr& cloud
     ROS_INFO("OBJECTS : Cloud EMPTY ");
     return;
   }
-  // Creating the KdTree object for the search method of the extraction
+
+  // Seperating cloud into clusters
   pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ>);
   tree->setInputCloud (pclCloud);
 
@@ -207,10 +192,10 @@ void ObjectDetector::cloudCallback(const sensor_msgs::PointCloud2ConstPtr& cloud
   visualization_msgs::MarkerArray marker_array;
 
   int j = 0;
-  std::lock_guard<std::mutex> lock(obstacle_list_mutex);
-
   _objets_pos_list.clear();
   _obstacle_list.clear();
+
+  // Create a object for each cluster
   for (const auto& cluster : cluster_indices)
   {
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>);
@@ -218,6 +203,7 @@ void ObjectDetector::cloudCallback(const sensor_msgs::PointCloud2ConstPtr& cloud
       cloud_cluster->push_back((*pclCloud)[idx]);
     } 
 
+    // Extracting object dimensions and pose
     pcl::MomentOfInertiaEstimation<pcl::PointXYZ> feature_extractor;
     feature_extractor.setInputCloud(cloud_cluster);
     feature_extractor.compute();
@@ -227,52 +213,45 @@ void ObjectDetector::cloudCallback(const sensor_msgs::PointCloud2ConstPtr& cloud
     pcl::PointXYZ position_OBB;
     Eigen::Matrix3f rotational_matrix_OBB;
     feature_extractor.getOBB(min_point_OBB, max_point_OBB, position_OBB, rotational_matrix_OBB);
-
-    // Dimensions de la bounding box
+    
     float largeur = max_point_OBB.x - min_point_OBB.x;
     float Longueur = max_point_OBB.y - min_point_OBB.y;
     float Hauteur = max_point_OBB.z - min_point_OBB.z;
 
-    float max_size = 0.3f;
-    if (largeur < max_size) {
-      Eigen::Quaternionf quaternionff;
-      quaternionff = Eigen::Quaternionf(rotational_matrix_OBB);
-      geometry_msgs::Point point;
-      point.x = position_OBB.x;
-      point.y = position_OBB.y;
-      point.z = position_OBB.z;
+    Eigen::Quaternionf quaternionff;
+    quaternionff = Eigen::Quaternionf(rotational_matrix_OBB);
+    geometry_msgs::Point point;
+    point.x = position_OBB.x;
+    point.y = position_OBB.y;
+    point.z = position_OBB.z;
 
-      geometry_msgs::Quaternion quaternion;
-      geometry_msgs::Pose pose;
-      pose.position = point;
+    geometry_msgs::Quaternion quaternion;
+    geometry_msgs::Pose pose;
+    pose.position = point;
 
-      pose.position = point;
-      visualization_msgs::Marker marker;
-      std_msgs::ColorRGBA color;
-      color.a = 1.0;
+    pose.position = point;
+    visualization_msgs::Marker marker;
+    std_msgs::ColorRGBA color;
+    color.a = 1.0;
+    color.r = 0.0f;
+    color.g = 0.0f;
+    color.b = 1.0f;
 
-      color.r = 0.0f;
-      color.g = 0.0f;
-      color.b = 1.0f;
-
-      quaternion.x = 0.5;
-      quaternion.y = 0.5;
-      quaternion.z = 0.5;
-      quaternion.w = -0.5;
-
-      // quaternion.x = quaternionff.x();
-      // quaternion.y = quaternionff.y();
-      // quaternion.z = quaternionff.z();
-      // quaternion.w = quaternionff.w();
-
-      pose.orientation = quaternion;
-      marker = createMarker(cloud->header, pose, color, max_point_OBB, min_point_OBB, j);
-      marker_array.markers.push_back(marker);
-      
-      _objets_pos_list.push_back(pose);
-      std::string obstacle_id = "obstacle_" + std::to_string(j);
-      _obstacle_list.push_back(createObstacles(Longueur, largeur, Hauteur, position_OBB, quaternion, obstacle_id));
-    }
+    // Set the quaternion to keep the object straight
+    quaternion.x = 0.5;   // quaternion.x = quaternionff.x();
+    quaternion.y = 0.5;   // quaternion.y = quaternionff.y();
+    quaternion.z = 0.5;   // quaternion.z = quaternionff.z();
+    quaternion.w = -0.5;  // quaternion.w = quaternionff.w();
+    pose.orientation = quaternion;
+    
+    // Create markers to visualise objects on RVIZ
+    marker = createBoundingBox(cloud->header, pose, color, max_point_OBB, min_point_OBB, j, false);
+    marker_array.markers.push_back(marker);
+    
+    // Add new object to the lists
+    _objets_pos_list.push_back(pose);
+    std::string obstacle_id = "obstacle_" + std::to_string(j);
+    _obstacle_list.push_back(createObstacles(Longueur, largeur, Hauteur, position_OBB, quaternion, obstacle_id));
     j = j + 1;
   }
 
@@ -288,13 +267,12 @@ void ObjectDetector::planeCloudCallback(const sensor_msgs::PointCloud2ConstPtr& 
   pcl::PointCloud<pcl::PointXYZ>::Ptr pclCloud(new pcl::PointCloud<pcl::PointXYZ>);
   pcl::fromROSMsg(*cloud, *pclCloud);
   
-    
   if (pclCloud->empty()){
     ROS_INFO("PLANE : Cloud EMPTY ");
     return;
   }
 
-  // Creating the KdTree object for the search method of the extraction
+  // Seperating cloud into clusters
   pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ>);
   tree->setInputCloud (pclCloud);
 
@@ -310,9 +288,10 @@ void ObjectDetector::planeCloudCallback(const sensor_msgs::PointCloud2ConstPtr& 
   visualization_msgs::MarkerArray marker_array;
 
   int j = 0;
-  std::lock_guard<std::mutex> lock(obstacle_list_mutex);
-
   _obstacle_plan_list.clear();
+
+
+  // Create a plane for each cluster
   for (const auto& cluster : cluster_indices)
   {
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>);
@@ -320,6 +299,7 @@ void ObjectDetector::planeCloudCallback(const sensor_msgs::PointCloud2ConstPtr& 
       cloud_cluster->push_back((*pclCloud)[idx]);
     } 
 
+    // Extracting plane dimensions and pose
     pcl::MomentOfInertiaEstimation<pcl::PointXYZ> feature_extractor;
     feature_extractor.setInputCloud(cloud_cluster);
     feature_extractor.compute();
@@ -330,10 +310,13 @@ void ObjectDetector::planeCloudCallback(const sensor_msgs::PointCloud2ConstPtr& 
     Eigen::Matrix3f rotational_matrix_OBB;
     feature_extractor.getOBB(min_point_OBB, max_point_OBB, position_OBB, rotational_matrix_OBB);
 
-    // Dimensions de la bounding box
     float largeur = max_point_OBB.x - min_point_OBB.x;
     float Longueur = max_point_OBB.y - min_point_OBB.y;
     float Hauteur = max_point_OBB.z - min_point_OBB.z;
+
+    // Adding a little more for safety
+    largeur += 0.07;
+    Longueur += 0.07;
 
     Eigen::Quaternionf quaternionff;
     quaternionff = Eigen::Quaternionf(rotational_matrix_OBB);
@@ -350,26 +333,23 @@ void ObjectDetector::planeCloudCallback(const sensor_msgs::PointCloud2ConstPtr& 
     visualization_msgs::Marker marker;
     std_msgs::ColorRGBA color;
     color.a = 1.0;
-
     color.r = 1.0f;
     color.g = 0.0f;
     color.b = 0.0f;
 
-    quaternion.x = 0;
-    quaternion.y = 0;
-    quaternion.z = -0.7;
-    quaternion.w = 0.7;
-
-    // quaternion.x = quaternionff.x();
-    // quaternion.y = quaternionff.y();
-    // quaternion.z = quaternionff.z();
-    // quaternion.w = quaternionff.w();
-
+    // Set the quaternion to keep the plane straight
+    quaternion.x = 0;     // quaternion.x = quaternionff.x();
+    quaternion.y = 0;     // quaternion.y = quaternionff.y();
+    quaternion.z = -0.7;  // quaternion.z = quaternionff.z();
+    quaternion.w = 0.7;   // quaternion.w = quaternionff.w();
     pose.orientation = quaternion;
-    marker = createMarker(cloud->header, pose, color, max_point_OBB, min_point_OBB, j);
-    marker_array.markers.push_back(marker);
-    std::string obstacle_id = "plane_" + std::to_string(j++);
 
+    // Create markers to visualise planes on RVIZ
+    marker = createBoundingBox(cloud->header, pose, color, max_point_OBB, min_point_OBB, j, true);
+    marker_array.markers.push_back(marker);
+
+    // Add new plane to the list
+    std::string obstacle_id = "plane_" + std::to_string(j++);
     _obstacle_plan_list.push_back(createObstacles(Longueur, largeur, Hauteur, position_OBB, quaternion, obstacle_id));
 
     j = j + 1;
@@ -381,20 +361,19 @@ void ObjectDetector::planeCloudCallback(const sensor_msgs::PointCloud2ConstPtr& 
   }
 }
 
-void ObjectDetector::publishPose(const geometry_msgs::Pose& pose, const homodeus_msgs::DesireID& desireID, std::vector<moveit_msgs::CollisionObject> obstacles_list)
+void ObjectDetector::publishPickPose(const geometry_msgs::Pose& pose, const homodeus_msgs::DesireID& desireID, std::vector<moveit_msgs::CollisionObject> obstacles_list)
 {
-  if ( _prehension_pose.getNumSubscribers() > 0)
+  if ( _prehension_pick_pose.getNumSubscribers() > 0)
   {
     homodeus_msgs::HDPose hd_pos_msg;
     hd_pos_msg.id = desireID;
     hd_pos_msg.pose = pose;
-    ROS_INFO_STREAM("HD POSE :" << hd_pos_msg);
 
     homodeus_prehension::PrehensionPos prehension_pos_msg;
     prehension_pos_msg.hdpose = hd_pos_msg;
     prehension_pos_msg.obstacles = obstacles_list;
 
-    _prehension_pose.publish(prehension_pos_msg);
+    _prehension_pick_pose.publish(prehension_pos_msg);
   }
 }
 
@@ -402,7 +381,6 @@ void ObjectDetector::publishDropPose(const homodeus_msgs::DesireID& desireID, st
 {
   if ( _prehension_drop_pose.getNumSubscribers() > 0)
   {
-    ROS_INFO_STREAM("DROP :");
     homodeus_msgs::HDPose hd_pos_msg;
     hd_pos_msg.id = desireID;
 
@@ -414,7 +392,7 @@ void ObjectDetector::publishDropPose(const homodeus_msgs::DesireID& desireID, st
   }
 }
 
-void ObjectDetector::publishPosestamped(const geometry_msgs::Pose& pose)
+void ObjectDetector::publishPickPosestamped(const geometry_msgs::Pose& pose)
 {
   std_msgs::Header headerA;
   headerA.stamp = ros::Time::now();
@@ -427,7 +405,7 @@ void ObjectDetector::publishPosestamped(const geometry_msgs::Pose& pose)
   _objectVisualisationPosePub.publish(posestamped); 
 }
 
-void ObjectDetector::objectDetectionCallback(const homodeus_msgs::ObjectDetection& objectDetectionMsg) {
+void ObjectDetector::pickObjectCallback(const homodeus_msgs::ObjectDetection& objectDetectionMsg) {
 
   ROS_INFO_STREAM("ObjectDetectionMSG RECEIVED");
   if (objectDetectionMsg.header.frame_id == "NOT FOUND") {
@@ -445,16 +423,12 @@ void ObjectDetector::objectDetectionCallback(const homodeus_msgs::ObjectDetectio
   tf2_ros::Buffer tfBuffer;
   tf2_ros::TransformListener tfListener(tfBuffer);
   
-  // KIWI
-  // geometry_msgs::TransformStamped transformStamped = tfBuffer.lookupTransform("base_link", "base_footprint", ros::Time(0), ros::Duration(1.0));
+  // Transforming the position into base_link frame.
   geometry_msgs::TransformStamped transformStamped = tfBuffer.lookupTransform("base_link", "map", ros::Time(0), ros::Duration(1.0));
 
   geometry_msgs::PointStamped point_in_base_link;
   tf2::doTransform(point_in_map, point_in_base_link, transformStamped);
 
-  std::lock_guard<std::mutex> lock(obstacle_list_mutex);
-
-  ROS_INFO_STREAM("TRANSFORMED DONE");
   // Select Object
   double small_dist = 999999999; 
 
@@ -463,7 +437,7 @@ void ObjectDetector::objectDetectionCallback(const homodeus_msgs::ObjectDetectio
   int idx = 0;
   int i = 0;
   for (geometry_msgs::Pose poseTemp : _objets_pos_list){
-    double dist = calculateDistance(poseTemp.position, point_in_base_link.point);
+    double dist = distanceBetweenPositions(poseTemp.position, point_in_base_link.point);
     if (dist < small_dist) {
       small_dist = dist;
       pose_to_grasp = poseTemp;
@@ -471,40 +445,29 @@ void ObjectDetector::objectDetectionCallback(const homodeus_msgs::ObjectDetectio
     }
     i++;
   }
-  // pose_to_grasp.position.z += 0.01;
-  
   std::vector<moveit_msgs::CollisionObject> obstacles_copy = _obstacle_list;
 
-  ROS_INFO_STREAM("Liste taille AVANT REMOVE " << obstacles_copy.size());
   obstacles_copy.erase(obstacles_copy.begin() + idx);
-  ROS_INFO_STREAM("Liste taille AVANT conc " << obstacles_copy.size());
   obstacles_copy.insert(obstacles_copy.end(), _obstacle_plan_list.begin(), _obstacle_plan_list.end());
-  ROS_INFO_STREAM("Liste taille ARES " << obstacles_copy.size());
 
-  ROS_INFO_STREAM("GOTO PUB");
-  publishPose(pose_to_grasp, objectDetectionMsg.id, obstacles_copy);  
-  publishPosestamped(pose_to_grasp);
-  // publishDropPose(objectDetectionMsg.id, obstacles_copy);
+  publishPickPose(pose_to_grasp, objectDetectionMsg.id, obstacles_copy);  
+  publishPickPosestamped(pose_to_grasp);
 }
 void ObjectDetector::dropObjectCallback(const homodeus_msgs::HDBoundingBox& boundingBoxMsg) {
   ROS_INFO_STREAM("ObjectDeopMSG RECEIVED");
-
-  std::lock_guard<std::mutex> lock(obstacle_list_mutex);
-
   std::vector<moveit_msgs::CollisionObject> obstacles_copy = _obstacle_list;
 
-  ROS_INFO_STREAM("DROP PUB");
   publishDropPose(boundingBoxMsg.id, obstacles_copy);
 }
 
-double ObjectDetector::calculateDistance(const geometry_msgs::Point& p1, const geometry_msgs::Point& p2) {
+double ObjectDetector::distanceBetweenPositions(const geometry_msgs::Point& p1, const geometry_msgs::Point& p2) {
   pcl::PointXYZ pcl_point1 = pcl::PointXYZ(p1.x, p1.y, p1.z);
   pcl::PointXYZ pcl_point2 = pcl::PointXYZ(p2.x, p2.y, p2.z);
 
   return euclideanDistance(pcl_point1, pcl_point2);
 }
 
-visualization_msgs::Marker ObjectDetector::createMarker(std_msgs::Header header, geometry_msgs::Pose pose, std_msgs::ColorRGBA color, pcl::PointXYZ max_point_OBB, pcl::PointXYZ min_point_OBB,  int id){
+visualization_msgs::Marker ObjectDetector::createBoundingBox(std_msgs::Header header, geometry_msgs::Pose pose, std_msgs::ColorRGBA color, pcl::PointXYZ max_point_OBB, pcl::PointXYZ min_point_OBB,  int id, bool isPlan){
 
   visualization_msgs::Marker marker;
   marker.action = visualization_msgs::Marker::ADD;
@@ -528,20 +491,21 @@ visualization_msgs::Marker ObjectDetector::createMarker(std_msgs::Header header,
   float width = max_x - min_x;
   float length = max_y - min_y;
   float height = max_z - min_z;
+  if (isPlan) {
+    width += 0.05;
+    length += 0.05;
+  }
 
-  // Sommets locaux de la bounding box
   std::vector<Eigen::Vector3f> local_points = {
       {max_x, max_y, max_z}, {max_x - width, max_y, max_z}, {max_x, max_y - length, max_z}, {max_x - width, max_y - length, max_z},
       {max_x, max_y, max_z - height}, {max_x - width, max_y, max_z - height}, {max_x, max_y - length, max_z - height}, {max_x - width, max_y - length, max_z - height}
   };
 
-  // Ajouter les lignes après transformation
   for (size_t i = 0; i < local_points.size(); ++i) {
       for (size_t j = i + 1; j < local_points.size(); ++j) {
-          // Vérifiez si les points partagent un bord (ajustez selon la définition de la box)
           if (true) {
-              marker.points.push_back(transformPoint(local_points[i]));
-              marker.points.push_back(transformPoint(local_points[j]));
+              marker.points.push_back(vectorToPoint(local_points[i]));
+              marker.points.push_back(vectorToPoint(local_points[j]));
           }
       }
   }
@@ -579,7 +543,7 @@ moveit_msgs::CollisionObject ObjectDetector::createObstacles(float Longueur, flo
   return collision_object;
 }
 
-geometry_msgs::Point ObjectDetector::transformPoint(const Eigen::Vector3f& point) {
+geometry_msgs::Point ObjectDetector::vectorToPoint(const Eigen::Vector3f& point) {
     geometry_msgs::Point p;
     p.x = point.x();
     p.y = point.y();
@@ -591,24 +555,16 @@ void ObjectDetector::start()
 {
   _cloudSub = _nh.subscribe("cloud", 1, &ObjectDetector::cloudCallback, this);
   _planCloudSub = _nh.subscribe("plane_cloud", 1, &ObjectDetector::planeCloudCallback, this);
-
-  // KIWI
-  _objectDetectionSub = _nh.subscribe("/Homodeus/Behaviour/Take/Request", 1, &ObjectDetector::objectDetectionCallback, this);
-  // _objectDetectionSub = _nh.subscribe("/Homodeus/Perception/Detect", 1, &ObjectDetector::objectDetectionCallback, this);
-
+  _objectPickSub = _nh.subscribe("/Homodeus/Behaviour/Take/Request", 1, &ObjectDetector::pickObjectCallback, this);
   _objectDropSub = _nh.subscribe("/Homodeus/Behaviour/Drop/Request", 1, &ObjectDetector::dropObjectCallback, this);
-  
-  
-  _enabled = true;
 }
 
 void ObjectDetector::stop()
 {
   _cloudSub.shutdown();
   _planCloudSub.shutdown();
-  _objectDetectionSub.shutdown();
+  _objectPickSub.shutdown();
   _objectDropSub.shutdown();
-  _enabled = false;
 }
 
 void ObjectDetector::run()
@@ -619,19 +575,19 @@ void ObjectDetector::run()
 
   while ( ros::ok() )
   {
-    bool anySubscriber = _prehension_pose.getNumSubscribers() > 0 ||
+    bool anySubscriber = _prehension_pick_pose.getNumSubscribers() > 0 ||
                          _prehension_drop_pose.getNumSubscribers() > 0 ||
                          _objectVisualisationPosePub.getNumSubscribers() > 0 ||
                          _planeVisualisationMarkerPub.getNumSubscribers() > 0 ||
                          _objectVisualisationMarkerPub.getNumSubscribers() > 0;
 
 
-    if ( !_enabled && anySubscriber )
+    if (anySubscriber )
     {
       ROS_INFO("Enabling node because there are subscribers");
       start();
     }
-    else if ( _enabled && !anySubscriber )
+    else if (!anySubscriber )
     {
       ROS_INFO("Disabling node because there are no subscribers");
       stop();

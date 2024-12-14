@@ -14,6 +14,7 @@ Apres l'installation, il faut aller prednre les dernier commit qui on la version
 ====================
  === Installer MoveIt ===
 ====================
+source /opt/ros/noetic/setup.bash
 wstool init src
 wstool merge -t src moveit.rosinstall
 wstool update -t src

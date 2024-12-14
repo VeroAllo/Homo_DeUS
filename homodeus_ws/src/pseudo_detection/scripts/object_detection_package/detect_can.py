@@ -36,7 +36,7 @@ def detect():
     # A ajouter apres le init_node dans detect.py
     bridge = CvBridge()
     depth_image = None
-    objects_detection_pub = rospy.Publisher('/Homodeus/Perception/Detect', ObjectsDetection)
+    objects_detection_pub = rospy.Publisher('/Homodeus/Perception/Detect/Product', ObjectsDetection)
 
     objDetection = PrepareMsgObjectsDetection()
 
@@ -166,7 +166,10 @@ def detect():
                     # Write results
                     for *xyxy, conf, cls in reversed(det):
                         xywh = (xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
-                        labels.append(f'{names[int(cls)]} {conf:.2f}')
+                        tmp = f'{names[int(cls)]}'
+                        tmp = tmp.split('_')[-1]
+                        labels.append(tmp)
+                        print(labels)
                         startPoint.append([int(xyxy[0].item()), int(xyxy[1].item())])
                         endPoint.append([int(xyxy[2].item()), int(xyxy[3].item())])
                         print("string detection: ", (f'{names[int(cls)]} {conf:.2f}', [xywh[0], xywh[1]],[xywh[0]+xywh[2], xywh[1]+xywh[3]]))
