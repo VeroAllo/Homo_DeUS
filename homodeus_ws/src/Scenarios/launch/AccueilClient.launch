@@ -30,7 +30,12 @@
   <arg name="local_planner"   default="$(eval 'teb' if (arg('public_sim') or arg('base_type')=='omni_base') else 'pal')"/>
   <arg name="localization"    default="amcl"/>
   <arg name="map"             default="$(env HOME)/.pal/tiago_maps/configurations/$(arg world)"/>
-  
+
+  <!-- talk parameters -->
+  <arg name="tts" default="hdTTS"/>
+  <arg name="lang" default="fr"/>
+
+  <!-- others parameters -->
   <arg name="recording"       default="false"/>
   <arg name="rviz"            default="true"/>
 
@@ -62,43 +67,27 @@
       <arg if="$(eval local_planner == 'teb')" name="use_dynamic_footprint" value="true"/>
     </include>
 
-    <include file="$(find tiago_2dnav_gazebo)/launch/navigation.launch"> </include>
+    <!-- TODO A redefinir les parametres passes au launch -->
+    <!-- <include file="$(find tiago_2dnav_gazebo)/launch/navigation.launch" if="$(arg public_sim)"> </include> -->
 
-
-    <include file="$(find homodeus_prehension)/launch/object_segmentation.launch" if="$(arg public_sim)">
-    <arg name="rate"                      default="1"                               />
-    <arg name="cloud"                     default="/xtion/depth_registered/points"  />
-    <arg name="frame"                     default="base_link"                       />
-    <arg name="passthrough_axis"          default="z"                               />
-    <arg name="passthrough_min"           default="0.4"                             />
-    <arg name="passthrough_max"           default="1.6"                             />
-    <arg name="downsampling_size"         default="0.01"                            />
-    <arg name="show_rviz"                 default="true"                            />
-    <arg name="objs"  			              default="segment_table/nonplane"/>
-    <arg name="plane"  			              default="segment_table/plane"/>
-
-  </include>
+    <!-- RViz Node -->
     <!-- <node name="rviz" pkg="rviz" type="rviz" if="$(arg rviz)"
       args="-d $(find tiago_2dnav)/config/rviz/navigation_public_sim.rviz"/> -->
       <!-- args="-d $(find tiago_2dnav)/config/rviz/navigation$(arg sim_sufix).rviz"/> -->
 
-    <!-- https://wiki.ros.org/roslaunch/XML/node -->
-    <!-- HBBA's Node -->
-    <node name="filter_node" pkg="hbba_state" type="filter_node.py"
-      respawn="false" output="screen" launch-prefix="gnome-terminal --command"/>
-
-    <node name="hbba_state_node" pkg="hbba_state" type="hbba_state_node"
-      respawn="false" output="screen" launch-prefix="gnome-terminal --command"/>
-
     <!-- Perception's Node -->
+    <!-- POSE DU ROBOT (NOT USE) -->
     <!-- <node name="perception_pose" pkg="base_navigation" type="perception_pose.py" 
     respawn="false" output="screen" launch-prefix="gnome-terminal - -command"/>  -->
 
     <!-- VISION -->
-    <!-- Run avec python -->
-
+    <!-- Run with python 
+        cd ~/tiago_public_ws/src/HomoDeUS/pseudo_detection/scripts/object_detection_package
+        python -m detect - -weights ./yolov7-tiny.pt - -conf-thres 0.4
+    -->
 
     <!-- Behavior's Node -->
+    <!-- BASE ROTATION (NOT USE) -->
     <!-- <node name="BaseRotate" pkg="BaseRotate" type="main_baseRotate.py"
       respawn="false" output="screen" launch-prefix="gnome-terminal - -command"/> -->
 
@@ -106,45 +95,17 @@
     <node name="main_navSelector" pkg="NavigationSelector" type="main_navSelector.py"
       respawn="false" output="screen" launch-prefix="gnome-terminal --command"/>
 
-    <!-- DISCUSSION -->
+    <!-- TALK (ISSUE PASS PARAMETERS) -->
     <node name="talkInterface" pkg="HD_audio" type="talkInterface.py"
       respawn="false" output="screen" launch-prefix="gnome-terminal --command"/>
-
-    <node name="oneDiscuss" pkg="HD_audio" type="oneDiscuss.py"
-      respawn="false" output="screen" launch-prefix="gnome-terminal --command"
-      args="--tts hdTTS --lang fr"/>
     
-    <!-- DISCUSSION -->
-    <node name="arm_interface_node" pkg="homodeus_prehension" type="arm_interface_node"
+    <!-- HBBA's Node -->
+    <node name="filter_node" pkg="hbba_state" type="filter_node.py"
       respawn="false" output="screen" launch-prefix="gnome-terminal --command"/>
 
+    <node name="hbba_state_node" pkg="hbba_state" type="hbba_state_node"
+      respawn="false" output="screen" launch-prefix="gnome-terminal --command"/>
 
   </group>
 
 </launch>
-
-
-<!-- 
-Navigation :
-rosrun NavigationSelector main_navSelector.py
-
-
-Vision :
-cd ~/tiago_public_ws/src/HomoDeUS/pseudo_detection/scripts/object_detection_package
-python -m detect - -weights ./yolov7-tiny.pt - -conf-thres 0.4
-
-
-Dialog :
-cd ~/tiago_public_ws/src/HomoDeUS/HD_audio/src
-python talkInterface.py
-
-
-HBBA :
-rosrun hbba_state filter_node.py
-
-rosrun hbba_state hbba_state_node 
-
-rosrun HD_audio oneDiscuss.py - -tts hdTTS - -lang fr
-
-
--->
