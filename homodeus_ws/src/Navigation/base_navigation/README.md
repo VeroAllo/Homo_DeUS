@@ -66,12 +66,12 @@ roslaunch tiago_2dnav_gazebo tiago_navigation.launch public_sim:=true
 
 ### Lancer la perception Pose du robot
 ```bash
-rosrun perception_pose perception_pose.py
+rosrun base_navigation perception_pose.py
 ```
 
 ### Lancer le comportement de rotation de la base
 ```bash
-rosrun turn_around baseRotateInterface.py
+rosrun base_navigation baseRotateInterface.py
 ```
 
 ### Ou vous pouvez lancer le *launch* ROS au lieu des 3 cmds ci-dessus
