@@ -1,0 +1,85 @@
+Tous :
+
+cd ~/tiago_public_ws
+source ./devel/setup.bash
+export ROS_MASTER_URI=http://10.68.0.1:11311
+export ROS_IP=10.68.0.132
+
+
+cd ~/tiago_public_ws
+source ./devel_isolated/setup.bash
+export ROS_MASTER_URI=http://10.68.0.1:11311
+export ROS_IP=10.68.0.132
+
+cd ~/tiago_public_ws
+export ROS_MASTER_URI=http://10.68.0.1:11311
+export ROS_IP=10.68.0.132
+
+
+rosservice call /global_localization "{}"
+
+--- Accueillir Client ---
+
+Navigation :
+rosrun NavigationSelector main_navSelector.py
+
+
+Vision :
+cd ~/tiago_public_ws/src/HomoDeUS/pseudo_detection/scripts/object_detection_package
+python -m detect --weights ./yolov7-tiny.pt --conf-thres 0.4
+
+
+Dialog :
+cd ~/tiago_public_ws/src/HomoDeUS/HD_audio/src
+rosrun HD_audio talkInterface.py --tts hdTTS
+
+
+
+HBBA :
+rosrun hbba_state filter_node.py
+
+rosrun hbba_state hbba_state_node
+
+
+--- Prendre Commande ---
+TODO
+cd ~/tiago_public_ws/src/HomoDeUS/HD_audio/src
+rosrun HD_audio oneDiscuss.py --tts hdTTS --lang fr
+
+
+--- Chercher Commande ---
+
+Navigation :
+rosrun NavigationSelector main_navSelector.py
+
+
+Vision :
+cd ~/tiago_public_ws/src/HomoDeUS/pseudo_detection/scripts/object_detection_package
+python -m detect_can --weights ./tiny_canettes.pt --conf-thres 0.4
+
+
+Prehension:
+
+source ./devel_isolated/setup.bash
+roslaunch homodeus_prehension object_segmentation.launch
+
+source ./devel_isolated/setup.bash
+rosrun homodeus_prehension arm_interface_node
+
+
+HBBA :
+rostopic pub /strategy_to_motivation std_msgs/String "data: 'Commande:coke'"
+
+rosrun hbba_state filter_node.py
+
+rosrun hbba_state hbba_state_node
+
+
+rostopic echo -n 1 /gripper_current_limit_controller/state
+rostopic pub /gripper_current_limit_controller/command pal_control_msgs/ActuatorCurrentLimit "actuator_names:
+- 'gripper_motor'
+current_limits: 
+- 0.1" --once
+
+
+/home/totok/ws_moveit/devel/.priva

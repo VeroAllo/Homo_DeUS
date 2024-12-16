@@ -1,0 +1,32 @@
+#include "GreetingState.h"
+#include "../StateManager.h"
+#include "../commons/GoToTableState.h"
+
+using namespace std;
+
+GreetingState::GreetingState(
+    StateManager& stateManager,
+    shared_ptr<DesireSet> desireSet,
+    ros::NodeHandle& nodeHandle,
+    std::type_index nextStateType,
+    int Intensite, std::string language)
+    : TalkState(stateManager, desireSet, nodeHandle, nextStateType, Intensite, language)
+{
+
+}
+
+GreetingState::~GreetingState(){
+    
+}
+
+string GreetingState::generateText(const string& parameter){
+    if (m_language == "en"){
+        return "Greeting, would you please follow me.";
+    }
+    else {
+        return "Bonjour et bienvenue au Tiagoh Bistro, veuillez prendre une place assise.";
+    }
+    
+}
+    
+

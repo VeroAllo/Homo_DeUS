@@ -1,0 +1,45 @@
+====================
+ === Compilation ROBOT ===
+====================
+cd ~/tiago_public_ws
+source /home/totok/ws_moveit/devel/setup.bash
+catkin_make_isolated -j $(expr `nproc` / 2)
+
+=======================================
+
+
+cd ~/tiago_public_ws
+source ./devel_isolated/setup.bash
+export ROS_MASTER_URI=http://10.68.0.1:11311
+export ROS_IP=10.68.0.132
+
+roslaunch Scenarios ScenarioServeur.launch
+
+ros
+
+cd ~/tiago_public_ws/src/HomoDeUS/pseudo_detection/scripts/object_detection_package
+python -m detect --weights ./yolov7-tiny.pt --conf-thres 0.4
+
+cd ~/tiago_public_ws/src/HomoDeUS/pseudo_detection/scripts/object_detection_package
+python -m detect_can --weights ./jus_v10.pt --conf-thres 0.25
+
+rosservice call /global_localization "{}"
+
+
+
+===========================================
+
+
+roslaunch homodeus_prehension object_segmentation.launch
+
+rosrun homodeus_prehension arm_interface_node
+
+rosrun pseudo_detection pseudo_detection
+
+
+rostopic echo -n 1 /gripper_current_limit_controller/state
+
+rostopic pub /gripper_current_limit_controller/command pal_control_msgs/ActuatorCurrentLimit "actuator_names:
+- 'gripper_motor'
+current_limits: 
+- 0.2" --once
